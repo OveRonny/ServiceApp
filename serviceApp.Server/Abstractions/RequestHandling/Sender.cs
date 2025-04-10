@@ -1,10 +1,8 @@
 ﻿
 namespace serviceApp.Server.Abstractions.RequestHandling;
 
-public class Sender(ServiceProvider provider) : ISender
+public class Sender(IServiceProvider provider) : ISender
 {
-    private readonly ServiceProvider provider = provider;
-
     public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
     {
         var handlerType = typeof(IRequestHandler<,>).MakeGenericType(request.GetType(), typeof(TResponse));

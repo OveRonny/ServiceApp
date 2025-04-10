@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35919.96 d17.13
+VisualStudioVersion = 17.13.35919.96
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scr", "scr", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "serviceApp.Server", "serviceApp.Server\serviceApp.Server.csproj", "{AAE92188-B279-42F8-8171-870E3156C2D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceApp.Shared", "ServiceApp.Shared\ServiceApp.Shared.csproj", "{BBF3EA97-127C-416A-B108-E6AA94129F0E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,12 +19,17 @@ Global
 		{AAE92188-B279-42F8-8171-870E3156C2D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AAE92188-B279-42F8-8171-870E3156C2D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AAE92188-B279-42F8-8171-870E3156C2D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBF3EA97-127C-416A-B108-E6AA94129F0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBF3EA97-127C-416A-B108-E6AA94129F0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBF3EA97-127C-416A-B108-E6AA94129F0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBF3EA97-127C-416A-B108-E6AA94129F0E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{AAE92188-B279-42F8-8171-870E3156C2D2} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{BBF3EA97-127C-416A-B108-E6AA94129F0E} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6939854C-37EC-4BF3-88A5-C23645F80906}

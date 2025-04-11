@@ -33,7 +33,7 @@ public class GetVehicleByIdController(ISender sender) : ControllerBase
         {
             return NotFound(result.Error);
         }
-        return Ok(result);
+        return Ok(result.Value);
     }
 }
 

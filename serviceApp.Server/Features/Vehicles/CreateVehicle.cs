@@ -40,7 +40,7 @@ public class CreateVehicleController(ISender sender) : ControllerBase
     public async Task<ActionResult<CreateVehicle.Response>> CreateVehicle([FromBody] CreateVehicle.Command command)
     {
         var result = await sender.Send(command);
-        return Ok(result);
+        return Ok(result.Value);
     }
 }
 

@@ -1,9 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using serviceApp.Server.Abstractions;
-using serviceApp.Server.Abstractions.RequestHandling;
-using serviceApp.Server.Data;
-
-namespace serviceApp.Server.Features.Vehicles;
+﻿namespace serviceApp.Server.Features.Vehicles;
 
 public static class GetvehicleById
 {

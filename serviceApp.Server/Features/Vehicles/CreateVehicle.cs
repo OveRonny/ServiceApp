@@ -1,16 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using serviceApp.Server.Abstractions;
-using serviceApp.Server.Abstractions.RequestHandling;
-using serviceApp.Server.Data;
-using serviceApp.Server.Entities;
-
-namespace serviceApp.Server.Features.Vehicles;
+﻿namespace serviceApp.Server.Features.Vehicles;
 
 public static class CreateVehicle
 {
-    public record Command(string Make, string Model, string Year, string Color, string LicensePlate) : ICommand<Response>;
+    public record Command(string Make, string Model, string Year, string Color, string LicensePlate, int OwnerId) : ICommand<Response>;
 
-    public record Response(int Id, string Make, string Model, string Year, string Color, string LicensePlate, DateTime DateCreated);
+    public record Response(int Id, string Make, string Model, string Year, string Color, string LicensePlate, int OwnerId, DateTime DateCreated);
 
     public class Handler(ApplicationDbContext context) : ICommandHandler<Command, Response>
     {
@@ -25,19 +19,20 @@ public static class CreateVehicle
                 Year = request.Year,
                 Color = request.Color,
                 LicensePlate = request.LicensePlate,
-                DateCreated = DateTime.Now
+                DateCreated = DateTime.Now,
+                OwnerId = request.OwnerId
             };
             context.Vehicles.Add(vehicle);
             await context.SaveChangesAsync(cancellationToken);
-            return new Response(vehicle.Id, vehicle.Make, vehicle.Model, vehicle.Year, vehicle.Color, vehicle.LicensePlate, vehicle.DateCreated);
+            return new Response(vehicle.Id, vehicle.Make, vehicle.Model, vehicle.Year, vehicle.Color, vehicle.LicensePlate, vehicle.OwnerId, vehicle.DateCreated);
         }
     }
 
 }
 
 [ApiController]
-[Route("api/[controller]")]
-public class VehicleController(ISender sender) : ControllerBase
+[Route("api/vehicle")]
+public class CreateVehicleController(ISender sender) : ControllerBase
 {
     private readonly ISender sender = sender;
 

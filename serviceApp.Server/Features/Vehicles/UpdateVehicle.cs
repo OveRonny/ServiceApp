@@ -1,14 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using serviceApp.Server.Abstractions;
-using serviceApp.Server.Abstractions.RequestHandling;
-using serviceApp.Server.Data;
-
-namespace serviceApp.Server.Features.Vehicles;
+﻿namespace serviceApp.Server.Features.Vehicles;
 
 public static class UpdateVehicle
 {
-    public record class Command(int Id, string Make, string Model, string Year, string Color, string LicensePlate) : ICommand<Response>;
-    public record Response(int Id, string Make, string Model, string Year, string Color, string LicensePlate, DateTime DateCreated);
+    public record class Command(int Id, string Make, string Model, string Year, string Color, int OwnerId, string LicensePlate) : ICommand<Response>;
+    public record Response(int Id, string Make, string Model, string Year, string Color, string LicensePlate, int OwnerId, DateTime DateCreated);
 
     public class Handler(ApplicationDbContext context) : ICommandHandler<Command, Response>
     {
@@ -25,8 +20,9 @@ public static class UpdateVehicle
             vehicle.Year = request.Year;
             vehicle.Color = request.Color;
             vehicle.LicensePlate = request.LicensePlate;
+            vehicle.OwnerId = request.OwnerId;
             await context.SaveChangesAsync(cancellationToken);
-            return new Response(vehicle.Id, vehicle.Make, vehicle.Model, vehicle.Year, vehicle.Color, vehicle.LicensePlate, vehicle.DateCreated);
+            return new Response(vehicle.Id, vehicle.Make, vehicle.Model, vehicle.Year, vehicle.Color, vehicle.LicensePlate, vehicle.OwnerId, vehicle.DateCreated);
         }
     }
 }

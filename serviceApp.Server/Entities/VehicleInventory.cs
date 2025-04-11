@@ -6,6 +6,8 @@ public class VehicleInventory
     public string PartName { get; set; } = string.Empty;
     public int? QuantityInStock { get; set; }
     public int? ReorderThreshold { get; set; }
+
+    public string Description { get; set; } = string.Empty;
     public decimal Cost { get; set; }
     public DateTime PurchaseDate { get; set; }
     public int VehicleId { get; set; }

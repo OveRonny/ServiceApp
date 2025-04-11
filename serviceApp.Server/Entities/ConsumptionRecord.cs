@@ -12,4 +12,27 @@ public class ConsumptionRecord
 
     public int MileageHistoryId { get; set; }
     public MileageHistory? MileageHistory { get; set; }
+
+    public decimal TotalCost => DieselAdded * DieselPricePerLiter;
+
+    public decimal? DieselConsumption
+    {
+        get
+        {
+            if (MileageHistory?.Vehicle == null) return null;
+
+            // Hent forrige MileageHistory for kjøretøyet
+            var previousMileage = MileageHistory.Vehicle.MileageHistories
+                .Where(m => m.RecordedDate < MileageHistory.RecordedDate)
+                .OrderByDescending(m => m.RecordedDate)
+                .FirstOrDefault();
+
+            if (previousMileage == null || MileageHistory.Mileage <= previousMileage.Mileage)
+            {
+                return null;
+            }
+
+            return DieselAdded / (MileageHistory.Mileage - previousMileage.Mileage);
+        }
+    }
 }

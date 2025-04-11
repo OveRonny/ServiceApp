@@ -44,6 +44,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder.Entity<ServiceRecord>()
             .Property(s => s.Cost)
             .HasPrecision(9, 2);
+
+        modelBuilder.Entity<ConsumptionRecord>()
+       .HasOne(c => c.MileageHistory)
+       .WithMany()
+       .HasForeignKey(c => c.MileageHistoryId)
+       .OnDelete(DeleteBehavior.Cascade);
     }
 }
 

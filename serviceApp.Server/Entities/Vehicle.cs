@@ -8,5 +8,8 @@ public class Vehicle
     public string Year { get; set; } = string.Empty;
     public string Color { get; set; } = string.Empty;
     public string LicensePlate { get; set; } = string.Empty;
+    public int OwnerId { get; set; }
     public DateTime DateCreated { get; set; } = DateTime.Now;
+
+    public Owner? Owner { get; set; }
 }

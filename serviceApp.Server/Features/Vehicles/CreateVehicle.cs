@@ -8,7 +8,7 @@ namespace serviceApp.Server.Features.Vehicles;
 
 public static class CreateVehicle
 {
-    public record class Command(string Make, string Model, string Year, string Color, string LicensePlate) : ICommand<Response>;
+    public record Command(string Make, string Model, string Year, string Color, string LicensePlate) : ICommand<Response>;
 
     public record Response(int Id, string Make, string Model, string Year, string Color, string LicensePlate, DateTime DateCreated);
 

@@ -12,6 +12,9 @@ public class ServiceRecord
     public ServiceType? ServiceType { get; set; }
     public int ServiceCompanyId { get; set; }
 
+    public int MileageHistoryId { get; set; }
+    public MileageHistory? MileageHistory { get; set; }
+
     public ServiceCompany? ServiceCompany { get; set; }
 
     public ICollection<Parts> Parts { get; set; } = new List<Parts>();

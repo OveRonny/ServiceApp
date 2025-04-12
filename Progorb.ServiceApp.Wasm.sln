@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "serviceApp.Server", "servic
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceApp.Shared", "ServiceApp.Shared\ServiceApp.Shared.csproj", "{BBF3EA97-127C-416A-B108-E6AA94129F0E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceApp.UI", "ServiceApp.UI\ServiceApp.UI.csproj", "{4CE4F4AF-4AB4-4300-815D-56BBE4BFF964}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +25,10 @@ Global
 		{BBF3EA97-127C-416A-B108-E6AA94129F0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BBF3EA97-127C-416A-B108-E6AA94129F0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BBF3EA97-127C-416A-B108-E6AA94129F0E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CE4F4AF-4AB4-4300-815D-56BBE4BFF964}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CE4F4AF-4AB4-4300-815D-56BBE4BFF964}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CE4F4AF-4AB4-4300-815D-56BBE4BFF964}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CE4F4AF-4AB4-4300-815D-56BBE4BFF964}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -30,6 +36,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{AAE92188-B279-42F8-8171-870E3156C2D2} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{BBF3EA97-127C-416A-B108-E6AA94129F0E} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{4CE4F4AF-4AB4-4300-815D-56BBE4BFF964} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6939854C-37EC-4BF3-88A5-C23645F80906}

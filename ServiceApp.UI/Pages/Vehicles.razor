@@ -1,0 +1,60 @@
+﻿@page "/vehicles"
+@inject IVehicleService vehicleService
+@inject NavigationManager NavigationManager
+
+<h3>Vehicles</h3>
+
+<button type="button" class="btn btn-primary" @onclick="CreateVehicle">Nytt kjøretøy</button>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th> 
+            <th>Eier</th>
+            <th>Brand</th>
+            <th>Model</th>
+            <th>Year</th>
+            <th>Color</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (vehicleModels != null && vehicleModels.Count > 0)
+        {
+            @foreach (var vehicle in vehicleModels)
+            {
+                <tr>
+                    <td>@vehicle.Id</td>
+                    <td>@vehicle.FirstName</td>
+                    <td>
+                        <a href="vehicle/@vehicle.Id">@vehicle.Make</a>
+                    </td>
+                    <td>@vehicle.Model</td>
+                    <td>@vehicle.Year</td>
+                    <td>@vehicle.Color</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="6">No vehicles found.</td>
+            </tr>
+        }
+    </tbody>
+
+</table>
+
+
+@code {
+    private List<VehicleModel> vehicleModels = new List<VehicleModel>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        vehicleModels = await vehicleService.GetAllVehiclesAsync();
+    }
+
+    private void CreateVehicle()
+    {
+        NavigationManager.NavigateTo("vehicle");
+    }
+}

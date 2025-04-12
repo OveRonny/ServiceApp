@@ -9,6 +9,9 @@ public class VehicleModel
     public string Color { get; set; } = string.Empty;
     public string LicensePlate { get; set; } = string.Empty;
     public int OwnerId { get; set; }
+
+    public string? FirstName { get; set; } = string.Empty;
+
     public DateTime DateCreated { get; set; } = DateTime.Now;
 
     public OwnerModel? Owner { get; set; }

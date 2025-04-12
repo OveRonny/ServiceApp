@@ -3,7 +3,8 @@
 public static class GetvehicleById
 {
     public record class Query(int Id) : IQuery<Response>;
-    public record Response(int Id, string Make, string Model, string Year, string Color, string LicensePlate, DateTime DateCreated);
+    public record Response(int Id, int OwnerId, string Make, string Model, string Year, string Color,
+        string LicensePlate, DateTime DateCreated);
     public class Handler(ApplicationDbContext context) : IQueryHandler<Query, Response>
     {
         private readonly ApplicationDbContext context = context;
@@ -14,7 +15,7 @@ public static class GetvehicleById
             {
                 return Result.Fail<Response>($"Vehicle with ID {request.Id} not found.");
             }
-            return new Response(vehicle.Id, vehicle.Make, vehicle.Model, vehicle.Year, vehicle.Color, vehicle.LicensePlate, vehicle.DateCreated);
+            return new Response(vehicle.Id, vehicle.OwnerId, vehicle.Make, vehicle.Model, vehicle.Year, vehicle.Color, vehicle.LicensePlate, vehicle.DateCreated);
         }
     }
 }

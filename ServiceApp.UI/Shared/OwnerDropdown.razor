@@ -2,7 +2,7 @@
 
 <div class="mb-3">
     <InputSelect @bind-Value="selectedOwnerId" @bind-Value:after="OnInput" class="form-select">
-        <option value="">Select Owner</option>
+        <option value="0">Velg eier</option>
         @foreach (var owner in owners)
         {
             <option value="@owner.Id">@owner.FirstName @owner.LastName</option>
@@ -17,7 +17,8 @@
     [Parameter]
     public EventCallback<int> SelectedOwnerIdChanged { get; set; }
 
-    private int selectedOwnerId;
+    [Parameter]
+    public int selectedOwnerId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {

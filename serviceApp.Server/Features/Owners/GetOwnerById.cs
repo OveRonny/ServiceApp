@@ -17,7 +17,7 @@ public static class GetOwnerById
             {
                 return Result.Fail<Response>($"Owner with ID {request.Id} not found.");
             }
-            return owner;
+            return Result.Ok(owner);
         }
     }
 }
@@ -36,7 +36,7 @@ public class GetOwnerByIdController(ISender sender) : ControllerBase
         {
             return NotFound(result.Error);
         }
-        return Ok(result);
+        return Ok(result.Value);
     }
 }
 

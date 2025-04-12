@@ -1,0 +1,59 @@
+﻿@page "/owners"
+@inject IOwnerService ownerService
+@inject NavigationManager navigationManager
+
+<h3>Owners</h3>
+
+<button type="button" class="btn btn-primary mb-2" @onclick="NavigateToOwner">Ny Eier</button>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Fornavn</th>
+            <th>Etternavn</th>
+            <th>Address</th>
+            <th>Phone</th>
+            <th>Epost</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (ownerModels != null && ownerModels.Count > 0)
+        {
+            @foreach (var owner in ownerModels)
+            {
+                <tr>
+                    <td>@owner.Id</td>
+                    <td>
+                        <a href="owner/@owner.Id">@owner.FirstName</a>
+                    </td>
+                    <td>@owner.LastName</td>
+                    <td>@owner.Address</td>
+                    <td>@owner.PhoneNumber</td>
+                    <td>@owner.Email</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="4">No owners found.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<OwnerModel> ownerModels = new List<OwnerModel>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        ownerModels = await ownerService.GetAllOwnersAsync();
+    }
+
+    private void NavigateToOwner()
+    {
+        navigationManager.NavigateTo("/owner");
+    }
+    
+}

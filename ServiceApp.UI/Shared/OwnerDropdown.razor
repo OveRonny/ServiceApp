@@ -1,0 +1,31 @@
+﻿@inject IOwnerService ownerService
+
+<div class="mb-3">
+    <InputSelect @bind-Value="selectedOwnerId" @bind-Value:after="OnInput" class="form-select">
+        <option value="">Select Owner</option>
+        @foreach (var owner in owners)
+        {
+            <option value="@owner.Id">@owner.FirstName @owner.LastName</option>
+        }
+    </InputSelect>
+</div>
+
+
+@code {
+    private List<OwnerModel> owners = new List<OwnerModel>();
+
+    [Parameter]
+    public EventCallback<int> SelectedOwnerIdChanged { get; set; }
+
+    private int selectedOwnerId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        owners = await ownerService.GetAllOwnersAsync();
+    }
+
+    private async Task OnInput()
+    {
+        await SelectedOwnerIdChanged.InvokeAsync(selectedOwnerId);
+    }
+}

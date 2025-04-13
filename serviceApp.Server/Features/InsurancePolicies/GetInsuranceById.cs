@@ -1,0 +1,53 @@
+﻿namespace serviceApp.Server.Features.InsurancePolicies;
+
+public static class GetInsuranceById
+{
+    public record Query(int Id) : IQuery<Response>;
+    public record Response(InsurancePolicyDto InsurancePolicy);
+    public record InsurancePolicyDto(int Id, string CompanyName, decimal AnnualPrice, int AnnualMileageLimit,
+        int VehicleId, DateTime RenewalDate, int StartingMileage, bool IsActive, DateTime? EndDate);
+    public class Handler(ApplicationDbContext context) : IQueryHandler<Query, Response>
+    {
+        private readonly ApplicationDbContext context = context;
+        public async Task<Result<Response>> Handle(Query request, CancellationToken cancellationToken)
+        {
+            var insurancePolicy = await context.InsurancePolicies
+                .Include(i => i.Vehicle)
+                .FirstOrDefaultAsync(i => i.Id == request.Id, cancellationToken);
+            if (insurancePolicy == null)
+            {
+                return Result.Fail<Response>($"Insurance policy with ID {request.Id} not found.");
+            }
+            var insurancePolicyDto = new InsurancePolicyDto(
+                insurancePolicy.Id,
+                insurancePolicy.CompanyName,
+                insurancePolicy.AnnualPrice,
+                insurancePolicy.AnnualMileageLimit,
+                insurancePolicy.VehicleId,
+                insurancePolicy.RenewalDate,
+                insurancePolicy.StartingMileage,
+                insurancePolicy.IsActive,
+                insurancePolicy.EndDate
+            );
+            return Result.Ok(new Response(insurancePolicyDto));
+        }
+    }
+}
+
+[ApiController]
+[Route("api/insurance")]
+public class GetInsuranceByIdController(ISender sender) : ControllerBase
+{
+    private readonly ISender sender = sender;
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<GetInsuranceById.Response>> getInsuranceById(int id)
+    {
+        var result = await sender.Send(new GetInsuranceById.Query(id));
+        if (result.Failure)
+        {
+            return NotFound(result.Error);
+        }
+        return Ok(result.Value);
+    }
+}

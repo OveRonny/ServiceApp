@@ -22,8 +22,4 @@
     <ProjectReference Include="..\ServiceApp.Shared\ServiceApp.Shared.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Features\InsurancePolicies\" />
-  </ItemGroup>
-
 </Project>

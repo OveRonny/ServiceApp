@@ -11,38 +11,30 @@ public class InsurancePolicy
     public DateTime RenewalDate { get; set; }
     public int StartingMileage { get; set; }
 
-    public ICollection<InsuranceHistory> InsuranceHistories { get; set; } = new List<InsuranceHistory>();
+    public bool IsActive { get; set; }
+    public DateTime? EndDate { get; set; }
 
-    public int CalculateRemainingMileage()
+    public int CalculateRemainingMileage(IEnumerable<MileageHistory> mileageHistories)
     {
-        if (Vehicle == null || Vehicle.MileageHistories == null || !Vehicle.MileageHistories.Any())
-        {
-            throw new InvalidOperationException("No mileage history available for the vehicle.");
-        }
-
-        // Get the latest mileage record
-        var latestMileage = Vehicle.MileageHistories
+        // Find the latest odometer reading from the mileage history
+        var latestMileageRecord = mileageHistories
+            .Where(m => m.VehicleId == VehicleId && m.RecordedDate >= RenewalDate && m.RecordedDate <= (EndDate ?? DateTime.UtcNow))
             .OrderByDescending(m => m.RecordedDate)
             .FirstOrDefault();
 
-        if (latestMileage == null)
+        if (latestMileageRecord == null)
         {
-            throw new InvalidOperationException("No mileage history available for the vehicle.");
+            // If no mileage records exist, assume no mileage has been driven
+            return AnnualMileageLimit;
         }
 
-        // Get the mileage at the start of the insurance period
-        var startMileage = Vehicle.MileageHistories
-            .Where(m => m.RecordedDate <= RenewalDate.AddYears(-1)) // Assuming annual renewal
-            .OrderByDescending(m => m.RecordedDate)
-            .FirstOrDefault()?.Mileage ?? 0;
-
-        // Calculate total mileage driven
-        var totalMileageDriven = latestMileage.Mileage - startMileage;
+        // Calculate mileage driven during the policy period
+        int mileageDriven = latestMileageRecord.Mileage - StartingMileage;
 
         // Calculate remaining mileage
-        var remainingMileage = AnnualMileageLimit - totalMileageDriven;
+        int remainingMileage = AnnualMileageLimit - mileageDriven;
 
-        // Ensure remaining mileage is not negative
-        return remainingMileage > 0 ? remainingMileage : 0;
+        // Ensure the remaining mileage is not negative
+        return Math.Max(remainingMileage, 0);
     }
 }

@@ -5,7 +5,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Vehicle> Vehicles { get; set; }
     public DbSet<Owner> Owner { get; set; }
     public DbSet<InsurancePolicy> InsurancePolicies { get; set; }
-    public DbSet<InsuranceHistory> InsuranceHistories { get; set; }
     public DbSet<MileageHistory> MileageHistories { get; set; }
     public DbSet<VehicleInventory> VehicleInventories { get; set; }
     public DbSet<Supplier> Suppliers { get; set; }
@@ -24,10 +23,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder.Entity<ConsumptionRecord>()
               .Property(c => c.DieselAdded)
                   .HasPrecision(9, 2);
-
-        modelBuilder.Entity<InsuranceHistory>()
-            .Property(i => i.AnnualPrice)
-            .HasPrecision(9, 2);
 
         modelBuilder.Entity<InsurancePolicy>()
             .Property(i => i.AnnualPrice)

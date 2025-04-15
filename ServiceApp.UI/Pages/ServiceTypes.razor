@@ -1,0 +1,41 @@
+﻿@page "/servicetypes"
+@inject IServiceTypeService ServiceTypeService
+@inject NavigationManager NavigationManager
+
+<button type="button" class="btn btn-primary" @onclick="NavigateToNewServiceType" >Ny service type</button>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Service type</th>
+
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var serviceType in serviceTypes)
+        {
+            <tr>
+                <td>@serviceType.Id</td>
+                <td>
+                    <a href="servicetype/@serviceType.Id">@serviceType.Name</a>
+                </td>               
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@code {
+    private List<ServiceTypeModel> serviceTypes = new List<ServiceTypeModel>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        serviceTypes = await ServiceTypeService.GetServiceTypesAsync();
+    }
+
+    private void NavigateToNewServiceType()
+    {
+        NavigationManager.NavigateTo("/servicetype");
+    }
+}

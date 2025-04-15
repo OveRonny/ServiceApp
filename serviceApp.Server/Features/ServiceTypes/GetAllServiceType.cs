@@ -28,6 +28,6 @@ public class GetAllServiceTypeController(ISender sender) : ControllerBase
     public async Task<ActionResult<List<GetAllServiceType.Response>>> GetAllServiceTypes()
     {
         var result = await sender.Send(new GetAllServiceType.Query());
-        return Ok(result);
+        return Ok(result.Value);
     }
 }

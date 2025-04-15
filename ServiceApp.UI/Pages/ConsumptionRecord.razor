@@ -1,0 +1,105 @@
+﻿@page "/consumptionrecord/{id:int}"
+@page "/consumptionrecord"
+@page "/consumptionrecord/create/vehicle/{vehicleId:int}"
+@inject IConsumptionRecordService ConsumptionRecordService
+@inject NavigationManager NavigationManager
+
+<h3>ConsumptionRecord</h3>
+
+<EditForm Model="consumptionRecord" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <VehicleDropdown @bind-SelectedVehicleId="consumptionRecord.VehicleId" />
+    </div>
+
+    <div class="mb-3">
+        <label for="date" class="form-label" >Dato</label>
+        <InputDate id="date" class="form-control" @bind-Value="consumptionRecord.Date" />
+        <ValidationMessage For="@(() => consumptionRecord.Date)" />
+    </div>
+    <div class="mb-3">
+        <label for="dieselAdded" class="form-label">Antall liter</label>
+        <InputNumber id="dieselAdded" class="form-control" @bind-Value="consumptionRecord.DieselAdded" />
+        <ValidationMessage For="@(() => consumptionRecord.DieselAdded)" />
+    </div>
+    <div class="mb-3">
+        <label for="DieselPricePerLiter" class="form-label">Pris</label>
+        <InputNumber id="DieselPricePerLiter" class="form-control" @bind-Value="consumptionRecord.DieselPricePerLiter" />
+        <ValidationMessage For="@(() => consumptionRecord.DieselPricePerLiter)" />
+    </div>
+    <div class="mb-3">
+        <label for="Mileage" class="form-label">Kilometer</label>
+        <InputNumber id="Mileage" class="form-control" @bind-Value="consumptionRecord.Mileage" />
+        <ValidationMessage For="@(() => consumptionRecord.Mileage)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Lagre</button>
+    <button type="button" class="btn btn-secondary" @onclick="Cancel">Avbryt</button>
+    @if (Id > 0)
+    {
+        <button type="button" class="btn btn-danger" @onclick="DeleteConsumption">Slett</button>
+    }  
+
+</EditForm>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    [Parameter]
+    public int VehicleId { get; set; }
+
+    private ConsumptionRecordModel consumptionRecord = new ConsumptionRecordModel();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id > 0)
+        {            
+            consumptionRecord = await ConsumptionRecordService.GetConsumptionRecordByIdAsync(Id);
+        }
+        else if (VehicleId > 0)
+        {            
+            consumptionRecord.VehicleId = VehicleId;
+        }
+        else
+        {            
+            consumptionRecord = new ConsumptionRecordModel();
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (Id > 0)
+        {
+            await ConsumptionRecordService.UpdateConsumptionRecordAsync(consumptionRecord);
+        }
+        else
+        {
+            await ConsumptionRecordService.CreateConsumptionRecordAsync(consumptionRecord);
+        }
+        // Redirect to the list page or show a success message
+        NavigatToConsumptionRecords();
+    }
+
+    private async Task DeleteConsumption()
+    {
+        if (Id > 0)
+        {
+            await ConsumptionRecordService.DeleteConsumptionRecordAsync(Id);
+            NavigatToConsumptionRecords();
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigatToConsumptionRecords();
+    }
+
+    private void NavigatToConsumptionRecords()
+    {
+        VehicleId = consumptionRecord.VehicleId;
+        NavigationManager.NavigateTo($"/consumptionrecords/{VehicleId}");
+    }
+
+}

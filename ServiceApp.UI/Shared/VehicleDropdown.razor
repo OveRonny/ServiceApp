@@ -1,0 +1,32 @@
+﻿@inject IVehicleService VehicleService
+
+<div class="mb-3">
+    <InputSelect @bind-Value="selectedVehicleId" @bind-Value:after="OnInput" class="form-select">
+        <option value="0">Velg kjøretøy</option>
+        @foreach (var vehicle in vehicles)
+        {
+            <option value="@vehicle.Id">@vehicle.Make @vehicle.Model</option>
+        }
+    </InputSelect>
+</div>
+
+
+@code {
+    private List<VehicleModel> vehicles = new List<VehicleModel>();
+
+    [Parameter]
+    public EventCallback<int> SelectedVehicleIdChanged { get; set; }
+
+    [Parameter]
+    public int selectedVehicleId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        vehicles = await VehicleService.GetAllVehiclesAsync();
+    }
+
+    private async Task OnInput()
+    {
+        await SelectedVehicleIdChanged.InvokeAsync(selectedVehicleId);
+    }
+}

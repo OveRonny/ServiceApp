@@ -2,25 +2,41 @@
 
 public static class GetAllConsumptionRecord
 {
-    public record Query(int VehicleId) : IQuery<Response>;
-    public record Response(List<ConsumptionRecordDto> ConsumptionRecords);
+    public record Query(int VehicleId, DateTime? StartDate, DateTime? EndDate) : IQuery<List<Response>>;
 
-    public record ConsumptionRecordDto(int Id, int VehicleId, DateTime Date, decimal DieselAdded, decimal DieselPricePerLiter,
-        decimal TotalCost, decimal? DieselConsumption, int MileageHistoryId, int Mileage, int? Hours);
 
-    public class Handler(ApplicationDbContext context) : IQueryHandler<Query, Response>
+    public record Response(int Id, int VehicleId, DateTime Date, decimal DieselAdded, decimal DieselPricePerLiter,
+        decimal TotalCost, decimal? DieselConsumption, int MileageHistoryId, int Mileage, int? Hours, string Make, string Model);
+
+    public record VehicleDto(int Id, string Make, string Model);
+
+
+    public class Handler(ApplicationDbContext context) : IQueryHandler<Query, List<Response>>
     {
         private readonly ApplicationDbContext context = context;
-        public async Task<Result<Response>> Handle(Query request, CancellationToken cancellationToken)
+        public async Task<Result<List<Response>>> Handle(Query request, CancellationToken cancellationToken)
         {
-            var consumptionRecords = await context.ConsumptionRecords
+            var query = context.ConsumptionRecords
                 .Include(c => c.MileageHistory)
-                .ThenInclude(m => m!.Vehicle)
-                .ThenInclude(v => v!.MileageHistories)
-                .Where(c => c.VehicleId == request.VehicleId)
-                .ToListAsync(cancellationToken);
+                .Include(v => v.Vehicle)
+                .Where(c => c.VehicleId == request.VehicleId);
 
-            var consumptionRecordDtos = consumptionRecords.Select(v => new ConsumptionRecordDto(
+            // Filtrer basert på tidsperiode
+            if (request.StartDate.HasValue)
+            {
+                var startDate = request.StartDate.Value;
+                query = query.Where(c => c.Date >= startDate); // Records on or after StartDate
+            }
+
+            if (request.EndDate.HasValue)
+            {
+                var endDate = request.EndDate.Value;
+                query = query.Where(c => c.Date <= endDate); // Records on or before EndDate
+            }
+
+            var consumptionRecords = await query.ToListAsync(cancellationToken);
+
+            var response = consumptionRecords.Select(v => new Response(
                 v.Id,
                 v.VehicleId,
                 v.Date,
@@ -30,10 +46,10 @@ public static class GetAllConsumptionRecord
                 v.DieselConsumption,
                 v.MileageHistoryId,
                 v.MileageHistory!.Mileage,
-                v.MileageHistory.Hours
+                v.MileageHistory.Hours,
+                v.Vehicle!.Make,
+                v.Vehicle.Model
             )).ToList();
-
-            var response = new Response(consumptionRecordDtos);
 
             return Result.Ok(response);
         }
@@ -47,9 +63,14 @@ public class GetAllConsumptionRecordController(ISender sender) : ControllerBase
     private readonly ISender sender = sender;
 
     [HttpGet("vehicle/{vehicleId}")]
-    public async Task<ActionResult<GetAllConsumptionRecord.Response>> GetAllConsumptionRecord(int vehicleId)
+    public async Task<ActionResult<List<GetAllConsumptionRecord.Response>>> GetAllConsumptionRecord(
+        int vehicleId, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
     {
-        var result = await sender.Send(new GetAllConsumptionRecord.Query(vehicleId));
-        return Ok(result);
+        // Sett standardverdier for siste år hvis ingen datoer er oppgitt
+        startDate = startDate ?? DateTime.UtcNow.Date.AddYears(-1);
+        endDate = endDate?.Date.AddDays(1).AddTicks(-1) ?? DateTime.UtcNow.Date.AddDays(1).AddTicks(-1);
+
+        var result = await sender.Send(new GetAllConsumptionRecord.Query(vehicleId, startDate, endDate));
+        return Ok(result.Value);
     }
 }

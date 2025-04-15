@@ -1,0 +1,113 @@
+﻿@page "/consumptionrecords/{vehicleId:int}"
+@inject IConsumptionRecordService ConsumptionRecordService
+@inject NavigationManager NavigationManager
+
+<h3>ConsumptionRecords</h3>
+
+<button class="btn btn-primary mb-3" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/create/vehicle/{VehicleId}"))">Legg til</button>
+
+<div class="row">
+    <div class="mb-3">
+        <label for="startDate">Startdato:</label>
+        <InputDate id="startDate" @bind-Value="startDate" @bind-Value:after="GetFilteredRecords" />
+    </div>
+    <div class="mb-3">
+        <label for="endDate">Sluttdato:</label>
+        <InputDate id="endDate" @bind-Value="endDate" @bind-Value:after="GetFilteredRecords" />
+    </div>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Dato</th>
+            <th>Kjøretøy</th>
+            <th>Kilometer</th>
+            <th>Antall liter</th>
+            <th>Pris</th>            
+            <th>Forbruk</th>
+            <th>Sum</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var record in consumptionRecords)
+        {
+            <tr>
+                <td>@record.Id</td>
+                <td>@record.Date.ToShortDateString()</td>
+                <td>@record.Make @record.Model</td>
+                <td>@record.Mileage</td>
+                <td>@record.DieselAdded</td>
+                <td>@record.DieselPricePerLiter</td>                
+                <td>@record.DieselConsumption</td>
+                <td>@record.TotalCost.ToString("F2")</td>
+                <td>
+                    <button class="btn btn-primary" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/{record.Id}"))">Rediger</button>
+                    <button class="btn btn-danger" @onclick="@(() => DeleteConsumption(record.Id))">Slett</button>
+                </td>
+            </tr>
+        }
+        <tr>
+            <td colspan="3"><strong>Totalt:</strong></td>
+            <td><strong>@TotalMilage</strong></td>
+            <td><strong>@TotalDieselAdded.ToString("F2")</strong></td>
+            <td></td>
+            <td></td>
+            <td><strong>@TotalCost.ToString("F2")</strong></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Gjennomsnitt</td>
+            <td colspan="4"></td> <!-- Tomme celler for å justere plasseringen -->
+            <td><strong>@AveragePricePerLiter.ToString("F2")</strong></td> <!-- Gjennomsnittspris per liter -->
+            <td colspan="3"></td> <!-- Resten av cellene -->
+        </tr>
+        <tr>
+            <td colspan="3"><strong>Gjennomsnittlig forbruk (liter/km):</strong></td>
+            <td colspan="5"><strong>@AvarageDieselConsumption.ToString("F2")</strong></td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+
+@code {
+    private List<ConsumptionRecordModel> consumptionRecords = new List<ConsumptionRecordModel>();
+
+    [Parameter]
+    public int VehicleId { get; set; }
+
+    private DateTime? startDate = DateTime.UtcNow.AddYears(-1); // Standard: Ett år tilbake
+    private DateTime? endDate = DateTime.UtcNow; // Standard: Dagens dato
+
+    private decimal TotalDieselAdded => consumptionRecords.Sum(r => r.DieselAdded);
+    private decimal TotalCost => consumptionRecords.Sum(r => r.TotalCost);
+    private int TotalMilage =>
+     consumptionRecords.Any()
+         ? consumptionRecords.Max(r => r.Mileage) - consumptionRecords.Min(r => r.Mileage)
+         : 0;
+    private decimal AveragePricePerLiter =>
+    TotalDieselAdded > 0 ? TotalCost / TotalDieselAdded : 0;
+    private decimal AvarageDieselConsumption =>
+    TotalMilage > 0 ? TotalDieselAdded / TotalMilage : 0;
+
+
+    protected override async Task OnParametersSetAsync()  
+    {
+        await GetFilteredRecords();
+    }
+
+    private async Task DeleteConsumption(int id)
+    {
+        await ConsumptionRecordService.DeleteConsumptionRecordAsync(id);
+        await GetFilteredRecords();
+    }
+
+    private async Task GetFilteredRecords()
+    {
+        consumptionRecords = await ConsumptionRecordService.GetAllConsumptionRecordsAsync(VehicleId, startDate, endDate);
+    }
+
+
+}

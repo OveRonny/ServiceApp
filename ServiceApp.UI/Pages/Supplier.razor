@@ -1,0 +1,103 @@
+﻿@page "/supplier"
+@page "/supplier/{id:int}"
+@inject ISupplierService supplierService
+@inject NavigationManager navigationManager
+
+<h3>Supplier</h3>
+
+<EditForm Model="supplier" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <InputText id="name" class="form-control" @bind-Value="supplier.Name" />
+        <ValidationMessage For="@(() => supplier.Name)" />
+    </div>
+    <div class="mb-3">
+        <label for="contactEmail" class="form-label">Epost</label>
+        <InputText id="contactEmail" class="form-control" @bind-Value="supplier.ContactEmail" />
+        <ValidationMessage For="@(() => supplier.ContactEmail)" />
+    </div>
+    <div class="mb-3">
+        <label for="city" class="form-label">Sted</label>
+        <InputText id="city" class="form-control" @bind-Value="supplier.City" />
+        <ValidationMessage For="@(() => supplier.City)" />
+    </div>
+    <div class="mb-3">
+        <label for="contactPhone" class="form-label">Telefon</label>
+        <InputText id="contactPhone" class="form-control" @bind-Value="supplier.ContactPhone" />
+        <ValidationMessage For="@(() => supplier.ContactPhone)" />
+    </div>
+    <div class="mb-3">
+        <label for="address" class="form-label">Adresse</label>
+        <InputText id="address" class="form-control" @bind-Value="supplier.Address" />
+        <ValidationMessage For="@(() => supplier.Address)" />
+    </div>
+    <div class="mb-3">
+        <label for="postalCode" class="form-label">Postnummer</label>
+        <InputText id="postalCode" class="form-control" @bind-Value="supplier.PostalCode" />
+        <ValidationMessage For="@(() => supplier.PostalCode)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Lagre</button>
+    <button type="button" class="btn btn-secondary" @onclick="NavigateToSuppliers">Avbryt</button>
+    @if (Id > 0)
+    {
+        <button type="button" class="btn btn-danger" @onclick="DeleteSupplier">Slett</button>
+    }
+
+</EditForm>
+
+@code {
+    private SupplierModel supplier = new SupplierModel();
+
+    [Parameter]
+    public int Id { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id > 0)
+        {
+            var result = await supplierService.GetSupplierByIdAsync(Id);
+            if (result != null)
+            {
+                supplier = result;
+            }
+            else
+            {                
+                supplier = new SupplierModel();
+            }
+        }
+        else
+        {
+            supplier = new SupplierModel();
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (Id > 0)
+        {
+            await supplierService.UpdateSupplierAsync(supplier);
+        }
+        else
+        {
+            await supplierService.CreateSupplierAsync(supplier);
+        }
+        NavigateToSuppliers();
+    }
+
+    private async Task DeleteSupplier()
+    {
+        if (Id > 0)
+        {
+            await supplierService.DeleteSupplierAsync(Id);
+            NavigateToSuppliers();
+        }
+    }
+
+    private void NavigateToSuppliers()
+    {
+        navigationManager.NavigateTo("/suppliers");
+    }
+}

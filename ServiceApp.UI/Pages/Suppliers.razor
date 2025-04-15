@@ -1,0 +1,52 @@
+﻿@page "/suppliers"
+@inject ISupplierService supplierService
+
+<h3>Suppliers</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Supplier ID</th>
+            <th>Name</th>
+            <th>Epost</th>
+            <th>Sted</th>
+            <th>Telefon</th>
+            <th>Adresse</th>
+            <th>Postnummer</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (suppliers != null && suppliers.Count > 0)
+        {
+            foreach (var supplier in suppliers)
+            {
+                <tr>
+                    <td>@supplier.Id</td>
+                    <td>
+                        <a href="supplier/@supplier.Id">@supplier.Name</a>
+                    </td>
+                    <td>@supplier.ContactEmail</td>
+                    <td>@supplier.City</td>
+                    <td>@supplier.ContactPhone</td>
+                    <td>@supplier.Address</td>
+                    <td>@supplier.PostalCode</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="4">No suppliers found.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<SupplierModel> suppliers = new List<SupplierModel>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        suppliers = await supplierService.GetSuppliersAsync();
+    }
+}

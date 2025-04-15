@@ -4,6 +4,7 @@ using ServiceApp.UI;
 using ServiceApp.UI.Services.ConsumptionRecordServices;
 using ServiceApp.UI.Services.Owners;
 using ServiceApp.UI.Services.ServiceTypeServices;
+using ServiceApp.UI.Services.SupplierServices;
 using ServiceApp.UI.Services.VehicleServices;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -16,5 +17,6 @@ builder.Services.AddScoped<IOwnerService, OwnerService>();
 builder.Services.AddScoped<IConsumptionRecordService, ConsumptionRecordService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IServiceTypeService, ServiceTypeService>();
+builder.Services.AddScoped<ISupplierService, SupplierService>();
 
 await builder.Build().RunAsync();

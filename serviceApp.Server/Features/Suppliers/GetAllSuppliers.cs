@@ -2,18 +2,18 @@
 
 public static class GetAllSuppliers
 {
-    public record Query() : IQuery<Response>;
-    public record Response(List<SupplierDto> Suppliers);
-    public record SupplierDto(int Id, string Name, string ContactEmail, string ContactPhone, string Address, string City, string PostalCode);
-    public class Handler(ApplicationDbContext context) : IQueryHandler<Query, Response>
+    public record Query() : IQuery<List<Response>>;
+    public record Response(int Id, string Name, string ContactEmail, string ContactPhone, string Address, string City, string PostalCode);
+
+    public class Handler(ApplicationDbContext context) : IQueryHandler<Query, List<Response>>
     {
         private readonly ApplicationDbContext context = context;
-        public async Task<Result<Response>> Handle(Query request, CancellationToken cancellationToken)
+        public async Task<Result<List<Response>>> Handle(Query request, CancellationToken cancellationToken)
         {
             var suppliers = await context.Suppliers
-                .Select(s => new SupplierDto(s.Id, s.Name, s.ContactEmail, s.ContactPhone, s.Address, s.City, s.PostalCode))
+                .Select(s => new Response(s.Id, s.Name, s.ContactEmail, s.ContactPhone, s.Address, s.City, s.PostalCode))
                 .ToListAsync(cancellationToken);
-            return new Response(suppliers);
+            return Result.Ok(suppliers);
         }
     }
 }
@@ -28,6 +28,6 @@ public class GetAllSuppliersController(ISender sender) : ControllerBase
     public async Task<ActionResult<GetAllSuppliers.Response>> GetAllSuppliers()
     {
         var result = await sender.Send(new GetAllSuppliers.Query());
-        return Ok(result);
+        return Ok(result.Value);
     }
 }

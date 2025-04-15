@@ -1,0 +1,78 @@
+﻿@page "/servicecompany"
+@page "/servicecompany/{id:int}"
+@inject IServiceCompanyService ServiceCompanyService
+@inject NavigationManager NavigationManager
+
+<h3>ServiceCompany</h3>
+
+<EditForm Model="serviceCompany" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <InputText id="name" class="form-control" @bind-Value="serviceCompany.Name" />
+        <ValidationMessage For="@(() => serviceCompany.Name)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Lagre</button>
+    <button type="button" class="btn btn-secondary" @onclick="NavigateToServiceCompanies">Avbryt</button>
+    @if (Id > 0)
+    {
+        <button type="button" class="btn btn-danger" @onclick="DeleteServiceCompany">Slett</button>
+    }
+
+</EditForm>
+
+@code {
+    private ServiceCompanyModel serviceCompany = new ServiceCompanyModel();
+
+    [Parameter]
+    public int Id { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if(Id > 0)
+        {
+            var company = await ServiceCompanyService.GetServiceCompanyByIdAsync(Id);
+            if (company != null)
+            {
+                serviceCompany = company;
+            }
+            else
+            {
+                serviceCompany = new ServiceCompanyModel();
+            }
+        }
+        else
+        {
+            serviceCompany = new ServiceCompanyModel();
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (Id > 0)
+        {
+            await ServiceCompanyService.UpdateServiceCompanyAsync(serviceCompany);
+        }
+        else
+        {
+            await ServiceCompanyService.AddServiceCompanyAsync(serviceCompany);
+        }
+        NavigateToServiceCompanies();
+    }
+
+    private async Task DeleteServiceCompany()
+    {
+        if (Id > 0)
+        {
+            await ServiceCompanyService.DeleteServiceCompanyAsync(Id);
+            NavigateToServiceCompanies();
+        }
+    }
+
+    private void NavigateToServiceCompanies()
+    {
+        NavigationManager.NavigateTo("/servicecompanies");
+    }
+}

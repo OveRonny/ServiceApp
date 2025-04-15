@@ -1,0 +1,52 @@
+﻿@page "/servicecompanies"
+@inject IServiceCompanyService ServiceCompanyService
+@inject NavigationManager NavigationManager
+
+<h3>ServiceCompanies</h3>
+
+<button class="btn btn-primary" @onclick="NavigateToCreate">Create New Service Company</button>
+
+<table class="table">
+
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>           
+        </tr>
+    </thead>
+    <tbody>
+        @if (serviceCompanies != null && serviceCompanies.Count > 0)
+        {
+            @foreach (var company in serviceCompanies)
+            {
+                <tr>
+                    <td>@company.Id</td>
+                    <td>
+                        <a href="servicecompany/@company.Id">@company.Name</a>
+                    </td>                  
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="5">No service companies found.</td>
+            </tr>
+        }
+    </tbody>
+
+</table>
+
+@code {
+    private List<ServiceCompanyModel> serviceCompanies = new List<ServiceCompanyModel>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        serviceCompanies = await ServiceCompanyService.GetAllServiceCompaniesAsync();
+    }
+
+    private void NavigateToCreate()
+    {
+        NavigationManager.NavigateTo("/servicecompany");
+    }
+}

@@ -18,22 +18,22 @@ public static class GetServiceCompanyById
             return Result.Ok(response);
         }
     }
-}
 
-[ApiController]
-[Route("api/service-company")]
-public class GetServiceCompanyByIdController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpGet("{id}")]
-    public async Task<ActionResult<GetServiceCompanyById.Response>> GetServiceCompanyById(int id)
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(new GetServiceCompanyById.Query(id));
-        if (result.Failure)
+        public void MapEndpoints(WebApplication app)
         {
-            return NotFound(result.Error);
+            app.MapGet("api/service-company/{id}", async (ISender sender, int id, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(new Query(id), cancellationToken);
+                if (result.Failure)
+                {
+                    return Results.NotFound(result.Error);
+                }
+                return Results.Ok(result.Value);
+            });
         }
-        return Ok(result.Value);
     }
 }
+
+

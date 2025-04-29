@@ -1,0 +1,52 @@
+﻿@page "/vehicleinventories/{vehicleId:int}"
+@inject IVehicleInventoryService VehicleInventoryService
+
+<h3>VehicleInventories</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Vehicle</th>
+            <th>Inventory Date</th>
+            <th>Description</th>
+            <th>Quantity</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (vehicleInventories != null && vehicleInventories.Count > 0)
+        {
+            @foreach (var inventory in vehicleInventories)
+            {
+                <tr>
+                    <td>@inventory.Id</td>
+                    <td>@inventory.Vehicle.Model</td>
+                    <td>@inventory.PurchaseDate.ToShortDateString()</td>
+                    <td>@inventory.Description</td>
+                    <td>@inventory.QuantityInStock</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="5">No vehicle inventories found.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter]
+    public int VehicleId { get; set; }
+
+    private List<VehicleInventoryModel> vehicleInventories = new List<VehicleInventoryModel>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        vehicleInventories = await VehicleInventoryService.GetVehicleInventoryAsync(VehicleId);
+    }
+  
+
+}

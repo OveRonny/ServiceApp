@@ -2,24 +2,25 @@
 
 public static class GetAllServiceRecord
 {
-    public record Query(int VehicleId) : IQuery<Response>;
+    public record Query(int VehicleId) : IQuery<List<Response>>;
 
-    public record Response(List<ServiceRecordDto> ServiceRecords);
-    public record ServiceRecordDto(int Id, int VehicleId, int ServiceTypeId, DateTime ServiceDate, string Description,
-        decimal Cost, int MileageHistoryId, int Mileage, int? Hours, string VehicleName);
+    public record Response(int Id, int VehicleId, int ServiceTypeId, DateTime ServiceDate, string Description,
+        decimal Cost, int MileageHistoryId, int Mileage, int? Hours, string VehicleName, string? ServiceTypeName);
 
-    public class Handler(ApplicationDbContext context) : IQueryHandler<Query, Response>
+
+    public class Handler(ApplicationDbContext context) : IQueryHandler<Query, List<Response>>
     {
         private readonly ApplicationDbContext context = context;
-        public async Task<Result<Response>> Handle(Query request, CancellationToken cancellationToken)
+        public async Task<Result<List<Response>>> Handle(Query request, CancellationToken cancellationToken)
         {
             var serviceRecords = await context.ServiceRecords
+                .Include(s => s.ServiceType)
                 .Include(s => s.MileageHistory)
                 .Include(c => c.Vehicle)
                 .Where(s => s.VehicleId == request.VehicleId)
                 .ToListAsync(cancellationToken);
 
-            var serviceRecordDtos = serviceRecords.Select(v => new ServiceRecordDto(
+            var serviceRecordDtos = serviceRecords.Select(v => new Response(
                 v.Id,
                 v.VehicleId,
                 v.ServiceTypeId,
@@ -29,26 +30,26 @@ public static class GetAllServiceRecord
                 v.MileageHistoryId,
                 v.MileageHistory!.Mileage,
                 v.MileageHistory.Hours,
-                v.MileageHistory.Vehicle?.Make + " " + v.MileageHistory?.Vehicle?.Model
+                v.MileageHistory.Vehicle?.Make + " " + v.MileageHistory?.Vehicle?.Model,
+                v.ServiceType?.Name
 
             )).ToList();
 
-            var response = new Response(serviceRecordDtos);
-            return Result.Ok(response);
+            return Result.Ok(serviceRecordDtos);
+        }
+    }
+
+    public class EndPoint : IEndpointDefinition
+    {
+        public void MapEndpoints(WebApplication app)
+        {
+            app.MapGet("api/service-record/vehicle/{vehicleId}", async (ISender sender, int vehicleId, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(new Query(vehicleId), cancellationToken);
+                return Results.Ok(result.Value);
+            });
         }
     }
 }
 
-[ApiController]
-[Route("api/service-record")]
-public class GetAllServiceRecordController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
 
-    [HttpGet("vehicle/{vehicleId}")]
-    public async Task<ActionResult<GetAllServiceRecord.Response>> GetAllServiceRecord(int vehicleId)
-    {
-        var result = await sender.Send(new GetAllServiceRecord.Query(vehicleId));
-        return Ok(result);
-    }
-}

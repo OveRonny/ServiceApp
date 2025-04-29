@@ -20,18 +20,18 @@ public static class GetAllVehicles
             return Result.Ok(response);
         }
     }
-}
 
-[ApiController]
-[Route("api/vehicle")]
-public class GetAllVehicleController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpGet]
-    public async Task<ActionResult<List<GetAllVehicles.Response>>> GetAllVehicles()
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(new GetAllVehicles.Query());
-        return Ok(result.Value);
+        public void MapEndpoints(WebApplication app)
+        {
+            app.MapGet("api/vehicle", async (ISender sender, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(new Query(), cancellationToken);
+                return Results.Ok(result.Value);
+            });
+        }
     }
 }
+
+

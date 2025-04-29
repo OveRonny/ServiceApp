@@ -17,22 +17,21 @@ public static class GetServiceTypeById
             return new Response(serviceType.Id, serviceType.Name);
         }
     }
-}
 
-[ApiController]
-[Route("api/service-type")]
-public class GetServiceTypeByIdController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpGet("{id}")]
-    public async Task<ActionResult<GetServiceTypeById.Response>> GetServiceTypeById(int id)
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(new GetServiceTypeById.Query(id));
-        if (result.Failure)
+        public void MapEndpoints(WebApplication app)
         {
-            return NotFound(result.Error);
+            app.MapGet("api/service-type/{id}", async (ISender sender, int id, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(new Query(id), cancellationToken);
+                if (result.Failure)
+                {
+                    return Results.NotFound(result.Error);
+                }
+                return Results.Ok(result.Value);
+            });
         }
-        return Ok(result.Value);
     }
 }
+

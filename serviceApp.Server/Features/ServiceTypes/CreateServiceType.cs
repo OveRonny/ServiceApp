@@ -19,18 +19,18 @@ public static class CreateServiceType
             return new Response(serviceType.Id, serviceType.Name);
         }
     }
-}
 
-[ApiController]
-[Route("api/service-type")]
-public class CreateServiceTypeController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpPost]
-    public async Task<ActionResult<CreateServiceType.Response>> CreateServiceType([FromBody] CreateServiceType.Command command)
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(command);
-        return Ok(result.Value);
+        public void MapEndpoints(WebApplication app)
+        {
+            app.MapPost("api/service-type", async (ISender sender, CreateServiceType.Command command, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(command, cancellationToken);
+                return Results.Ok(result.Value);
+            });
+        }
     }
 }
+
+

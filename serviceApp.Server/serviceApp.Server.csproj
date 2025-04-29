@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceApp.Shared\ServiceApp.Shared.csproj" />
+    <ProjectReference Include="..\ServiceApp.UI\ServiceApp.UI.csproj" />
   </ItemGroup>
 
 </Project>

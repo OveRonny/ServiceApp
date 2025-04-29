@@ -25,23 +25,39 @@ public static class DeleteInsurance
             return Result.Ok(true);
         }
     }
-}
 
-
-[ApiController]
-[Route("api/insurance")]
-public class DeleteInsuranceController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpDelete("{id}")]
-    public async Task<ActionResult<bool>> DeleteInsurance(int id)
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(new DeleteInsurance.Command(id));
-        if (result.Failure)
+        public void MapEndpoints(WebApplication app)
         {
-            return NotFound(result.Error);
+            app.MapDelete("api/insurance/{id}", async (ISender sender, int id, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(new Command(id), cancellationToken);
+                if (result.Failure)
+                {
+                    return Results.NotFound(result.Error);
+                }
+                return Results.Ok(result.Value);
+            });
         }
-        return Ok(result.Value);
     }
 }
+
+
+//[ApiController]
+//[Route("api/insurance")]
+//public class DeleteInsuranceController(ISender sender) : ControllerBase
+//{
+//    private readonly ISender sender = sender;
+
+//    [HttpDelete("{id}")]
+//    public async Task<ActionResult<bool>> DeleteInsurance(int id)
+//    {
+//        var result = await sender.Send(new DeleteInsurance.Command(id));
+//        if (result.Failure)
+//        {
+//            return NotFound(result.Error);
+//        }
+//        return Ok(result.Value);
+//    }
+//}

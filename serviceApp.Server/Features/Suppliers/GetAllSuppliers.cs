@@ -16,18 +16,22 @@ public static class GetAllSuppliers
             return Result.Ok(suppliers);
         }
     }
-}
 
-[ApiController]
-[Route("api/supplier")]
-public class GetAllSuppliersController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpGet]
-    public async Task<ActionResult<GetAllSuppliers.Response>> GetAllSuppliers()
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(new GetAllSuppliers.Query());
-        return Ok(result.Value);
+        public void MapEndpoints(WebApplication app)
+        {
+            app.MapGet("api/supplier", async (ISender sender, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(new Query(), cancellationToken);
+                if (result == null || result.Value == null)
+                {
+                    return Results.NotFound("No suppliers found.");
+                }
+                return Results.Ok(result.Value);
+            });
+        }
     }
 }
+
+

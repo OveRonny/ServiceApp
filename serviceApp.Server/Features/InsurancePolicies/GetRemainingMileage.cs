@@ -37,22 +37,38 @@ public static class GetRemainingMileage
             return Result.Ok(new Response(remainingMileage, insurancePolicy.EndDate));
         }
     }
-}
 
-[ApiController]
-[Route("api/insurance")]
-public class GetRemainingMileageController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpGet("remaining-mileage/{vehicleId}")]
-    public async Task<ActionResult<GetRemainingMileage.Response>> GetRemainingMileage(int vehicleId)
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(new GetRemainingMileage.Query(vehicleId));
-        if (result.Failure)
+        public void MapEndpoints(WebApplication app)
         {
-            return NotFound(result.Error);
+            app.MapGet("api/insurance/remaining-mileage/{vehicleId}", async (ISender sender, int vehicleId, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(new Query(vehicleId), cancellationToken);
+                if (result.Failure)
+                {
+                    return Results.NotFound(result.Error);
+                }
+                return Results.Ok(result.Value);
+            });
         }
-        return Ok(result.Value);
     }
 }
+
+//[ApiController]
+//[Route("api/insurance")]
+//public class GetRemainingMileageController(ISender sender) : ControllerBase
+//{
+//    private readonly ISender sender = sender;
+
+//    [HttpGet("remaining-mileage/{vehicleId}")]
+//    public async Task<ActionResult<GetRemainingMileage.Response>> GetRemainingMileage(int vehicleId)
+//    {
+//        var result = await sender.Send(new GetRemainingMileage.Query(vehicleId));
+//        if (result.Failure)
+//        {
+//            return NotFound(result.Error);
+//        }
+//        return Ok(result.Value);
+//    }
+//}

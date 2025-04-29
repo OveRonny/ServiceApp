@@ -57,18 +57,18 @@ public static class CreateConsumptionRecord
                 .LoadAsync(cancellationToken);
         }
     }
-}
 
-[ApiController]
-[Route("api/consumption-record")]
-public class CreateConsumptionRecordController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpPost]
-    public async Task<ActionResult<CreateConsumptionRecord.Response>> CreateConsumptionRecord([FromBody] CreateConsumptionRecord.Command command)
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(command);
-        return Ok(result.Value);
+        public void MapEndpoints(WebApplication app)
+        {
+            app.MapPost("api/consumption-record", async (ISender sender, CreateConsumptionRecord.Command command, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(command, cancellationToken);
+                return Results.Ok(result.Value);
+            });
+        }
     }
 }
+
+

@@ -46,18 +46,18 @@ public static class CreateServiceRecord
             return mileage;
         }
     }
-}
 
-[ApiController]
-[Route("api/service-record")]
-public class CreateServiceRecordController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpPost]
-    public async Task<ActionResult<CreateServiceRecord.Response>> CreateServiceRecord([FromBody] CreateServiceRecord.Command command)
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(command);
-        return Ok(result.Value);
+        public void MapEndpoints(WebApplication app)
+        {
+            app.MapPost("api/service-record", async (ISender sender, CreateServiceRecord.Command command, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(command, cancellationToken);
+                return Results.Ok(result.Value);
+            });
+        }
     }
 }
+
+

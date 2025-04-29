@@ -17,23 +17,22 @@ public static class GetAllOwners
             return Result.Ok(new Response(owners));
         }
     }
-}
 
-[ApiController]
-[Route("api/owner")]
-public class GetAllOwnerController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpGet]
-    public async Task<ActionResult<List<GetAllOwners.OwnerDto>>> GetAllOwners()
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(new GetAllOwners.Query());
-        if (result == null || result.Value == null)
+        public void MapEndpoints(WebApplication app)
         {
-            return NotFound("No owners found.");
-        }
+            app.MapGet("api/owner", async (ISender sender, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(new Query(), cancellationToken);
+                if (result == null || result.Value == null)
+                {
+                    return Results.NotFound("No owners found.");
+                }
 
-        return Ok(result.Value.Owners);
+                return Results.Ok(result.Value.Owners);
+            });
+        }
     }
 }
+

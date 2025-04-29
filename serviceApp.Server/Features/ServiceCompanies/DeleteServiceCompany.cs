@@ -18,23 +18,22 @@ public static class DeleteServiceCompany
             return true;
         }
     }
-}
 
-[ApiController]
-[Route("api/service-company")]
-public class DeleteServiceCompanyController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpDelete("{id}")]
-    public async Task<ActionResult<bool>> DeleteServiceCompany(int id)
+    public class EndPoint : IEndpointDefinition
     {
-        var command = new DeleteServiceCompany.Command(id);
-        var result = await sender.Send(command);
-        if (result.Failure)
+        public void MapEndpoints(WebApplication app)
         {
-            return NotFound(result.Error);
+            app.MapDelete("api/service-company/{id}", async (ISender sender, int id, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(new Command(id), cancellationToken);
+                if (result.Failure)
+                {
+                    return false;
+                }
+                return true;
+            });
         }
-        return true;
     }
 }
+
+

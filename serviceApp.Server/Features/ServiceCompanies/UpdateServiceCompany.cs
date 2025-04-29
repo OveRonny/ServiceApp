@@ -20,27 +20,27 @@ public static class UpdateServiceCompany
             return new Response(serviceCompany.Id, serviceCompany.Name);
         }
     }
-}
 
-
-[ApiController]
-[Route("api/service-company")]
-public class UpdateServiceCompanyController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpPut("{id}")]
-    public async Task<ActionResult<UpdateServiceCompany.Response>> UpdateServiceCompany(int id, [FromBody] UpdateServiceCompany.Command command)
+    public class EndPoint : IEndpointDefinition
     {
-        if (id != command.Id)
+        public void MapEndpoints(WebApplication app)
         {
-            return BadRequest("Service company ID mismatch.");
+            app.MapPut("api/service-company/{id}", async (ISender sender, int id, Command command, CancellationToken cancellationToken) =>
+            {
+                if (id != command.Id)
+                {
+                    return Results.BadRequest("Service company ID mismatch.");
+                }
+                var result = await sender.Send(command, cancellationToken);
+                if (result.Failure)
+                {
+                    return Results.NotFound(result.Error);
+                }
+                return Results.Ok(result.Value);
+            });
         }
-        var result = await sender.Send(command);
-        if (result.Failure)
-        {
-            return NotFound(result.Error);
-        }
-        return Ok(result.Value);
     }
 }
+
+
+

@@ -16,18 +16,18 @@ public static class GetAllServiceType
             return Result.Ok(response);
         }
     }
-}
 
-[ApiController]
-[Route("api/service-type")]
-public class GetAllServiceTypeController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpGet]
-    public async Task<ActionResult<List<GetAllServiceType.Response>>> GetAllServiceTypes()
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(new GetAllServiceType.Query());
-        return Ok(result.Value);
+        public void MapEndpoints(WebApplication app)
+        {
+            app.MapGet("api/service-type", async (ISender sender, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(new Query(), cancellationToken);
+                return Results.Ok(result.Value);
+            });
+        }
     }
 }
+
+

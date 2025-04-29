@@ -1,0 +1,102 @@
+﻿@page "/servicerecord/{id:int}"
+@page "/servicerecord/create/{vehicleId:int}"
+@page "/servicerecord/create"
+@inject IServiceRecordService ServiceRecordService
+@inject NavigationManager NavigationManager
+
+<h3>ServiceRecord</h3>
+
+<EditForm Model="serviceRecord" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <VehicleDropdown @bind-selectedVehicleId="serviceRecord.VehicleId" />
+    </div>
+
+    <div class="form-group">
+        <ServiceCompanyDropdown @bind-SelectedServiceCompanyId="serviceRecord.ServiceCompanyId" />
+    </div>
+    <div class="form-group">
+        <ServiceTypeDropdown @bind-SelectedServiceTypeId="serviceRecord.ServiceTypeId" />
+    </div>
+    <div class="form-group">
+        <label for="serviceDate">Service Date</label>
+        <InputDate id="serviceDate" @bind-Value="serviceRecord.ServiceDate" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="description">Description</label>
+        <InputTextArea id="description" @bind-Value="serviceRecord.Description" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="cost">Cost</label>
+        <InputNumber id="cost" @bind-Value="serviceRecord.Cost" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="mileage">Mileage</label>
+        <InputNumber id="mileage" @bind-Value="serviceRecord.Mileage" class="form-control" />
+    </div>
+
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <button type="button" class="btn btn-secondary" @onclick="NavigateToServiceRecords">Cancel</button>
+    @if (Id > 0)
+    {
+        <button type="button" class="btn btn-danger" @onclick="DeleteServiceRecord">Delete</button>
+    }   
+
+
+</EditForm>
+
+<Parts serviceRecord="@serviceRecord" />
+
+@code {
+    private ServiceRecordModel serviceRecord = new ServiceRecordModel();
+
+    [Parameter]
+    public int VehicleId { get; set; }
+
+    [Parameter]
+    public int Id { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if(Id > 0)
+        {
+            serviceRecord = await ServiceRecordService.GetServiceRecordByIdAsync(Id);
+        }
+        else
+        {
+            serviceRecord = new ServiceRecordModel();
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (Id > 0)
+        {
+            await ServiceRecordService.UpdateServiceRecordAsync(serviceRecord);
+        }
+        else
+        {
+            await ServiceRecordService.CreateServiceRecordAsync(serviceRecord);
+        }
+        NavigateToServiceRecords();
+    }
+
+    private async Task DeleteServiceRecord()
+    {
+        if (Id > 0)
+        {
+            await ServiceRecordService.DeleteServiceRecordAsync(Id);
+            NavigateToServiceRecords();
+        }
+    }
+
+    private void NavigateToServiceRecords()
+    {
+        VehicleId = serviceRecord.VehicleId;
+        NavigationManager.NavigateTo($"/servicerecords/{VehicleId}");
+    }
+
+}

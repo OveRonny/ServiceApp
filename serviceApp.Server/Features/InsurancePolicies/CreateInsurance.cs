@@ -43,18 +43,30 @@ public static class CreateInsurance
                 insurancePolicy.RenewalDate, insurancePolicy.StartingMileage, insurancePolicy.IsActive, insurancePolicy.EndDate);
         }
     }
-}
 
-[ApiController]
-[Route("api/insurance")]
-public class CreateInsuranceController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpPost]
-    public async Task<ActionResult<CreateInsurance.Response>> CreateInsurance([FromBody] CreateInsurance.Command command)
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(command);
-        return Ok(result.Value);
+        public void MapEndpoints(WebApplication app)
+        {
+            app.MapPost("api/insurance", async (ISender sender, CreateInsurance.Command command, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(command, cancellationToken);
+                return Results.Ok(result.Value);
+            });
+        }
     }
 }
+
+//[ApiController]
+//[Route("api/insurance")]
+//public class CreateInsuranceController(ISender sender) : ControllerBase
+//{
+//    private readonly ISender sender = sender;
+
+//    [HttpPost]
+//    public async Task<ActionResult<CreateInsurance.Response>> CreateInsurance([FromBody] CreateInsurance.Command command)
+//    {
+//        var result = await sender.Send(command);
+//        return Ok(result.Value);
+//    }
+//}

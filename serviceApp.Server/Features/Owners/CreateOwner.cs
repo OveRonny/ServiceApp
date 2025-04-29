@@ -27,18 +27,18 @@ public static class CreateOwner
             return new Response(owner.Id, owner.FirstName, owner.LastName, owner.PhoneNumber, owner.Email, owner.Address, owner.PostalCode, owner.City);
         }
     }
-}
 
-[ApiController]
-[Route("api/owner")]
-public class CreateOwnerController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpPost]
-    public async Task<ActionResult<CreateOwner.Response>> CreateOwner([FromBody] CreateOwner.Command command)
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(command);
-        return Ok(result);
+        public void MapEndpoints(WebApplication app)
+        {
+            app.MapPost("api/owner", async (ISender sender, CreateOwner.Command command, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(command, cancellationToken);
+                return Results.Ok(result);
+            });
+        }
     }
 }
+
+

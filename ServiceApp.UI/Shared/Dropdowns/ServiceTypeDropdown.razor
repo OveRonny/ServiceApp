@@ -1,0 +1,41 @@
+﻿@inject IServiceTypeService ServiceTypeService
+@inject NavigationManager NavigationManager
+
+<div class="mb-3">
+    <InputSelect @bind-Value="SelectedServiceTypeId" @bind-Value:after="OnInput" class="form-select">
+        <option value="0">Velg service type</option>
+        @foreach (var serviceType in serviceTypes)
+        {
+            <option value="@serviceType.Id">@serviceType.Name</option>
+        }
+        <option value="-1">Opprett ny service type</option>
+    </InputSelect>
+</div>
+
+
+@code {
+    private List<ServiceTypeModel> serviceTypes = new List<ServiceTypeModel>();
+
+    [Parameter]
+    public int SelectedServiceTypeId { get; set; }
+
+    [Parameter]
+    public EventCallback<int> SelectedServiceTypeIdChanged { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        serviceTypes = await ServiceTypeService.GetServiceTypesAsync();
+    }
+
+    private async Task OnInput()
+    {
+        if (SelectedServiceTypeId == -1)
+        {
+            NavigationManager.NavigateTo("/servicetype");
+        }
+        else
+        {
+            await SelectedServiceTypeIdChanged.InvokeAsync(SelectedServiceTypeId);
+        }
+    }  
+}

@@ -32,22 +32,38 @@ public static class GetInsuranceById
             return Result.Ok(new Response(insurancePolicyDto));
         }
     }
-}
 
-[ApiController]
-[Route("api/insurance")]
-public class GetInsuranceByIdController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpGet("{id}")]
-    public async Task<ActionResult<GetInsuranceById.Response>> getInsuranceById(int id)
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(new GetInsuranceById.Query(id));
-        if (result.Failure)
+        public void MapEndpoints(WebApplication app)
         {
-            return NotFound(result.Error);
+            app.MapGet("api/insurance/{id}", async (ISender sender, int id, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(new Query(id), cancellationToken);
+                if (result.Failure)
+                {
+                    return Results.NotFound(result.Error);
+                }
+                return Results.Ok(result.Value);
+            });
         }
-        return Ok(result.Value);
     }
 }
+
+//[ApiController]
+//[Route("api/insurance")]
+//public class GetInsuranceByIdController(ISender sender) : ControllerBase
+//{
+//    private readonly ISender sender = sender;
+
+//    [HttpGet("{id}")]
+//    public async Task<ActionResult<GetInsuranceById.Response>> getInsuranceById(int id)
+//    {
+//        var result = await sender.Send(new GetInsuranceById.Query(id));
+//        if (result.Failure)
+//        {
+//            return NotFound(result.Error);
+//        }
+//        return Ok(result.Value);
+//    }
+//}

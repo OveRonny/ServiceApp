@@ -54,23 +54,23 @@ public static class GetAllConsumptionRecord
             return Result.Ok(response);
         }
     }
-}
 
-[ApiController]
-[Route("api/consumption-record")]
-public class GetAllConsumptionRecordController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpGet("vehicle/{vehicleId}")]
-    public async Task<ActionResult<List<GetAllConsumptionRecord.Response>>> GetAllConsumptionRecord(
-        int vehicleId, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+    public class EndPoint : IEndpointDefinition
     {
-        // Sett standardverdier for siste år hvis ingen datoer er oppgitt
-        startDate = startDate ?? DateTime.UtcNow.Date.AddYears(-1);
-        endDate = endDate?.Date.AddDays(1).AddTicks(-1) ?? DateTime.UtcNow.Date.AddDays(1).AddTicks(-1);
-
-        var result = await sender.Send(new GetAllConsumptionRecord.Query(vehicleId, startDate, endDate));
-        return Ok(result.Value);
+        public void MapEndpoints(WebApplication app)
+        {
+            app.MapGet("api/consumption-record/vehicle/{vehicleId}", async (ISender sender, int vehicleId,
+                DateTime? startDate, DateTime? endDate, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(new Query(vehicleId, startDate, endDate), cancellationToken);
+                if (result.Failure)
+                {
+                    return Results.NotFound(result.Error);
+                }
+                return Results.Ok(result.Value);
+            });
+        }
     }
 }
+
+

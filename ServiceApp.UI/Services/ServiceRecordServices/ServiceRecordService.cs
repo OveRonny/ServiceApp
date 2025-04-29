@@ -7,9 +7,9 @@ public class ServiceRecordService(HttpClient http) : IServiceRecordService
 {
     private readonly HttpClient http = http;
 
-    public async Task<List<ServiceRecordModel>> GetServiceRecordsAsync()
+    public async Task<List<ServiceRecordModel>> GetServiceRecordsAsync(int vehicleId)
     {
-        var result = await http.GetFromJsonAsync<List<ServiceRecordModel>>("api/service-record");
+        var result = await http.GetFromJsonAsync<List<ServiceRecordModel>>($"api/service-record/vehicle/{vehicleId}");
         if (result == null)
         {
             throw new Exception("Failed to load service records");

@@ -20,23 +20,22 @@ public static class GetOwnerById
             return Result.Ok(owner);
         }
     }
-}
 
-[ApiController]
-[Route("api/owner")]
-public class GetOwnerByIdController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpGet("{id}")]
-    public async Task<ActionResult<GetOwnerById.Response>> GetOwnerById(int id)
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(new GetOwnerById.Query(id));
-        if (result.Failure)
+        public void MapEndpoints(WebApplication app)
         {
-            return NotFound(result.Error);
+            app.MapGet("api/owner/{id}", async (ISender sender, int id, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(new Query(id), cancellationToken);
+                if (result == null || result.Value == null)
+                {
+                    return Results.NotFound($"Owner with ID {id} not found.");
+                }
+                return Results.Ok(result.Value);
+            });
         }
-        return Ok(result.Value);
     }
 }
+
 

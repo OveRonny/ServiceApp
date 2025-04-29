@@ -25,26 +25,26 @@ public static class UpdateSupplier
             return new Response(supplier.Id, supplier.Name, supplier.ContactEmail, supplier.ContactPhone, supplier.Address, supplier.City, supplier.PostalCode, supplier.UpdatedAt);
         }
     }
-}
 
-[ApiController]
-[Route("api/supplier")]
-public class UpdateSupplierController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpPut("{id}")]
-    public async Task<ActionResult<UpdateSupplier.Response>> UpdateSupplier(int id, [FromBody] UpdateSupplier.Command command)
+    public class EndPoint : IEndpointDefinition
     {
-        if (id != command.Id)
+        public void MapEndpoints(WebApplication app)
         {
-            return BadRequest("Supplier ID mismatch.");
+            app.MapPut("api/supplier/{id}", async (ISender sender, int id, UpdateSupplier.Command command, CancellationToken cancellationToken) =>
+            {
+                if (id != command.Id)
+                {
+                    return Results.BadRequest("ID in the URL does not match ID in the request body.");
+                }
+                var result = await sender.Send(command, cancellationToken);
+                if (result.Failure)
+                {
+                    return Results.NotFound(result.Error);
+                }
+                return Results.Ok(result.Value);
+            });
         }
-        var result = await sender.Send(command);
-        if (result.Failure)
-        {
-            return NotFound(result.Error);
-        }
-        return Ok(result.Value);
     }
 }
+
+

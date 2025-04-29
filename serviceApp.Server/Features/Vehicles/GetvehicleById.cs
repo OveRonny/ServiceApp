@@ -18,24 +18,24 @@ public static class GetvehicleById
             return new Response(vehicle.Id, vehicle.OwnerId, vehicle.Make, vehicle.Model, vehicle.Year, vehicle.Color, vehicle.LicensePlate, vehicle.DateCreated);
         }
     }
-}
 
-[ApiController]
-[Route("api/vehicle")]
-public class GetVehicleByIdController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpGet("{id}")]
-    public async Task<ActionResult<GetvehicleById.Response>> GetVehicleById(int id)
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(new GetvehicleById.Query(id));
-        if (result.Failure)
+        public void MapEndpoints(WebApplication app)
         {
-            return NotFound(result.Error);
+            app.MapGet("api/vehicle/{id}", async (ISender sender, int id, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(new Query(id), cancellationToken);
+                if (result.Failure)
+                {
+                    return Results.NotFound(result.Error);
+                }
+                return Results.Ok(result.Value);
+            });
         }
-        return Ok(result.Value);
     }
 }
+
+
 
 

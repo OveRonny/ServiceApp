@@ -1,0 +1,62 @@
+﻿@page "/servicerecords/{vehicleId:int}"
+@inject IServiceRecordService ServiceRecordService
+@inject NavigationManager NavigationManager
+
+<h3>ServiceRecords</h3>
+
+<button class="btn btn-primary" @onclick="NavigateToCreate">Create New Service Record</button>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>            
+            <th>Service Date</th>
+            <th>Description</th>
+            <th>Service type</th>           
+            <th>Pris</th>
+            <th>Mileage</th>
+            <th>Vehicle</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (serviceRecords != null && serviceRecords.Count > 0)
+        {
+            @foreach (var record in serviceRecords)
+            {
+                <tr>
+                    <td>@record.Id</td>                  
+                    <td>@record.ServiceDate.ToShortDateString()</td>
+                    <td>@record.Description</td>
+                    <td>@record.ServiceTypeName</td>                   
+                    <td>@record.Cost.ToString("C")</td>
+                    <td>@record.Mileage</td>
+                    <td>@record.VehicleName</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="4">No service records found.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<ServiceRecordModel> serviceRecords = new List<ServiceRecordModel>();
+
+
+    [Parameter]
+    public int VehicleId { get; set; } 
+
+    protected override async Task OnInitializedAsync()
+    {
+        serviceRecords = await ServiceRecordService.GetServiceRecordsAsync(VehicleId);
+    }
+
+        private void NavigateToCreate()
+        {
+            NavigationManager.NavigateTo("/servicerecord/create");
+        }
+}

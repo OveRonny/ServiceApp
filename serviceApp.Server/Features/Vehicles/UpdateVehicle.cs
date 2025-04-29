@@ -25,26 +25,26 @@ public static class UpdateVehicle
             return new Response(vehicle.Id, vehicle.Make, vehicle.Model, vehicle.Year, vehicle.Color, vehicle.LicensePlate, vehicle.OwnerId, vehicle.DateCreated);
         }
     }
-}
 
-[ApiController]
-[Route("api/vehicle")]
-public class UpdateVehicleController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpPut("{id}")]
-    public async Task<ActionResult<UpdateVehicle.Response>> UpdateVehicle(int id, [FromBody] UpdateVehicle.Command command)
+    public class EndPoint : IEndpointDefinition
     {
-        if (id != command.Id)
+        public void MapEndpoints(WebApplication app)
         {
-            return BadRequest("Vehicle ID mismatch.");
+            app.MapPut("api/vehicle/{id}", async (ISender sender, int id, UpdateVehicle.Command command, CancellationToken cancellationToken) =>
+            {
+                if (id != command.Id)
+                {
+                    return Results.BadRequest("ID in the URL does not match ID in the request body.");
+                }
+                var result = await sender.Send(command, cancellationToken);
+                if (result.Failure)
+                {
+                    return Results.NotFound(result.Error);
+                }
+                return Results.Ok(result.Value);
+            });
         }
-        var result = await sender.Send(command);
-        if (result.Failure)
-        {
-            return NotFound(result.Error);
-        }
-        return Ok(result.Value);
     }
 }
+
+

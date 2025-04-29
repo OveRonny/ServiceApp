@@ -1,0 +1,56 @@
+﻿<div class="form-group">
+    <h4>Parts</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Description</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @if(serviceRecord.Parts != null && serviceRecord.Parts.Count > 0)              
+            @foreach (var part in serviceRecord.Parts)
+            {
+                <tr>
+                    <td><InputText @bind-Value="part.Name" class="form-control" /></td>
+                    <td><InputNumber @bind-Value="part.Price" class="form-control" /></td>
+                    <td><InputNumber @bind-Value="part.Quantity" class="form-control" /></td>
+                    <td><InputText @bind-Value="part.Description" class="form-control" /></td>
+                    <td>
+                        <button class="btn btn-danger" @onclick="() => RemovePart(part)" disabled="@(!CanRemovePart(part))">Remove</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4"><strong>Total Cost:</strong></td>
+                <td><strong>@serviceRecord.Parts?.Sum(p => (p.Price ?? 0) * p.Quantity).ToString("F2")</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+    <button class="btn btn-primary" @onclick="AddPart">Add Part</button>
+</div>
+
+@code {
+    [Parameter]
+    public ServiceRecordModel serviceRecord { get; set; } = new();
+
+    private void AddPart()
+    {
+        serviceRecord.Parts ??= new List<PartsModel>();
+        serviceRecord.Parts.Add(new PartsModel());
+    }
+
+    private void RemovePart(PartsModel part)
+    {
+        serviceRecord.Parts ??= new List<PartsModel>();
+        serviceRecord.Parts.Remove(part);
+    }
+
+    private bool CanRemovePart(PartsModel part) => part.Id == 0;
+}
+

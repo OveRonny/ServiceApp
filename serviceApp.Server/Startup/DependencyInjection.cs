@@ -1,8 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using serviceApp.Server.Abstractions.RequestHandling;
-using serviceApp.Server.Data;
-
-namespace serviceApp.Server.Startup;
+﻿namespace serviceApp.Server.Startup;
 
 public static class DependencyInjection
 {
@@ -14,6 +10,7 @@ public static class DependencyInjection
             options.UseSqlServer(connectionString));
 
         services.AddMediator();
+
 
 
         return services;

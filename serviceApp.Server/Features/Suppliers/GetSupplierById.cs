@@ -20,23 +20,23 @@ public static class GetSupplierById
             return supplier;
         }
     }
-}
 
-[ApiController]
-[Route("api/supplier")]
-public class GetSupplierByIdController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpGet("{id}")]
-    public async Task<ActionResult<GetSupplierById.Query>> GetSupplierById(int id)
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(new GetSupplierById.Query(id));
-        if (result.Failure)
+        public void MapEndpoints(WebApplication app)
         {
-            return NotFound(result.Error);
+            app.MapGet("api/supplier/{id}", async (ISender sender, int id, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(new Query(id), cancellationToken);
+                if (result == null || result.Value == null)
+                {
+                    return Results.NotFound($"Supplier with ID {id} not found.");
+                }
+                return Results.Ok(result.Value);
+            });
         }
-        return Ok(result.Value);
     }
 }
+
+
 

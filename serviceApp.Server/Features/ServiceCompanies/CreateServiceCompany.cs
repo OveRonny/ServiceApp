@@ -24,18 +24,18 @@ public static class CreateServiceCompany
             return new Response(serviceCompany.Id, serviceCompany.Name);
         }
     }
-}
 
-[ApiController]
-[Route("api/service-company")]
-public class CreateServiceCompanyController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpPost]
-    public async Task<ActionResult<CreateServiceCompany.Response>> CreateServiceCompany([FromBody] CreateServiceCompany.Command command)
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(command);
-        return Ok(result.Value);
+        public void MapEndpoints(WebApplication app)
+        {
+            app.MapPost("api/service-company", async (ISender sender, CreateServiceCompany.Command command, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(command, cancellationToken);
+                return Results.Ok(result.Value);
+            });
+        }
     }
 }
+
+

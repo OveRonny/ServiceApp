@@ -1,4 +1,6 @@
-﻿namespace serviceApp.Server.Features.VehicleInventories;
+﻿using serviceApp.Server.Extensions;
+
+namespace serviceApp.Server.Features.VehicleInventories;
 
 public static class GetAllVehicleInventory
 {
@@ -16,19 +18,32 @@ public static class GetAllVehicleInventory
                 vi.VehicleId, vi.SupplierId, vi.PurchaseDate, vi.QuantityInStock, vi.ReorderThreshold)).ToList();
             return Result.Ok(response);
         }
+
+        public class EndPoint : IEndpointDefinition
+        {
+            public void MapEndpoints(WebApplication app)
+            {
+                app.MapGet("api/vehicle-inventory", async (ISender sender, CancellationToken cancellationToken) =>
+                {
+                    var result = await sender.Send(new Query(), cancellationToken);
+                    return Results.Ok(result.Value);
+                });
+            }
+        }
     }
 }
 
-[ApiController]
-[Route("api/vehicle-inventory")]
-public class GetAllVehicleInventoryController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
+//[ApiController]
+//[Route("api/vehicle-inventory")]
+//public class GetAllVehicleInventoryController(ISender sender) : ControllerBase
+//{
+//    private readonly ISender sender = sender;
 
-    [HttpGet]
-    public async Task<ActionResult<List<GetAllVehicleInventory.Response>>> GetAllVehicleInventories()
-    {
-        var result = await sender.Send(new GetAllVehicleInventory.Query());
-        return Ok(result);
-    }
-}
+//    [HttpGet]
+//    public async Task<ActionResult<List<GetAllVehicleInventory.Response>>> GetAllVehicleInventories()
+//    {
+//        var result = await sender.Send(new GetAllVehicleInventory.Query());
+//        return Ok(result);
+//    }
+//}
+

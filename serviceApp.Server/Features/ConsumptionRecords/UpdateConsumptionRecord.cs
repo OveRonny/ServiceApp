@@ -72,26 +72,26 @@ public static class UpdateConsumptionRecord
             return mileage;
         }
     }
-}
 
-[ApiController]
-[Route("api/consumption-record")]
-public class UpdateConsumptionRecordController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpPut("{id}")]
-    public async Task<ActionResult<UpdateConsumptionRecord.Response>> UpdateConsumptionRecord(int id, [FromBody] UpdateConsumptionRecord.Command command)
+    public class EndPoint : IEndpointDefinition
     {
-        if (id != command.Id)
+        public void MapEndpoints(WebApplication app)
         {
-            return BadRequest("ConsumptionRecord ID mismatch.");
+            app.MapPut("api/consumption-record/{id}", async (ISender sender, int id, UpdateConsumptionRecord.Command command, CancellationToken cancellationToken) =>
+            {
+                if (id != command.Id)
+                {
+                    return Results.BadRequest("ConsumptionRecord ID mismatch.");
+                }
+                var result = await sender.Send(command, cancellationToken);
+                if (result.Failure)
+                {
+                    return Results.NotFound(result.Error);
+                }
+                return Results.Ok(result.Value);
+            });
         }
-        var result = await sender.Send(command);
-        if (result.Failure)
-        {
-            return NotFound(result.Error);
-        }
-        return Ok(result.Value);
     }
 }
+
+

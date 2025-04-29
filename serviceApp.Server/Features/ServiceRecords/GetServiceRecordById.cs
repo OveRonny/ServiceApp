@@ -35,19 +35,22 @@ public static class GetServiceRecordById
             return Result.Ok(new Response(serviceRecordDto));
         }
     }
-}
 
-
-[ApiController]
-[Route("api/service-record")]
-public class GetServiceRecordByIdController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpGet("{id}")]
-    public async Task<ActionResult<GetServiceRecordById.Response>> GetServiceRecordById(int id)
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(new GetServiceRecordById.Query(id));
-        return Ok(result);
+        public void MapEndpoints(WebApplication app)
+        {
+            app.MapGet("api/service-record/{id}", async (ISender sender, int id, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(new Query(id), cancellationToken);
+                if (result.Failure)
+                {
+                    return Results.NotFound(result.Error);
+                }
+                return Results.Ok(result.Value);
+            });
+        }
     }
 }
+
+

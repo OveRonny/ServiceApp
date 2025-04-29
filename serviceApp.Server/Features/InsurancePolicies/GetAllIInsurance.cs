@@ -31,22 +31,34 @@ public static class GetAllIInsurance
             return Result.Ok(new Response(insurancePolicyDtos));
         }
     }
-}
 
-[ApiController]
-[Route("api/insurance")]
-public class GetAllIInsuranceController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpGet]
-    public async Task<ActionResult<GetAllIInsurance.Response>> GetAllIInsurance()
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(new GetAllIInsurance.Query());
-        if (result.Failure)
+        public void MapEndpoints(WebApplication app)
         {
-            return NotFound(result.Error);
+            app.MapGet("api/insurance", async (ISender sender, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(new Query(), cancellationToken);
+                return Results.Ok(result.Value);
+            });
         }
-        return Ok(result.Value);
     }
 }
+
+//[ApiController]
+//[Route("api/insurance")]
+//public class GetAllIInsuranceController(ISender sender) : ControllerBase
+//{
+//    private readonly ISender sender = sender;
+
+//    [HttpGet]
+//    public async Task<ActionResult<GetAllIInsurance.Response>> GetAllIInsurance()
+//    {
+//        var result = await sender.Send(new GetAllIInsurance.Query());
+//        if (result.Failure)
+//        {
+//            return NotFound(result.Error);
+//        }
+//        return Ok(result.Value);
+//    }
+//}

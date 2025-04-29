@@ -13,7 +13,14 @@ public class ServiceRecordModel
     public int ServiceCompanyId { get; set; }
 
     public int MileageHistoryId { get; set; }
-    public MileageHistoryModel? MileageHistory { get; set; }
+    public MileageHistoryModel MileageHistory { get; set; } = new();
 
     public ServiceCompanyModel? ServiceCompany { get; set; }
+
+    public string? ServiceTypeName { get; set; } = string.Empty;
+    public string? VehicleName { get; set; }
+    public int Mileage { get; set; }
+    public int? Hours { get; set; }
+
+    public List<PartsModel>? Parts { get; set; } = new();
 }

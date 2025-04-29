@@ -14,18 +14,17 @@ public static class GetAllServiceCompany
             return Result.Ok(response);
         }
     }
-}
 
-[ApiController]
-[Route("api/service-company")]
-public class GetAllServiceCompanyController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpGet]
-    public async Task<ActionResult<List<GetAllServiceCompany.Response>>> GetAllServiceCompany()
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(new GetAllServiceCompany.Query());
-        return Ok(result.Value);
+        public void MapEndpoints(WebApplication app)
+        {
+            app.MapGet("api/service-company", async (ISender sender, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(new Query(), cancellationToken);
+                return Results.Ok(result.Value);
+            });
+        }
     }
 }
+

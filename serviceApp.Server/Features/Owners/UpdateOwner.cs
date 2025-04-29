@@ -27,26 +27,26 @@ public static class UpdateOwner
             return new Response(owner.Id, owner.FirstName, owner.LastName, owner.PhoneNumber, owner.Email, owner.Address, owner.PostalCode, owner.City);
         }
     }
-}
 
-[ApiController]
-[Route("api/owner")]
-public class UpdateOwnerController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpPut("{id}")]
-    public async Task<ActionResult<UpdateOwner.Response>> UpdateOwner(int id, [FromBody] UpdateOwner.Command command)
+    public class EndPoint : IEndpointDefinition
     {
-        if (id != command.Id)
+        public void MapEndpoints(WebApplication app)
         {
-            return BadRequest("ID in the URL does not match ID in the request body.");
+            app.MapPut("api/owner/{id}", async (ISender sender, int id, UpdateOwner.Command command, CancellationToken cancellationToken) =>
+            {
+                if (id != command.Id)
+                {
+                    return Results.BadRequest("ID in the URL does not match ID in the request body.");
+                }
+                var result = await sender.Send(command, cancellationToken);
+                if (result.Failure)
+                {
+                    return Results.NotFound(result.Error);
+                }
+                return Results.Ok(result.Value);
+            });
         }
-        var result = await sender.Send(command);
-        if (result.Failure)
-        {
-            return NotFound(result.Error);
-        }
-        return Ok(result);
     }
 }
+
+

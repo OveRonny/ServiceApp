@@ -1,0 +1,32 @@
+﻿@inject IServiceCompanyService ServiceCompanyService
+
+<div class="mb-3">
+    <InputSelect @bind-Value="SelectedServiceCompanyId" @bind-Value:after="OnInput" class="form-select">
+        <option value="0">Velg servicefirma</option>
+        @foreach (var company in serviceCompanies)
+        {
+            <option value="@company.Id">@company.Name</option>
+        }
+    </InputSelect>
+</div>
+
+
+@code {
+    private List<ServiceCompanyModel> serviceCompanies = new List<ServiceCompanyModel>();
+
+    [Parameter]
+    public int SelectedServiceCompanyId { get; set; }
+
+    [Parameter]
+    public EventCallback<int> SelectedServiceCompanyIdChanged { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        serviceCompanies = await ServiceCompanyService.GetAllServiceCompaniesAsync();
+    }
+
+    private async Task OnInput()
+    {
+        await SelectedServiceCompanyIdChanged.InvokeAsync(SelectedServiceCompanyId);
+    }
+}

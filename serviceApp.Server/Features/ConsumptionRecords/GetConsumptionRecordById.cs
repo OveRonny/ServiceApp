@@ -35,24 +35,21 @@ public static class GetConsumptionRecordById
             return Result.Ok(response);
         }
     }
-}
 
-[ApiController]
-[Route("api/consumption-record")]
-public class GetConsumptionRecordByIdController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpGet("{id}")]
-
-    public async Task<ActionResult<GetConsumptionRecordById.Response>> GetConsumptionRecordById(int id)
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(new GetConsumptionRecordById.Query(id));
-        if (result.Failure)
+        public void MapEndpoints(WebApplication app)
         {
-            return NotFound(result.Error);
+            app.MapGet("api/consumption-record/{id}", async (ISender sender, int id, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(new Query(id), cancellationToken);
+                if (result.Failure)
+                {
+                    return Results.NotFound(result.Error);
+                }
+                return Results.Ok(result.Value);
+            });
         }
-        return Ok(result.Value);
     }
-
 }
+

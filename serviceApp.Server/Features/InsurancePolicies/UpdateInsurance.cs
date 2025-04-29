@@ -59,26 +59,46 @@ public static class UpdateInsurance
             ));
         }
     }
-}
 
-[ApiController]
-[Route("api/insurance")]
-public class UpdateInsuranceController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpPut("{id}")]
-    public async Task<ActionResult<UpdateInsurance.Response>> UpdateInsurance(int id, [FromBody] UpdateInsurance.Command command)
+    public class EndPoint : IEndpointDefinition
     {
-        if (id != command.Id)
+        public void MapEndpoints(WebApplication app)
         {
-            return BadRequest("ID in the URL does not match the ID in the request body.");
+            app.MapPut("api/insurance/{id}", async (ISender sender, int id, UpdateInsurance.Command command, CancellationToken cancellationToken) =>
+            {
+                if (id != command.Id)
+                {
+                    return Results.BadRequest("ID in the URL does not match the ID in the request body.");
+                }
+                var result = await sender.Send(command, cancellationToken);
+                if (result.Failure)
+                {
+                    return Results.NotFound(result.Error);
+                }
+                return Results.Ok(result.Value);
+            });
         }
-        var result = await sender.Send(command);
-        if (result.Failure)
-        {
-            return NotFound(result.Error);
-        }
-        return Ok(result.Value);
     }
 }
+
+//[ApiController]
+//[Route("api/insurance")]
+//public class UpdateInsuranceController(ISender sender) : ControllerBase
+//{
+//    private readonly ISender sender = sender;
+
+//    [HttpPut("{id}")]
+//    public async Task<ActionResult<UpdateInsurance.Response>> UpdateInsurance(int id, [FromBody] UpdateInsurance.Command command)
+//    {
+//        if (id != command.Id)
+//        {
+//            return BadRequest("ID in the URL does not match the ID in the request body.");
+//        }
+//        var result = await sender.Send(command);
+//        if (result.Failure)
+//        {
+//            return NotFound(result.Error);
+//        }
+//        return Ok(result.Value);
+//    }
+//}

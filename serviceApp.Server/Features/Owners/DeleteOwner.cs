@@ -18,22 +18,22 @@ public static class DeleteOwner
             return true;
         }
     }
-}
 
-[ApiController]
-[Route("api/owner")]
-public class DeleteOwnerController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpDelete("{id}")]
-    public async Task<ActionResult<bool>> DeleteOwner(int id)
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(new DeleteOwner.Command(id));
-        if (result.Failure)
+        public void MapEndpoints(WebApplication app)
         {
-            return NotFound(result.Error);
+            app.MapDelete("api/owner/{id}", async (ISender sender, int id, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(new Command(id), cancellationToken);
+                if (result.Failure)
+                {
+                    return Results.NotFound(result.Error);
+                }
+                return Results.Ok(true);
+            });
         }
-        return true;
     }
 }
+
+

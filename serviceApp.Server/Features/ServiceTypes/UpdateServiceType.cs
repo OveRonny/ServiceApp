@@ -19,25 +19,26 @@ public static class UpdateServiceType
             return new Response(serviceType.Id, serviceType.Name);
         }
     }
-}
 
-[ApiController]
-[Route("api/service-type")]
-public class UpdateServiceTypeController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-    [HttpPut("{id}")]
-    public async Task<ActionResult<UpdateServiceType.Response>> UpdateServiceType(int id, [FromBody] UpdateServiceType.Command command)
+    public class EndPoint : IEndpointDefinition
     {
-        if (id != command.Id)
+        public void MapEndpoints(WebApplication app)
         {
-            return BadRequest("ServiceType ID mismatch.");
+            app.MapPut("api/service-type/{id}", async (ISender sender, int id, Command command, CancellationToken cancellationToken) =>
+            {
+                if (id != command.Id)
+                {
+                    return Results.BadRequest("ServiceType ID mismatch.");
+                }
+                var result = await sender.Send(command, cancellationToken);
+                if (result.Failure)
+                {
+                    return Results.NotFound(result.Error);
+                }
+                return Results.Ok(result.Value);
+            });
         }
-        var result = await sender.Send(command);
-        if (result.Failure)
-        {
-            return NotFound(result.Error);
-        }
-        return Ok(result.Value);
     }
 }
+
+

@@ -27,22 +27,22 @@ public static class DeleteServiceRecord
             return true;
         }
     }
-}
 
-[ApiController]
-[Route("api/service-record")]
-public class DeleteServiceRecordController(ISender sender) : ControllerBase
-{
-    private readonly ISender sender = sender;
-
-    [HttpDelete("{id}")]
-    public async Task<ActionResult<bool>> DeleteServiceRecord(int id)
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(new DeleteServiceRecord.Command(id));
-        if (result.Failure)
+        public void MapEndpoints(WebApplication app)
         {
-            return NotFound(result.Error);
+            app.MapDelete("api/service-record/{id}", async (ISender sender, int id, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(new Command(id), cancellationToken);
+                if (result.Failure)
+                {
+                    return false;
+                }
+                return true;
+            });
         }
-        return true;
     }
 }
+
+

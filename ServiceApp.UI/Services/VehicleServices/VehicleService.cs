@@ -3,72 +3,48 @@ using System.Net.Http.Json;
 
 namespace ServiceApp.UI.Services.VehicleServices;
 
-public class VehicleService(HttpClient http) : IVehicleService
+public class VehicleService(IHttpClientFactory clients) : IVehicleService
 {
-    private readonly HttpClient http = http;
+    private readonly IHttpClientFactory _clients = clients;
+
+    private HttpClient ApiAuthed() => _clients.CreateClient("ApiAuthed");
 
     public async Task<List<VehicleModel>> GetAllVehiclesAsync()
     {
-        var result = await http.GetFromJsonAsync<List<VehicleModel>>("api/vehicle");
-        return result ?? new List<VehicleModel>();
+        var http = ApiAuthed();
+        return await http.GetFromJsonAsync<List<VehicleModel>>("api/vehicle") ?? [];
     }
 
     public async Task<VehicleModel?> GetVehicleByIdAsync(int id)
     {
-        var result = await http.GetFromJsonAsync<VehicleModel>($"api/vehicle/{id}");
-        return result;
+        var http = ApiAuthed();
+        return await http.GetFromJsonAsync<VehicleModel>($"api/vehicle/{id}");
     }
 
-    public async Task<VehicleModel> AddVehicleAsync(VehicleModel vehicle)
+    public async Task<List<VehicleModel>> GetVehiclesByOwnerIdAsync(int ownerId)
     {
-        var result = await http.PostAsJsonAsync("api/vehicle", vehicle);
-        if (result.IsSuccessStatusCode)
-        {
-            var newVehicle = await result.Content.ReadFromJsonAsync<VehicleModel>();
-            if (newVehicle != null)
-            {
-                return newVehicle;
-            }
-            else
-            {
-                throw new Exception("Failed to deserialize the vehicle");
-            }
-        }
-        else
-        {
-            throw new Exception("Failed to add vehicle");
-        }
-
+        var http = ApiAuthed();
+        return await http.GetFromJsonAsync<List<VehicleModel>>($"api/vehicle/owner/{ownerId}") ?? [];
     }
 
-    public async Task<VehicleModel> UpdateVehicleAsync(VehicleModel vehicle)
+    public async Task AddVehicleAsync(VehicleModel model)
     {
-        var result = await http.PutAsJsonAsync($"api/vehicle/{vehicle.Id}", vehicle);
-        if (result.IsSuccessStatusCode)
-        {
-            var updatedVehicle = await result.Content.ReadFromJsonAsync<VehicleModel>();
-            if (updatedVehicle != null)
-            {
-                return updatedVehicle;
-            }
-            else
-            {
-                throw new Exception("Failed to deserialize the vehicle");
-            }
-        }
-        else
-        {
-            throw new Exception("Failed to update vehicle");
-        }
+        var http = ApiAuthed();
+        var resp = await http.PostAsJsonAsync("api/vehicle", model);
+        resp.EnsureSuccessStatusCode();
     }
 
-    public async Task<bool> DeleteVehicleAsync(int id)
+    public async Task UpdateVehicleAsync(VehicleModel model)
     {
-        var deleteVehicle = await http.DeleteAsync($"api/vehicle/{id}");
-        if (deleteVehicle != null)
-            return true;
-
-        return false;
+        var http = ApiAuthed();
+        var resp = await http.PutAsJsonAsync($"api/vehicle/{model.Id}", model);
+        resp.EnsureSuccessStatusCode();
     }
 
+    public async Task DeleteVehicleAsync(int id)
+    {
+        var http = ApiAuthed();
+        var resp = await http.DeleteAsync($"api/vehicle/{id}");
+        resp.EnsureSuccessStatusCode();
+    }
 }

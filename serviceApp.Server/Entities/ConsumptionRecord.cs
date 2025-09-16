@@ -12,6 +12,7 @@ public class ConsumptionRecord
 
     public int MileageHistoryId { get; set; }
     public MileageHistory? MileageHistory { get; set; }
+    public Guid FamilyId { get; set; }
 
     public decimal TotalCost => DieselAdded * DieselPricePerLiter;
 

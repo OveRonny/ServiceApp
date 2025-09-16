@@ -1,0 +1,100 @@
+﻿@page "/vehicle-inventory"
+@page "/vehicle-inventory/Vehicle/{VehicleId:int}"
+@page "/vehicle-inventory/{id:int}"
+@inject NavigationManager NavigationManager
+@inject IVehicleInventoryService VehicleInventoryService
+@attribute [Authorize]
+
+<h3>Kjøretøy deler</h3>
+
+<div class="col-6">
+
+
+    <EditForm Model="vehicleInventoryModel" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+
+        <div class="mb-3">
+            <label for="Vehicle" class="form-label" >Kjøretøy</label>
+            <VehicleDropdown @bind-selectedVehicleId="vehicleInventoryModel.VehicleId" />
+        </div>
+        <div class="mb-3">
+            <label for="PartName" class="form-label">Navn</label>
+            <InputText id="Inventory" class="form-control" @bind-value="vehicleInventoryModel.PartName" />
+            <ValidationMessage For="@(() => vehicleInventoryModel.PartName)" />
+        </div>
+        <div class="mb-3">
+            <label for="Description" class="form-label">Beskrivelse</label>
+            <InputTextArea id="Inventory" class="form-control" @bind-value="vehicleInventoryModel.Description" />
+            <ValidationMessage For="@(() => vehicleInventoryModel.Description)" />
+        </div>
+        <div class="mb-3">
+            <label for="Cost" class="form-label">Pris</label>
+            <InputNumber id="Inventory" class="form-control" @bind-value="vehicleInventoryModel.Cost" />
+            <ValidationMessage For="@(() => vehicleInventoryModel.Cost)" />
+        </div>
+        <div class="mb-3">
+            <label for="Supplier" class="form-label">Leverandør</label>
+            <SupplierDropdown @bind-selectedSupplierId="vehicleInventoryModel.SupplierId" />
+        </div>
+        <div class="mb-3">
+            <label for="QuantityInStock" class="form-label">Antall</label>
+            <InputNumber id="Inventory" class="form-control" @bind-value="vehicleInventoryModel.QuantityInStock" />
+            <ValidationMessage For="@(() => vehicleInventoryModel.QuantityInStock)" />
+        </div>
+        <div class="mb-3">
+            <label for="ReorderThreshold" class="form-label">Minimum lager</label>
+            <InputNumber id="Inventory" class="form-control" @bind-value="vehicleInventoryModel.ReorderThreshold" />
+            <ValidationMessage For="@(() => vehicleInventoryModel.ReorderThreshold)" />
+        </div>
+        <div class="mb-3">
+            <label for="PurchaseDate" class="form-label">Dato</label>
+            <InputDate id="Inventory" class="form-control" @bind-value="vehicleInventoryModel.PurchaseDate" />
+            <ValidationMessage For="@(() => vehicleInventoryModel.PurchaseDate)" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Lagre</button>
+
+    </EditForm>
+</div>
+@code {
+    private VehicleInventoryModel vehicleInventoryModel = new();
+
+    [Parameter]
+    public int Id { get; set; }
+
+    [Parameter]
+    public int VehicleId { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if(Id > 0)
+        {
+            var result = await VehicleInventoryService.GetVehicleInventoryByIdAsync(Id);
+            if(result != null)
+            {
+                vehicleInventoryModel = result;
+            }
+            else
+            {
+                vehicleInventoryModel = new();
+            }
+        }
+        else 
+        {
+            vehicleInventoryModel = new();
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (Id > 0)
+        {
+            await VehicleInventoryService.UpdateVehicleInventoryAsync(vehicleInventoryModel);
+        }
+        else
+        {
+            await VehicleInventoryService.CreateVehicleInventoryAsync(vehicleInventoryModel);
+        }
+        NavigationManager.NavigateTo("/vehicle-inventory");
+    }
+}

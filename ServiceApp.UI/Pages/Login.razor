@@ -1,0 +1,49 @@
+﻿@page "/login"
+@using ServiceApp.UI.Services
+@inject IAuthService Auth
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<h3>Logg inn</h3>
+
+<EditForm Model="@model" OnValidSubmit="Submit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="mb-3">
+        <label class="form-label">E-post</label>
+        <InputText class="form-control" @bind-Value="model.Email" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Passord</label>
+        <InputText class="form-control" @bind-Value="model.Password" type="password" />
+    </div>
+    <button class="btn btn-primary" type="submit">Logg inn</button>
+    @if (!string.IsNullOrEmpty(error))
+    {
+        <div class="alert alert-danger mt-3">@error</div>
+    }
+</EditForm>
+
+@code {
+    private LoginModel model = new();
+    private string? error;
+
+    private async Task Submit()
+    {
+        var ok = await Auth.LoginAsync(model.Email, model.Password);
+        if (ok)
+        {
+            if (AuthStateProvider is JwtAuthenticationStateProvider jwt)
+            {
+                var token = await Auth.GetAccessTokenAsync();
+                if (!string.IsNullOrEmpty(token))
+                    jwt.NotifyUserAuthentication(token);
+            }
+            Nav.NavigateTo("/");
+        }
+        else
+        {
+            error = "Feil e-post eller passord.";
+        }
+    }
+}

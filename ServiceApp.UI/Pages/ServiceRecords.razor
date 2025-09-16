@@ -1,62 +1,73 @@
 ﻿@page "/servicerecords/{vehicleId:int}"
 @inject IServiceRecordService ServiceRecordService
 @inject NavigationManager NavigationManager
+@attribute [Authorize]
 
 <h3>ServiceRecords</h3>
 
 <button class="btn btn-primary" @onclick="NavigateToCreate">Create New Service Record</button>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Id</th>            
-            <th>Service Date</th>
-            <th>Description</th>
-            <th>Service type</th>           
-            <th>Pris</th>
-            <th>Mileage</th>
-            <th>Vehicle</th>
-        </tr>
-    </thead>
-    <tbody>
+<div class="page-section mt-3">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
         @if (serviceRecords != null && serviceRecords.Count > 0)
         {
             @foreach (var record in serviceRecords)
             {
-                <tr>
-                    <td>@record.Id</td>                  
-                    <td>@record.ServiceDate.ToShortDateString()</td>
-                    <td>@record.Description</td>
-                    <td>@record.ServiceTypeName</td>                   
-                    <td>@record.Cost.ToString("C")</td>
-                    <td>@record.Mileage</td>
-                    <td>@record.VehicleName</td>
-                </tr>
+                <div class="col">
+                    <div class="card card-service h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="date-pill">@record.ServiceDate.ToShortDateString()</span>
+                                @if (!string.IsNullOrWhiteSpace(record.ServiceTypeName))
+                                {
+                                    <span class="badge badge-service rounded-pill">@record.ServiceTypeName</span>
+                                }
+                            </div>
+
+                            <h5 class="card-title mt-2 mb-1">@record.VehicleName</h5>
+
+                            @if (!string.IsNullOrWhiteSpace(record.Description))
+                            {
+                                <p class="card-text text-muted line-clamp-3 mb-3">@record.Description</p>
+                            }
+
+                            <div class="metrics">
+                                <div class="text-muted small">
+                                    Kilometer: <strong>@record.Mileage</strong>
+                                </div>
+                                <div class="cost-chip">
+                                    @record.Cost.ToString("C")
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             }
         }
         else
         {
-            <tr>
-                <td colspan="4">No service records found.</td>
-            </tr>
+            <div class="col">
+                <div class="alert alert-info mb-0">No service records found.</div>
+            </div>
         }
-    </tbody>
-</table>
+    
+    </div>
+
+</div>
 
 @code {
     private List<ServiceRecordModel> serviceRecords = new List<ServiceRecordModel>();
 
-
     [Parameter]
-    public int VehicleId { get; set; } 
+    public int VehicleId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         serviceRecords = await ServiceRecordService.GetServiceRecordsAsync(VehicleId);
     }
 
-        private void NavigateToCreate()
-        {
-            NavigationManager.NavigateTo("/servicerecord/create");
-        }
+    private void NavigateToCreate()
+    {
+        NavigationManager.NavigateTo("/servicerecord/create");
+    }
 }

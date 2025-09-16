@@ -1,4 +1,6 @@
-﻿namespace serviceApp.Server.Features.ServiceRecords;
+﻿using serviceApp.Server.Features.Autentication;
+
+namespace serviceApp.Server.Features.ServiceRecords;
 
 public static class CreateServiceRecord
 {
@@ -6,11 +8,16 @@ public static class CreateServiceRecord
 
     public record Response(int Id, int VehicleId, int ServiceTypeId, DateTime ServiceDate, string Description, decimal Cost, int Mileage, int? Hours);
 
-    public class Handler(ApplicationDbContext context) : ICommandHandler<Command, Response>
+    public class Handler(ApplicationDbContext context, ICurrentUser currentUser) : ICommandHandler<Command, Response>
     {
         private readonly ApplicationDbContext context = context;
+        private readonly ICurrentUser currentUser = currentUser;
         public async Task<Result<Response>> Handle(Command request, CancellationToken cancellationToken)
         {
+
+            if (!currentUser.IsAuthenticated || currentUser.FamilyId is null)
+                return Result.Fail<Response>("Not authenticated.");
+
             var mileage = await CreateMileageAsync(request, cancellationToken);
 
             var serviceRecord = new ServiceRecord

@@ -1,46 +1,64 @@
 ﻿@page "/suppliers"
 @inject ISupplierService supplierService
+@attribute [Authorize]
 
-<h3>Suppliers</h3>
+<h3>Leverandører</h3>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Supplier ID</th>
-            <th>Name</th>
-            <th>Epost</th>
-            <th>Sted</th>
-            <th>Telefon</th>
-            <th>Adresse</th>
-            <th>Postnummer</th>
-        </tr>
-    </thead>
-    <tbody>
+<div class="page-section mt-3">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
         @if (suppliers != null && suppliers.Count > 0)
         {
-            foreach (var supplier in suppliers)
+            @foreach (var supplier in suppliers)
             {
-                <tr>
-                    <td>@supplier.Id</td>
-                    <td>
-                        <a href="supplier/@supplier.Id">@supplier.Name</a>
-                    </td>
-                    <td>@supplier.ContactEmail</td>
-                    <td>@supplier.City</td>
-                    <td>@supplier.ContactPhone</td>
-                    <td>@supplier.Address</td>
-                    <td>@supplier.PostalCode</td>
-                </tr>
+                <div class="col">
+                    <div class="card card-service h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center gap-2">
+                                <span class="date-pill">
+                                    @(string.IsNullOrWhiteSpace(supplier.City) ? "Leverandør" : supplier.City)
+                                </span>
+                                @if (!string.IsNullOrWhiteSpace(supplier.ContactEmail))
+                                {
+                                    <span class="badge badge-service rounded-pill badge-clip text-truncate" title="@supplier.ContactEmail">
+                                        @supplier.ContactEmail
+                                    </span>
+                                }
+                            </div>
+
+                            <h5 class="card-title mt-2 mb-1">
+                                <a class="text-decoration-none" href="supplier/@supplier.Id">@supplier.Name</a>
+                            </h5>
+
+                            @if (!string.IsNullOrWhiteSpace(supplier.Address))
+                            {
+                                <p class="card-text text-muted mb-2">
+                                    @supplier.Address
+                                    @if (!string.IsNullOrWhiteSpace(supplier.PostalCode) || !string.IsNullOrWhiteSpace(supplier.City))
+                                    {
+                                        <span>, @supplier.PostalCode @supplier.City</span>
+                                    }
+                                </p>
+                            }
+
+                            <div class="d-flex flex-wrap gap-3 text-muted small">
+                                @if (!string.IsNullOrWhiteSpace(supplier.ContactPhone))
+                                {
+                                    <span>Tlf: <strong>@supplier.ContactPhone</strong></span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
             }
         }
         else
         {
-            <tr>
-                <td colspan="4">No suppliers found.</td>
-            </tr>
+            <div class="col">
+                <div class="alert alert-info mb-0">Ingen leverandører</div>
+            </div>
         }
-    </tbody>
-</table>
+    </div>
+</div>
 
 @code {
     private List<SupplierModel> suppliers = new List<SupplierModel>();

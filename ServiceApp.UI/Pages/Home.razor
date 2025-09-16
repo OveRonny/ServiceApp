@@ -1,10 +1,120 @@
 ﻿@page "/"
-
+@inject NavigationManager NavigationManager
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="container-xxl">
+    
+    <div class="page-section p-4 p-md-5 mb-3">
+        <h1 class="page-title mb-2">Progorb ServiceApp</h1>
+        <p class="text-muted mb-4">
+            Administrer kjøretøy, eiere, service og deler – raskt og enkelt.
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-primary" @onclick='() => NavigationManager.NavigateTo("/vehicle")'>Legg til kjøretøy</button>
+            <button class="btn btn-secondary" @onclick='() => NavigationManager.NavigateTo("/servicerecord/create")'>Ny service</button>
+        </div>
+    </div>
+   
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
+        <div class="col">
+            <div class="card card-service h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="date-pill">🚗 Kjøretøy</span>   
+                    </div>
+                    <h5 class="card-title mt-2 mb-1">Administrer kjøretøy</h5>
+                    <p class="card-text text-muted mb-3">Se alle kjøretøy, legg til nye og oppdater detaljer.</p>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/vehicles")'>Gå til kjøretøy</button>
+                        <button class="btn btn-outline-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/vehicle")'>Legg til</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-Welcome to your new app.
+        <div class="col">
+            <div class="card card-service h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="date-pill">👤 Eiere</span>
+                    </div>
+                    <h5 class="card-title mt-2 mb-1">Administrer eiere</h5>
+                    <p class="card-text text-muted mb-3">Hold oversikt over eiere og kontaktinformasjon.</p>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/owners")'>Gå til eiere</button>
+                        <button class="btn btn-outline-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/owner")'>Ny eier</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card card-service h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="date-pill">🧾 Service</span>
+                    </div>
+                    <h5 class="card-title mt-2 mb-1">Service og historikk</h5>
+                    <p class="card-text text-muted mb-3">Registrer service og vedlikehold for kjøretøy.</p>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/servicerecord/create")'>Ny service</button>
+                        <button class="btn btn-outline-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/vehicles")'>Finn kjøretøy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card card-service h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="date-pill">⛽ Forbruk</span>
+                    </div>
+                    <h5 class="card-title mt-2 mb-1">Drivstoff & forbruk</h5>
+                    <p class="card-text text-muted mb-3">Se og registrer forbruk per kjøretøy.</p>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/vehicles")'>Velg kjøretøy</button>
+                        <button class="btn btn-outline-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/vehicles")'>Oversikt</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card card-service h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="date-pill">🛠️ Deler</span>
+                    </div>
+                    <h5 class="card-title mt-2 mb-1">Deler & lager</h5>
+                    <p class="card-text text-muted mb-3">Se lager og deler per kjøretøy.</p>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/vehicles")'>Finn kjøretøy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card card-service h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="date-pill">⚙️ Oppsett</span>
+                    </div>
+                    <h5 class="card-title mt-2 mb-1">Oppsett og registre</h5>
+                    <p class="card-text text-muted mb-3">Vedlikehold registre for service, firma og leverandører.</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="btn btn-outline-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/servicetypes")'>Service typer</button>
+                        <button class="btn btn-outline-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/servicecompanies")'>Firma</button>
+                        <button class="btn btn-outline-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/suppliers")'>Leverandører</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
 
 

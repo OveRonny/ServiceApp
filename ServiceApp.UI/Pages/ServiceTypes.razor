@@ -1,30 +1,49 @@
 ﻿@page "/servicetypes"
 @inject IServiceTypeService ServiceTypeService
 @inject NavigationManager NavigationManager
+@attribute [Authorize]
 
-<button type="button" class="btn btn-primary" @onclick="NavigateToNewServiceType" >Ny service type</button>
+<div class="container-xxl">
+    <button type="button" class="btn btn-primary" @onclick="NavigateToNewServiceType">Ny service</button>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Service type</th>
+    @if (serviceTypes == null || serviceTypes.Count == 0)
+    {
+        <div class="page-section mt-3">
+            <div class="alert alert-info mb-0">Ingen service typer funnet.</div>
+        </div>
+    }
+    else
+    {
+        <div class="page-section mt-3">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
+                @foreach (var serviceType in serviceTypes)
+                {
+                    <div class="col">
+                        <div class="card card-service h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="date-pill">Service</span>
+                                </div>
 
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var serviceType in serviceTypes)
-        {
-            <tr>
-                <td>@serviceType.Id</td>
-                <td>
-                    <a href="servicetype/@serviceType.Id">@serviceType.Name</a>
-                </td>               
-            </tr>
-        }
-    </tbody>
-</table>
-
+                                <h5 class="card-title mt-2 mb-1">
+                                    <a class="text-decoration-none" href="servicetype/@serviceType.Id">
+                                        @serviceType.Name
+                                    </a>
+                                </h5>
+                            </div>
+                            <div class="card-footer bg-transparent d-flex gap-2">
+                                <button type="button" class="btn btn-primary btn-sm"
+                                        @onclick="@(() => NavigationManager.NavigateTo($"/servicetype/{serviceType.Id}"))">
+                                    Rediger
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
 
 @code {
     private List<ServiceTypeModel> serviceTypes = new List<ServiceTypeModel>();

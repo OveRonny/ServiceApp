@@ -3,8 +3,9 @@
 @page "/consumptionrecord/create/vehicle/{vehicleId:int}"
 @inject IConsumptionRecordService ConsumptionRecordService
 @inject NavigationManager NavigationManager
+@attribute [Authorize]
 
-<h3>ConsumptionRecord</h3>
+<h3>Forbruk</h3>
 
 <EditForm Model="consumptionRecord" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />

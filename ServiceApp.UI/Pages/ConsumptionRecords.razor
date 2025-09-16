@@ -1,76 +1,99 @@
 ﻿@page "/consumptionrecords/{vehicleId:int}"
 @inject IConsumptionRecordService ConsumptionRecordService
 @inject NavigationManager NavigationManager
+@attribute [Authorize]
 
-<h3>ConsumptionRecords</h3>
 
-<button class="btn btn-primary mb-3" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/create/vehicle/{VehicleId}"))">Legg til</button>
+<div class="container-xxl">
+    <h3>Forbruk</h3>
 
-<div class="row">
-    <div class="mb-3">
-        <label for="startDate">Startdato:</label>
-        <InputDate id="startDate" @bind-Value="startDate" @bind-Value:after="GetFilteredRecords" />
+    <button class="btn btn-primary mb-3" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/create/vehicle/{VehicleId}"))">Legg til</button>
+    <div class="col-6">
+        <div class="row">
+            <div class="mb-3">
+                <label class="form-label" for="startDate">Startdato:</label>
+                <InputDate class="form-control" id="startDate" @bind-Value="startDate" @bind-Value:after="GetFilteredRecords" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="endDate">Sluttdato:</label>
+                <InputDate class="form-control" id="endDate" @bind-Value="endDate" @bind-Value:after="GetFilteredRecords" />
+            </div>
+        </div>
     </div>
-    <div class="mb-3">
-        <label for="endDate">Sluttdato:</label>
-        <InputDate id="endDate" @bind-Value="endDate" @bind-Value:after="GetFilteredRecords" />
-    </div>
-</div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Dato</th>
-            <th>Kjøretøy</th>
-            <th>Kilometer</th>
-            <th>Antall liter</th>
-            <th>Pris</th>            
-            <th>Forbruk</th>
-            <th>Sum</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
+    <!-- Mobile cards (xs-sm) -->
+    <div class="d-md-none">
         @foreach (var record in consumptionRecords)
         {
-            <tr>
-                <td>@record.Id</td>
-                <td>@record.Date.ToShortDateString()</td>
-                <td>@record.Make @record.Model</td>
-                <td>@record.Mileage</td>
-                <td>@record.DieselAdded</td>
-                <td>@record.DieselPricePerLiter</td>                
-                <td>@record.DieselConsumption</td>
-                <td>@record.TotalCost.ToString("F2")</td>
-                <td>
-                    <button class="btn btn-primary" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/{record.Id}"))">Rediger</button>
-                    <button class="btn btn-danger" @onclick="@(() => DeleteConsumption(record.Id))">Slett</button>
-                </td>
-            </tr>
+            <div class="card mb-2">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <strong>@record.Make @record.Model</strong>
+                        <span>@record.Date.ToShortDateString()</span>
+                    </div>
+                    <div class="mt-2">
+                        <div class="small text-muted">Kilometer: <strong>@record.Mileage</strong></div>
+                        <div class="small text-muted">Antall liter: <strong>@record.DieselAdded</strong></div>
+                        <div class="small text-muted">Pris/l: <strong>@record.DieselPricePerLiter</strong></div>
+                        <div class="small text-muted">Forbruk: <strong>@(record.DieselConsumption?.ToString("F2") ?? "-")</strong></div>
+                        <div class="small text-muted">Sum: <strong>@record.TotalCost.ToString("F2")</strong></div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex gap-2">
+                    <button class="btn btn-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/{record.Id}"))">Rediger</button>
+                    <button class="btn btn-danger btn-sm" @onclick="@(() => DeleteConsumption(record.Id))">Slett</button>
+                </div>
+            </div>
         }
-        <tr>
-            <td colspan="3"><strong>Totalt:</strong></td>
-            <td><strong>@TotalMilage</strong></td>
-            <td><strong>@TotalDieselAdded.ToString("F2")</strong></td>
-            <td></td>
-            <td></td>
-            <td><strong>@TotalCost.ToString("F2")</strong></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>Gjennomsnitt</td>
-            <td colspan="4"></td> <!-- Tomme celler for å justere plasseringen -->
-            <td><strong>@AveragePricePerLiter.ToString("F2")</strong></td> <!-- Gjennomsnittspris per liter -->
-            <td colspan="3"></td> <!-- Resten av cellene -->
-        </tr>
-        <tr>
-            <td colspan="3"><strong>Gjennomsnittlig forbruk (liter/km):</strong></td>
-            <td colspan="5"><strong>@AvarageDieselConsumption.ToString("F2")</strong></td>
-            <td></td>
-        </tr>
-    </tbody>
-</table>
+    </div>
+
+    <!-- Desktop table (md and up) -->
+    <div class="table-responsive d-none d-md-block">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th class="d-none d-lg-table-cell">Id</th>
+                    <th>Dato</th>
+                    <th>Kjøretøy</th>
+                    <th class="d-none d-sm-table-cell">Kilometer</th>
+                    <th>Antall liter</th>
+                    <th class="d-none d-lg-table-cell">Pris</th>
+                    <th class="d-none d-lg-table-cell">Forbruk</th>
+                    <th>Sum</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var record in consumptionRecords)
+                {
+                    <tr>
+                        <td class="d-none d-lg-table-cell">@record.Id</td>
+                        <td>@record.Date.ToShortDateString()</td>
+                        <td>@record.Make @record.Model</td>
+                        <td class="d-none d-sm-table-cell">@record.Mileage</td>
+                        <td>@record.DieselAdded</td>
+                        <td class="d-none d-lg-table-cell">@record.DieselPricePerLiter</td>
+                        <td class="d-none d-lg-table-cell">@(record.DieselConsumption?.ToString("F2") ?? "-")</td>
+                        <td>@record.TotalCost.ToString("F2")</td>
+                        <td class="text-nowrap">
+                            <button class="btn btn-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/{record.Id}"))">Rediger</button>
+                            <button class="btn btn-danger btn-sm" @onclick="@(() => DeleteConsumption(record.Id))">Slett</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- One shared summary used for all screen sizes -->
+    <ConsumptionSummary
+        TotalMilage="TotalMilage"
+        TotalDieselAdded="TotalDieselAdded"
+        TotalCost="TotalCost"
+        AveragePricePerLiter="AveragePricePerLiter"
+        AverageDieselConsumption="AvarageDieselConsumption" />
+
+</div>
 
 @code {
     private List<ConsumptionRecordModel> consumptionRecords = new List<ConsumptionRecordModel>();
@@ -92,8 +115,7 @@
     private decimal AvarageDieselConsumption =>
     TotalMilage > 0 ? TotalDieselAdded / TotalMilage : 0;
 
-
-    protected override async Task OnParametersSetAsync()  
+    protected override async Task OnParametersSetAsync()
     {
         await GetFilteredRecords();
     }
@@ -108,6 +130,4 @@
     {
         consumptionRecords = await ConsumptionRecordService.GetAllConsumptionRecordsAsync(VehicleId, startDate, endDate);
     }
-
-
 }

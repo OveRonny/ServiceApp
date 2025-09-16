@@ -6,7 +6,8 @@ public interface IVehicleService
 {
     Task<List<VehicleModel>> GetAllVehiclesAsync();
     Task<VehicleModel?> GetVehicleByIdAsync(int id);
-    Task<VehicleModel> AddVehicleAsync(VehicleModel vehicle);
-    Task<VehicleModel> UpdateVehicleAsync(VehicleModel vehicle);
-    Task<bool> DeleteVehicleAsync(int id);
+    Task<List<VehicleModel>> GetVehiclesByOwnerIdAsync(int ownerId);
+    Task AddVehicleAsync(VehicleModel model);
+    Task UpdateVehicleAsync(VehicleModel model);
+    Task DeleteVehicleAsync(int id);
 }

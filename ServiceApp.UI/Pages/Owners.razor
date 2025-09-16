@@ -1,59 +1,88 @@
 ﻿@page "/owners"
 @inject IOwnerService ownerService
 @inject NavigationManager navigationManager
+@attribute [Authorize]
 
-<h3>Owners</h3>
+<h3>Eiere</h3>
 
 <button type="button" class="btn btn-primary mb-2" @onclick="NavigateToOwner">Ny Eier</button>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Fornavn</th>
-            <th>Etternavn</th>
-            <th>Address</th>
-            <th>Phone</th>
-            <th>Epost</th>
-        </tr>
-    </thead>
-    <tbody>
+<div class="page-section mt-3">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
         @if (ownerModels != null && ownerModels.Count > 0)
         {
             @foreach (var owner in ownerModels)
             {
-                <tr>
-                    <td>@owner.Id</td>
-                    <td>
-                        <a href="owner/@owner.Id">@owner.FirstName</a>
-                    </td>
-                    <td>@owner.LastName</td>
-                    <td>@owner.Address</td>
-                    <td>@owner.PhoneNumber</td>
-                    <td>@owner.Email</td>
-                </tr>
+                <div class="col">
+                    <div class="card card-service h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center gap-2">
+                                <span class="date-pill">
+                                    @(string.IsNullOrWhiteSpace(owner.City) ? "Eier" : owner.City)
+                                </span>
+                                @if (!string.IsNullOrWhiteSpace(owner.Email))
+                                {
+                                    <span class="badge badge-service rounded-pill badge-clip text-truncate" title="@owner.Email">
+                                        @owner.Email
+                                    </span>
+                                }
+                            </div>
+
+                            <h5 class="card-title mt-2 mb-1">
+                                <a class="text-decoration-none" href="owner/@owner.Id">@owner.FirstName @owner.LastName</a>
+                            </h5>
+
+                            @if (!string.IsNullOrWhiteSpace(owner.Address))
+                            {
+                                <p class="card-text text-muted mb-2">
+                                    @owner.Address
+                                    @if (!string.IsNullOrWhiteSpace(owner.PostalCode) || !string.IsNullOrWhiteSpace(owner.City))
+                                    {
+                                        <span>, @owner.PostalCode @owner.City</span>
+                                    }
+                                </p>
+                            }
+
+                            <div class="d-flex flex-wrap gap-3 text-muted small">
+                                @if (!string.IsNullOrWhiteSpace(owner.PhoneNumber))
+                                {
+                                    <span>Tlf: <strong>@owner.PhoneNumber</strong></span>
+                                }
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent d-flex gap-2">
+                            <button type="button" class="btn btn-primary btn-sm"
+                                    @onclick="@(() => navigationManager.NavigateTo($"/owner/{owner.Id}"))">
+                                Rediger
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm"
+                                    @onclick="@(() => NavigateToOwnerVehicles(owner.Id))">
+                                Se kjøretøy
+                            </button>
+                        </div>
+                    </div>
+                </div>
             }
         }
         else
         {
-            <tr>
-                <td colspan="4">No owners found.</td>
-            </tr>
+            <div class="col">
+                <div class="alert alert-info mb-0">Ingen eiere</div>
+            </div>
         }
-    </tbody>
-</table>
+    </div>
+</div>
 
 @code {
-    private List<OwnerModel> ownerModels = new List<OwnerModel>();
+    private List<OwnerModel> ownerModels = new();
 
     protected override async Task OnInitializedAsync()
     {
         ownerModels = await ownerService.GetAllOwnersAsync();
     }
 
-    private void NavigateToOwner()
-    {
-        navigationManager.NavigateTo("/owner");
-    }
-    
+    private void NavigateToOwner() => navigationManager.NavigateTo("/owner");
+
+    private void NavigateToOwnerVehicles(int ownerId)
+        => navigationManager.NavigateTo($"/vehicles/owner/{ownerId}");
 }

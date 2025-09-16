@@ -6,7 +6,7 @@ public interface IServiceTypeService
 {
     Task<List<ServiceTypeModel>> GetServiceTypesAsync();
     Task<ServiceTypeModel?> GetServiceTypeByIdAsync(int id);
-    Task<ServiceTypeModel> CreateServiceTypeAsync(ServiceTypeModel serviceType);
-    Task<ServiceTypeModel> UpdateServiceTypeAsync(ServiceTypeModel serviceType);
+    Task CreateServiceTypeAsync(ServiceTypeModel serviceType);
+    Task UpdateServiceTypeAsync(ServiceTypeModel serviceType);
     Task<bool> DeleteServiceTypeAsync(int id);
 }

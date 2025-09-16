@@ -2,6 +2,7 @@
 @page "/owner/{id:int}"
 @inject IOwnerService ownerService
 @inject NavigationManager navigationManager
+@attribute [Authorize]
 
 
 <div class="container-xxl">

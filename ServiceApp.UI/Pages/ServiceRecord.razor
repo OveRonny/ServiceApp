@@ -3,6 +3,7 @@
 @page "/servicerecord/create"
 @inject IServiceRecordService ServiceRecordService
 @inject NavigationManager NavigationManager
+@attribute [Authorize]
 
 <h3>ServiceRecord</h3>
 
@@ -47,8 +48,6 @@
 
 
 </EditForm>
-
-<Parts serviceRecord="@serviceRecord" />
 
 @code {
     private ServiceRecordModel serviceRecord = new ServiceRecordModel();

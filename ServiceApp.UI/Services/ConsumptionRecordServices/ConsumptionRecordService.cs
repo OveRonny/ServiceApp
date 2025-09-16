@@ -3,9 +3,11 @@ using System.Net.Http.Json;
 
 namespace ServiceApp.UI.Services.ConsumptionRecordServices;
 
-public class ConsumptionRecordService(HttpClient http) : IConsumptionRecordService
+public class ConsumptionRecordService(IHttpClientFactory clients) : IConsumptionRecordService
 {
-    private readonly HttpClient http = http;
+    private readonly IHttpClientFactory _clients = clients;
+
+    private HttpClient ApiAuthed() => _clients.CreateClient("ApiAuthed");
 
     public async Task<List<ConsumptionRecordModel>> GetAllConsumptionRecordsAsync(int vehicleId, DateTime? startDate = null, DateTime? endDate = null)
     {
@@ -21,35 +23,34 @@ public class ConsumptionRecordService(HttpClient http) : IConsumptionRecordServi
             query += $"endDate={endDate.Value:yyyy-MM-dd}&";
         }
 
-        var result = await http.GetFromJsonAsync<List<ConsumptionRecordModel>>(query);
-        return result ?? new List<ConsumptionRecordModel>();
+        var http = ApiAuthed();
+
+        return await http.GetFromJsonAsync<List<ConsumptionRecordModel>>(query) ?? [];
     }
 
-    public async Task<ConsumptionRecordModel> GetConsumptionRecordByIdAsync(int id)
+    public async Task<ConsumptionRecordModel?> GetConsumptionRecordByIdAsync(int id)
     {
-        var result = await http.GetFromJsonAsync<ConsumptionRecordModel>($"api/consumption-record/{id}");
-        if (result == null)
-        {
-            return new ConsumptionRecordModel();
-        }
-        return result;
+        var http = ApiAuthed();
+        return await http.GetFromJsonAsync<ConsumptionRecordModel>($"api/consumption-record/{id}"); 
+               
     }
 
-    public async Task<ConsumptionRecordModel> CreateConsumptionRecordAsync(ConsumptionRecordModel consumptionRecord)
+    public async Task CreateConsumptionRecordAsync(ConsumptionRecordModel consumptionRecord)
     {
+        var http = ApiAuthed();
         await http.PostAsJsonAsync("api/consumption-record", consumptionRecord);
-        return consumptionRecord;
     }
 
-    public async Task<ConsumptionRecordModel> UpdateConsumptionRecordAsync(ConsumptionRecordModel consumptionRecord)
+    public async Task UpdateConsumptionRecordAsync(ConsumptionRecordModel consumptionRecord)
     {
+        var http = ApiAuthed();
         await http.PutAsJsonAsync($"api/consumption-record/{consumptionRecord.Id}", consumptionRecord);
-        return consumptionRecord;
     }
 
     public async Task<bool> DeleteConsumptionRecordAsync(int id)
     {
-        await http.DeleteAsync($"api/consumption-record/{id}");
-        return true;
+        var http = ApiAuthed();
+        var resp = await http.DeleteAsync($"api/consumption-record/{id}");
+        return resp.IsSuccessStatusCode;
     }
 }

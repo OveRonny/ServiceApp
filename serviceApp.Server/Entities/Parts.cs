@@ -10,4 +10,6 @@ public class Parts
     public int ServiceRecordId { get; set; }
     public ServiceRecord? ServiceRecord { get; set; }
 
+    public Guid FamilyId { get; set; }
+
 }

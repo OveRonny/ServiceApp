@@ -1,0 +1,74 @@
+/* Glass navbar */
+.navbar-glass {
+  background: rgba(255,255,255,0.75) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  position: relative;     /* create stacking context */
+  z-index: 1100;          /* higher than cards/sections */
+}
+
+/* Dropdown (light) */
+.navbar .dropdown-menu {
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.06);
+  background: rgba(255,255,255,0.96);
+  box-shadow: 0 10px 30px rgba(0,0,0,.12);
+  padding: .4rem;
+  min-width: 14rem;
+  z-index: 1200;          /* above the navbar itself */
+}
+.navbar .dropdown-item {
+  border-radius: 8px;
+  padding: .5rem .75rem;
+  color: #1f2937;
+}
+.navbar .dropdown-item:hover {
+  background: rgba(37,99,235,.10);
+  color: var(--brand-primary);
+}
+.navbar .dropdown-divider { margin: .35rem .25rem; opacity: .12; }
+
+/* Links and caret */
+.navbar .nav-link { color: #0f172a; }
+.navbar .nav-link:hover { color: var(--brand-primary); }
+.navbar .dropdown-toggle::after { border-top-color: currentColor !important; }
+
+/* Base brand text (fallback if no support) */
+.navbar-brand .brand-gradient {
+  display: inline-block;
+  font-weight: 800;
+  letter-spacing: .3px;
+  color: inherit;                 /* readable fallback */
+  transition: background-position .35s ease, transform .15s ease;
+}
+
+/* Chromium/WebKit: gradient text */
+@supports (-webkit-background-clip: text) {
+  .navbar-brand .brand-gradient {
+    background-image: linear-gradient(90deg, var(--brand-primary), var(--brand-secondary), var(--brand-accent));
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .navbar-brand:hover .brand-gradient {
+    background-position: 100% 0;
+    transform: translateY(-1px);
+  }
+
+  .theme-graphite .navbar-brand .brand-gradient {
+    text-shadow: 0 0 14px rgba(96,165,250,0.15);
+  }
+}
+
+/* Firefox (unprefixed background-clip support) */
+@supports (background-clip: text) and (not (-webkit-background-clip: text)) {
+  .navbar-brand .brand-gradient {
+    background-image: linear-gradient(90deg, var(--brand-primary), var(--brand-secondary), var(--brand-accent));
+    background-size: 200% 100%;
+    background-clip: text;
+    color: transparent;
+  }
+}
+

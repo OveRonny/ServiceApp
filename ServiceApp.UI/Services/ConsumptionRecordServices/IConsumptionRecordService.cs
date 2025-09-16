@@ -6,8 +6,8 @@ public interface IConsumptionRecordService
 {
 
     Task<List<ConsumptionRecordModel>> GetAllConsumptionRecordsAsync(int vehicleId, DateTime? startDate = null, DateTime? endDate = null);
-    Task<ConsumptionRecordModel> GetConsumptionRecordByIdAsync(int id);
-    Task<ConsumptionRecordModel> CreateConsumptionRecordAsync(ConsumptionRecordModel consumptionRecord);
-    Task<ConsumptionRecordModel> UpdateConsumptionRecordAsync(ConsumptionRecordModel consumptionRecord);
+    Task<ConsumptionRecordModel?> GetConsumptionRecordByIdAsync(int id);
+    Task CreateConsumptionRecordAsync(ConsumptionRecordModel consumptionRecord);
+    Task UpdateConsumptionRecordAsync(ConsumptionRecordModel consumptionRecord);
     Task<bool> DeleteConsumptionRecordAsync(int id);
 }

@@ -2,6 +2,7 @@
 @page "/supplier/{id:int}"
 @inject ISupplierService supplierService
 @inject NavigationManager navigationManager
+@attribute [Authorize]
 
 <h3>Supplier</h3>
 

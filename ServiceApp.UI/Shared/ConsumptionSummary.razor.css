@@ -1,0 +1,11 @@
+.card-body {
+    color: black;
+}
+
+.card-body .small {
+    font-size: 0.95rem;
+}
+
+.card-body strong {
+    font-weight: 600;
+}

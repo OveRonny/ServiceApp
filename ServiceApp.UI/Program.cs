@@ -1,6 +1,9 @@
+using Blazored.Toast;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using ServiceApp.UI;
+using ServiceApp.UI.Services;
 using ServiceApp.UI.Services.ConsumptionRecordServices;
 using ServiceApp.UI.Services.Owners;
 using ServiceApp.UI.Services.ServiceCompanyServices;
@@ -14,8 +17,23 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7119/") });
+// Base address for your Server API (adjust if different)
+var apiBase = new Uri("https://localhost:7119/");
 
+// Plain API client
+builder.Services.AddHttpClient("Api", c => c.BaseAddress = apiBase);
+
+// Auth
+builder.Services.AddAuthorizationCore();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthenticationStateProvider>();
+builder.Services.AddTransient<BearerHandler>();
+
+// Authed API client (adds Authorization: Bearer <token>)
+builder.Services.AddHttpClient("ApiAuthed", c => c.BaseAddress = apiBase)
+    .AddHttpMessageHandler<BearerHandler>();
+
+builder.Services.AddBlazoredToast();
 builder.Services.AddScoped<IOwnerService, OwnerService>();
 builder.Services.AddScoped<IConsumptionRecordService, ConsumptionRecordService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();

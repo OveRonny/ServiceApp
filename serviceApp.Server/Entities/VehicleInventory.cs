@@ -14,6 +14,7 @@ public class VehicleInventory
     public Vehicle? Vehicle { get; set; }
     public int SupplierId { get; set; }
     public Supplier? Supplier { get; set; }
+    public Guid FamilyId { get; set; }
 
     public ICollection<Parts> Parts { get; set; } = new List<Parts>();
 

@@ -2,51 +2,53 @@
 @page "/vehicle"
 @inject IVehicleService vehicleService
 @inject NavigationManager NavigationManager
+@attribute [Authorize]
 
-<h3>Vehicle</h3>
+<div class="container-xxl">
+    <h3>Kjøretøy</h3>
 
-<EditForm Model="vehicleModel" OnValidSubmit="HandleValidSubmit">
-    <DataAnnotationsValidator />
+    <EditForm Model="vehicleModel" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
 
-    <div class="mb-3">
-        <label for="make" class="form-label">Make</label>
-        <InputText id="make" class="form-control" @bind-Value="vehicleModel.Make" />
-        <ValidationMessage For="@(() => vehicleModel.Make)" />
-    </div>
-    <div class="mb-3">
-        <label for="model" class="form-label">Model</label>
-        <InputText id="model" class="form-control" @bind-Value="vehicleModel.Model" />
-        <ValidationMessage For="@(() => vehicleModel.Model)" />
-    </div>
-    <div class="mb-3">
-        <label for="year" class="form-label">Year</label>
-        <InputText id="year" class="form-control" @bind-Value="vehicleModel.Year" />
-        <ValidationMessage For="@(() => vehicleModel.Year)" />
-    </div>
-    <div class="mb-3">
-        <label for="color" class="form-label">Color</label>
-        <InputText id="color" class="form-control" @bind-Value="vehicleModel.Color" />
-        <ValidationMessage For="@(() => vehicleModel.Color)" />
-    </div>
-    <div class="mb-3">
-        <label for="LicensePlate" class="form-label">LicensePlate</label>
-        <InputText id="LicensePlate" class="form-control" @bind-Value="vehicleModel.LicensePlate" />
-        <ValidationMessage For="@(() => vehicleModel.LicensePlate)" />
-    </div>
-    <div class="mb-3">
-        <OwnerDropdown @bind-selectedOwnerId="vehicleModel.OwnerId"  />
-    </div>
+        <div class="mb-3">
+            <label for="make" class="form-label">Merke</label>
+            <InputText id="make" class="form-control" @bind-Value="vehicleModel.Make" />
+            <ValidationMessage For="@(() => vehicleModel.Make)" />
+        </div>
+        <div class="mb-3">
+            <label for="model" class="form-label">Modell</label>
+            <InputText id="model" class="form-control" @bind-Value="vehicleModel.Model" />
+            <ValidationMessage For="@(() => vehicleModel.Model)" />
+        </div>
+        <div class="mb-3">
+            <label for="year" class="form-label">Årsmodell</label>
+            <InputText id="year" class="form-control" @bind-Value="vehicleModel.Year" />
+            <ValidationMessage For="@(() => vehicleModel.Year)" />
+        </div>
+        <div class="mb-3">
+            <label for="color" class="form-label">Farge</label>
+            <InputText id="color" class="form-control" @bind-Value="vehicleModel.Color" />
+            <ValidationMessage For="@(() => vehicleModel.Color)" />
+        </div>
+        <div class="mb-3">
+            <label for="LicensePlate" class="form-label">Reg nr</label>
+            <InputText id="LicensePlate" class="form-control" @bind-Value="vehicleModel.LicensePlate" />
+            <ValidationMessage For="@(() => vehicleModel.LicensePlate)" />
+        </div>
+        <div class="mb-3">
+            <OwnerDropdown @bind-selectedOwnerId="vehicleModel.OwnerId"  />
+        </div>
 
-    <button type="submit" class="btn btn-primary mt-2">Lagre</button>
-    <button type="button" class="btn btn-secondary mt-2 mx-2" @onclick="NavigateToVehicles">Avbryt</button>
-    @if (Id > 0)
-    {
-        <button type="button" class="btn btn-danger mt-2 mx-2" @onclick="DeleteVehicle">Slett</button>
-    }
+        <button type="submit" class="btn btn-primary mt-2">Lagre</button>
+        <button type="button" class="btn btn-secondary mt-2 mx-2" @onclick="NavigateToVehicles">Avbryt</button>
+        @if (Id > 0)
+        {
+            <button type="button" class="btn btn-danger mt-2 mx-2" @onclick="DeleteVehicle">Slett</button>
+        }
 
 
-</EditForm>
-
+    </EditForm>
+</div>
 @code {
     private VehicleModel vehicleModel = new VehicleModel();
 
@@ -67,12 +69,10 @@
                 vehicleModel = new VehicleModel();
             }
         }
-
         else
         {
             vehicleModel = new VehicleModel();
-        }
-        
+        }        
     }
 
     private async Task HandleValidSubmit()

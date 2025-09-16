@@ -9,6 +9,7 @@ public class MileageHistory
     public DateTime RecordedDate { get; set; } = DateTime.Now;
     public Vehicle? Vehicle { get; set; }
     public MileageType Type { get; set; }
+    public Guid FamilyId { get; set; }
 
     public enum MileageType
     {

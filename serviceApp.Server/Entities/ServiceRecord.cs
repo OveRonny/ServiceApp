@@ -13,6 +13,9 @@ public class ServiceRecord
     public int ServiceCompanyId { get; set; }
 
     public int MileageHistoryId { get; set; }
+    public Guid FamilyId { get; set; }
+
+
     public MileageHistory? MileageHistory { get; set; }
 
     public ServiceCompany? ServiceCompany { get; set; }

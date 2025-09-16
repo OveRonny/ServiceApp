@@ -1,0 +1,52 @@
+@page "/register"
+@inject IAuthService Auth
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<h3>Registrer bruker</h3>
+
+<EditForm Model="@model" OnValidSubmit="Submit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="mb-3">
+        <label class="form-label">E-post</label>
+        <InputText class="form-control" @bind-Value="model.Email" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Passord</label>
+        <InputText class="form-control" @bind-Value="model.Password" type="password" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Bekreft passord</label>
+        <InputText class="form-control" @bind-Value="model.ConfirmPassword" type="password" />
+    </div>
+    <button class="btn btn-primary" type="submit">Registrer</button>
+    @if (!string.IsNullOrEmpty(error))
+    {
+        <div class="alert alert-danger mt-3">@error</div>
+    }
+</EditForm>
+
+@code {
+    private RegisterModel model = new();
+    private string? error;
+
+    private async Task Submit()
+    {
+        var registered = await Auth.RegisterAsync(model.Email, model.Password);     
+
+        // Auto-login after successful registration
+        var loggedIn = await Auth.LoginAsync(model.Email, model.Password);
+        if (loggedIn && AuthStateProvider is JwtAuthenticationStateProvider jwt)
+        {
+            var token = await Auth.GetAccessTokenAsync();
+            if (!string.IsNullOrEmpty(token))
+                jwt.NotifyUserAuthentication(token);
+            Nav.NavigateTo("/");
+        }
+        else
+        {
+            Nav.NavigateTo("/login");
+        }
+    }
+}

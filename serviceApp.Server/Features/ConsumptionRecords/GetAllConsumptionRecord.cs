@@ -21,17 +21,24 @@ public static class GetAllConsumptionRecord
                 .Include(v => v.Vehicle)
                 .Where(c => c.VehicleId == request.VehicleId);
 
-            // Filtrer basert på tidsperiode
-            if (request.StartDate.HasValue)
+            DateTime? start = request.StartDate?.Date;
+            DateTime? endExclusive = request.EndDate?.Date.AddDays(1); // gjør EndDate inklusiv
+
+            if (!start.HasValue && !endExclusive.HasValue)
             {
-                var startDate = request.StartDate.Value;
-                query = query.Where(c => c.Date >= startDate); // Records on or after StartDate
+                var today = DateTime.Today; // bruk DateTime.UtcNow.Date hvis du lagrer tider som UTC
+                start = today;
+                endExclusive = today.AddDays(1);
             }
 
-            if (request.EndDate.HasValue)
+            if (start.HasValue)
             {
-                var endDate = request.EndDate.Value;
-                query = query.Where(c => c.Date <= endDate); // Records on or before EndDate
+                query = query.Where(c => c.Date >= start.Value);
+            }
+
+            if (endExclusive.HasValue)
+            {
+                query = query.Where(c => c.Date < endExclusive.Value);
             }
 
             var consumptionRecords = await query.ToListAsync(cancellationToken);

@@ -1,0 +1,22 @@
+﻿@inherits LayoutComponentBase
+
+<BlazoredToasts Timeout="10"
+                ShowProgressBar="true"
+                PauseProgressOnHover="true"/>
+                
+           
+<div class="page-shell d-flex flex-column min-vh-100">
+    <TopNavMeny />
+
+    <main class="container mt-4 flex-grow-1">
+        @Body
+    </main>
+
+    <footer class="app-footer">
+        <div class="container-xxl d-flex align-items-center justify-content-center gap-2">
+            <img src="images/progorb-mark.svg" alt="Progorb logo" height="18" class="footer-logo" />          
+            <span class="small fw-semibold">Progorb @DateTime.Now.Year</span>
+        </div>
+    </footer>
+</div>
+

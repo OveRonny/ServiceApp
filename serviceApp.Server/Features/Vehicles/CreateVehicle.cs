@@ -1,4 +1,6 @@
-﻿namespace serviceApp.Server.Features.Vehicles;
+﻿using serviceApp.Server.Features.Autentication;
+
+namespace serviceApp.Server.Features.Vehicles;
 
 public static class CreateVehicle
 {
@@ -6,12 +8,16 @@ public static class CreateVehicle
 
     public record Response(int Id, string Make, string Model, string Year, string Color, string LicensePlate, int OwnerId, DateTime DateCreated);
 
-    public class Handler(ApplicationDbContext context) : ICommandHandler<Command, Response>
+    public class Handler(ApplicationDbContext context, ICurrentUser currentUser) : ICommandHandler<Command, Response>
     {
         private readonly ApplicationDbContext context = context;
+        private readonly ICurrentUser currentUser = currentUser;
 
         public async Task<Result<Response>> Handle(Command request, CancellationToken cancellationToken)
         {
+            if (!currentUser.IsAuthenticated || currentUser.FamilyId is null)
+                return Result.Fail<Response>("Not authenticated.");
+
             var vehicle = new Vehicle
             {
                 Make = request.Make,
@@ -20,7 +26,9 @@ public static class CreateVehicle
                 Color = request.Color,
                 LicensePlate = request.LicensePlate,
                 DateCreated = DateTime.Now,
-                OwnerId = request.OwnerId
+                OwnerId = request.OwnerId,
+                UserId = currentUser.UserId!,
+                FamilyId = currentUser.FamilyId.Value
             };
             context.Vehicles.Add(vehicle);
             await context.SaveChangesAsync(cancellationToken);
@@ -35,8 +43,9 @@ public static class CreateVehicle
             app.MapPost("api/vehicle", async (ISender sender, CreateVehicle.Command command, CancellationToken cancellationToken) =>
             {
                 var result = await sender.Send(command, cancellationToken);
-                return Results.Ok(result.Value);
-            });
+                return result.Failure ? Results.Unauthorized() : Results.Ok(result.Value);
+            })
+            .RequireAuthorization();
         }
     }
 

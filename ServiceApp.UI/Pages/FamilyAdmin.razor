@@ -1,0 +1,86 @@
+@page "/family-admin"
+@attribute [Authorize(Roles = "Admin")]
+@inject IHttpClientFactory Clients
+
+<h3>Familiemedlemmer</h3>
+
+<div class="page-section mt-3">
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>E-post</th>
+                    <th class="text-center">Admin</th>
+                    <th class="text-end">Handling</th>
+                </tr>
+            </thead>
+            <tbody>
+            @if (members is null)
+            {
+                <tr><td colspan="3">Laster…</td></tr>
+            }
+            else if (members.Count == 0)
+            {
+                <tr><td colspan="3">Ingen medlemmer funnet.</td></tr>
+            }
+            else
+            {
+                @foreach (var m in members)
+                {
+                    <tr>
+                        <td>@m.Email</td>
+                        <td class="text-center">
+                            @if (m.IsAdmin)
+                            {
+                                <span class="badge bg-primary">Admin</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Medlem</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            @if (m.IsAdmin)
+                            {
+                                <button class="btn btn-outline-danger btn-sm" @onclick="() => Demote(m)">Fjern admin</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-outline-primary btn-sm" @onclick="() => Promote(m)">Gjør til admin</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    private List<MemberDto>? members;
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    private async Task Load()
+    {
+        var http = Clients.CreateClient("ApiAuthed");
+        members = await http.GetFromJsonAsync<List<MemberDto>>("/api/family/members") ?? [];
+    }
+
+    private async Task Promote(MemberDto m)
+    {
+        var http = Clients.CreateClient("ApiAuthed");
+        var resp = await http.PostAsync($"/api/family/members/{m.Id}/promote", null);
+        if (resp.IsSuccessStatusCode) await Load();
+    }
+
+    private async Task Demote(MemberDto m)
+    {
+        var http = Clients.CreateClient("ApiAuthed");
+        var resp = await http.PostAsync($"/api/family/members/{m.Id}/demote", null);
+        if (resp.IsSuccessStatusCode) await Load();
+    }
+
+    public record MemberDto(string Id, string Email, bool IsAdmin);
+}

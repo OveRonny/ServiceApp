@@ -3,74 +3,40 @@ using System.Net.Http.Json;
 
 namespace ServiceApp.UI.Services.ServiceCompanyServices;
 
-public class ServiceCompanyService(HttpClient http) : IServiceCompanyService
+public class ServiceCompanyService(IHttpClientFactory clients) : IServiceCompanyService
 {
-    private readonly HttpClient http = http;
+    private readonly IHttpClientFactory _clients = clients;
+
+    private HttpClient ApiAuthed() => _clients.CreateClient("ApiAuthed");
 
     public async Task<List<ServiceCompanyModel>> GetAllServiceCompaniesAsync()
     {
-        var result = await http.GetFromJsonAsync<List<ServiceCompanyModel>>("api/service-company");
-        return result ?? new List<ServiceCompanyModel>();
+        var http = ApiAuthed();
+        return await http.GetFromJsonAsync<List<ServiceCompanyModel>>("api/service-company") ?? [];
     }
 
     public async Task<ServiceCompanyModel?> GetServiceCompanyByIdAsync(int id)
     {
-        var result = await http.GetFromJsonAsync<ServiceCompanyModel>($"api/service-company/{id}");
-        return result;
+        var http = ApiAuthed();
+        return await http.GetFromJsonAsync<ServiceCompanyModel>($"api/service-company/{id}");
     }
 
-    public async Task<ServiceCompanyModel> AddServiceCompanyAsync(ServiceCompanyModel serviceCompany)
+    public async Task AddServiceCompanyAsync(ServiceCompanyModel serviceCompany)
     {
-        var result = await http.PostAsJsonAsync("api/service-company", serviceCompany);
-        if (result.IsSuccessStatusCode)
-        {
-            var newServiceCompany = await result.Content.ReadFromJsonAsync<ServiceCompanyModel>();
-            if (newServiceCompany != null)
-            {
-                return newServiceCompany;
-            }
-            else
-            {
-                throw new Exception("Failed to deserialize the service company");
-            }
-        }
-        else
-        {
-            throw new Exception("Failed to add service company");
-        }
+        var http = ApiAuthed();
+        await http.PostAsJsonAsync("api/service-company", serviceCompany);
     }
 
-    public async Task<ServiceCompanyModel> UpdateServiceCompanyAsync(ServiceCompanyModel serviceCompany)
+    public async Task UpdateServiceCompanyAsync(ServiceCompanyModel serviceCompany)
     {
-        var result = await http.PutAsJsonAsync($"api/service-company/{serviceCompany.Id}", serviceCompany);
-        if (result.IsSuccessStatusCode)
-        {
-            var updatedServiceCompany = await result.Content.ReadFromJsonAsync<ServiceCompanyModel>();
-            if (updatedServiceCompany != null)
-            {
-                return updatedServiceCompany;
-            }
-            else
-            {
-                throw new Exception("Failed to deserialize the service company");
-            }
-        }
-        else
-        {
-            throw new Exception("Failed to update service company");
-        }
+        var http = ApiAuthed();
+        await http.PutAsJsonAsync($"api/service-company/{serviceCompany.Id}", serviceCompany);
     }
 
     public async Task<bool> DeleteServiceCompanyAsync(int id)
     {
-        var result = await http.DeleteAsync($"api/service-company/{id}");
-        if (result.IsSuccessStatusCode)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        var http = ApiAuthed();
+        var resp = await http.DeleteAsync($"api/service-company/{id}");
+        return resp.IsSuccessStatusCode;
     }
 }

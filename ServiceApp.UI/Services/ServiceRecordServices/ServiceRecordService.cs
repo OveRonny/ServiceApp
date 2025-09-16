@@ -3,83 +3,54 @@ using System.Net.Http.Json;
 
 namespace ServiceApp.UI.Services.ServiceRecordServices;
 
-public class ServiceRecordService(HttpClient http) : IServiceRecordService
+public class ServiceRecordService(IHttpClientFactory clients) : IServiceRecordService
 {
-    private readonly HttpClient http = http;
+    private readonly IHttpClientFactory _clients = clients;
+
+    private HttpClient ApiAuthed() => _clients.CreateClient("ApiAuthed");
 
     public async Task<List<ServiceRecordModel>> GetServiceRecordsAsync(int vehicleId)
     {
+        var http = ApiAuthed();
+
         var result = await http.GetFromJsonAsync<List<ServiceRecordModel>>($"api/service-record/vehicle/{vehicleId}");
         if (result == null)
         {
             throw new Exception("Failed to load service records");
         }
         return result;
+
     }
 
     public async Task<ServiceRecordModel> GetServiceRecordByIdAsync(int id)
     {
+        var http = ApiAuthed();
         var result = await http.GetFromJsonAsync<ServiceRecordModel>($"api/service-record/{id}");
         if (result == null)
         {
-            throw new Exception($"Failed to load service record with id {id}");
+            throw new Exception("Failed to load service record");
         }
         return result;
     }
 
-    public async Task<ServiceRecordModel> CreateServiceRecordAsync(ServiceRecordModel serviceRecord)
+    public async Task CreateServiceRecordAsync(ServiceRecordModel serviceRecord)
     {
+        var http = ApiAuthed();
         var result = await http.PostAsJsonAsync("api/service-record", serviceRecord);
-
-        if (result.IsSuccessStatusCode)
-        {
-            var newServiceRecord = await result.Content.ReadFromJsonAsync<ServiceRecordModel>();
-            if (newServiceRecord != null)
-            {
-                return newServiceRecord;
-            }
-            else
-            {
-                throw new Exception("Failed to deserialize the service record");
-            }
-        }
-        else
-        {
-            throw new Exception("Failed to create service record");
-        }
+        result.EnsureSuccessStatusCode();
     }
 
-    public async Task<ServiceRecordModel> UpdateServiceRecordAsync(ServiceRecordModel serviceRecord)
+    public async Task UpdateServiceRecordAsync(ServiceRecordModel serviceRecord)
     {
+        var http = ApiAuthed();
         var result = await http.PutAsJsonAsync($"api/service-record/{serviceRecord.Id}", serviceRecord);
-        if (result.IsSuccessStatusCode)
-        {
-            var updatedServiceRecord = await result.Content.ReadFromJsonAsync<ServiceRecordModel>();
-            if (updatedServiceRecord != null)
-            {
-                return updatedServiceRecord;
-            }
-            else
-            {
-                throw new Exception("Failed to deserialize the service record");
-            }
-        }
-        else
-        {
-            throw new Exception("Failed to update service record");
-        }
+        result.EnsureSuccessStatusCode();
     }
 
     public async Task<bool> DeleteServiceRecordAsync(int id)
     {
+        var http = ApiAuthed();
         var result = await http.DeleteAsync($"api/service-record/{id}");
-        if (result.IsSuccessStatusCode)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return result.IsSuccessStatusCode;
     }
 }

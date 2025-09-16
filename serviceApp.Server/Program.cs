@@ -1,4 +1,5 @@
 using Scalar.AspNetCore;
+using serviceApp.Server.Features.Autentication;
 using serviceApp.Server.Startup;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,18 +11,25 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 builder.Services.AddDependency(builder.Configuration);
+builder.Services.AddAuthenticationSetup(builder.Configuration);
 
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("https://localhost:7179") // Replace with your Blazor app's URL
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+        policy.WithOrigins(
+                "https://localhost:7179", // Blazor UI (HTTPS)
+                "http://localhost:5079"    // Blazor UI (HTTP)
+            )
+            .AllowAnyMethod()
+            .AllowAnyHeader();
     });
 });
 
 var app = builder.Build();
+
+await IdentitySeeding.EnsureRolesAsync(app.Services);
+await IdentitySeeding.EnsureOwnersAdminAsync(app.Services, app.Configuration);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -33,7 +41,11 @@ if (app.Environment.IsDevelopment())
 app.UseCors();
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
+app.MapRegistration();
+app.MapIdentityApi<ApplicationUser>();
+app.MapFamilyAdmin();
 
 app.MapControllers();
 

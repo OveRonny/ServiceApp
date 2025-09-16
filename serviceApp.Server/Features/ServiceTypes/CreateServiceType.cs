@@ -1,15 +1,23 @@
-﻿namespace serviceApp.Server.Features.ServiceTypes;
+﻿using serviceApp.Server.Features.Autentication;
+
+namespace serviceApp.Server.Features.ServiceTypes;
 
 public static class CreateServiceType
 {
     public record Command(string Name) : ICommand<Response>;
     public record Response(int Id, string Name);
 
-    public class Handler(ApplicationDbContext context) : ICommandHandler<Command, Response>
+    public class Handler(ApplicationDbContext context, ICurrentUser currentUser) : ICommandHandler<Command, Response>
     {
         private readonly ApplicationDbContext context = context;
+        private readonly ICurrentUser currentUser = currentUser;
+
         public async Task<Result<Response>> Handle(Command request, CancellationToken cancellationToken)
         {
+
+            if (!currentUser.IsAuthenticated || currentUser.FamilyId is null)
+                return Result.Fail<Response>("Not authenticated.");
+
             var serviceType = new ServiceType
             {
                 Name = request.Name,

@@ -10,6 +10,7 @@ public class InsurancePolicy
     public Vehicle? Vehicle { get; set; }
     public DateTime RenewalDate { get; set; }
     public int StartingMileage { get; set; }
+    public Guid FamilyId { get; set; }
 
     public bool IsActive { get; set; }
     public DateTime? EndDate { get; set; }

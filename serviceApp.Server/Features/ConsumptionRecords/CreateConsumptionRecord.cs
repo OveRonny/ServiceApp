@@ -1,4 +1,6 @@
-﻿namespace serviceApp.Server.Features.ConsumptionRecords;
+﻿using serviceApp.Server.Features.Autentication;
+
+namespace serviceApp.Server.Features.ConsumptionRecords;
 
 public static class CreateConsumptionRecord
 {
@@ -6,11 +8,16 @@ public static class CreateConsumptionRecord
     public record Response(int Id, int VehicleId, DateTime Date, decimal DieselAdded, decimal DieselPricePerLiter,
         decimal TotalCost, decimal? DieselConsumption, int Mileage);
 
-    public class Handler(ApplicationDbContext context) : ICommandHandler<Command, Response>
+    public class Handler(ApplicationDbContext context, ICurrentUser currentUser) : ICommandHandler<Command, Response>
     {
         private readonly ApplicationDbContext context = context;
+        private readonly ICurrentUser currentUser = currentUser;
+
         public async Task<Result<Response>> Handle(Command request, CancellationToken cancellationToken)
         {
+            if (!currentUser.IsAuthenticated || currentUser.FamilyId is null)
+                return Result.Fail<Response>("Not authenticated.");
+
             var mileage = await CreateMileageAsync(request, cancellationToken);
 
             var consumptionRecord = new ConsumptionRecord
@@ -20,6 +27,7 @@ public static class CreateConsumptionRecord
                 DieselPricePerLiter = request.DieselPricePerLiter,
                 Date = DateTime.Now,
                 MileageHistoryId = mileage.Id,
+                FamilyId = currentUser.FamilyId!.Value // Use ! to assert non-null after the null check above
             };
             context.ConsumptionRecords.Add(consumptionRecord);
             await context.SaveChangesAsync(cancellationToken);
@@ -32,13 +40,15 @@ public static class CreateConsumptionRecord
 
         private async Task<MileageHistory> CreateMileageAsync(Command request, CancellationToken cancellationToken)
         {
+            // Add null-forgiving operator after null check in Handle
             var mileage = new MileageHistory
             {
                 Mileage = request.Mileage,
                 VehicleId = request.VehicleId,
                 Hours = request.Hours,
                 RecordedDate = DateTime.Now,
-                Type = MileageHistory.MileageType.Forbruk
+                Type = MileageHistory.MileageType.Forbruk,
+                FamilyId = currentUser.FamilyId!.Value // Use ! to assert non-null after the null check in Handle
             };
 
             context.MileageHistories.Add(mileage);

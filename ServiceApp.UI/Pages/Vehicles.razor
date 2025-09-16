@@ -1,61 +1,72 @@
 ﻿@page "/vehicles"
+@page "/vehicles/owner/{OwnerId:int}"
 @inject IVehicleService vehicleService
 @inject NavigationManager NavigationManager
+@attribute [Authorize]
 
-<h3>Vehicles</h3>
+<h3 class="page-title">Kjøretøy</h3>
 
 <button type="button" class="btn btn-primary" @onclick="CreateVehicle">Nytt kjøretøy</button>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Id</th> 
-            <th>Eier</th>
-            <th>Brand</th>
-            <th>Model</th>
-            <th>Year</th>
-            <th>Color</th>
-            <th>Se forbruk</th>
-        </tr>
-    </thead>
-    <tbody>
+<div class="page-section mt-3">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
         @if (vehicleModels != null && vehicleModels.Count > 0)
         {
             @foreach (var vehicle in vehicleModels)
             {
-                <tr>
-                    <td>@vehicle.Id</td>
-                    <td>@vehicle.FirstName</td>
-                    <td>
-                        <a href="vehicle/@vehicle.Id">@vehicle.Make</a>
-                    </td>
-                    <td>@vehicle.Model</td>
-                    <td>@vehicle.Year</td>
-                    <td>@vehicle.Color</td>
-                    <td>
-                        <button type="button" class="btn btn-primary" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecords/{vehicle.Id}"))">Se forbruk</button>
-                        <button type="button" class="btn btn-secondary" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/create/vehicle/{vehicle.Id}"))">Legg til forbruk</button>
-                    </td>
-                </tr>
+                <div class="col">
+                    <div class="card card-service h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="date-pill">@vehicle.DateCreated.ToShortDateString()</span>
+                                @if (!string.IsNullOrWhiteSpace(vehicle.LicensePlate))
+                                {
+                                    <span class="badge badge-service rounded-pill">@vehicle.LicensePlate</span>
+                                }
+                            </div>
+
+                            <h5 class="card-title mt-2 mb-1">
+                                <a class="text-decoration-none" href="vehicle/@vehicle.Id">@vehicle.Make @vehicle.Model</a>
+                            </h5>
+
+                            @if (!string.IsNullOrWhiteSpace(vehicle.FirstName))
+                            {
+                                <div class="text-muted small mb-2">@vehicle.FirstName</div>
+                            }
+
+                            <div class="d-flex flex-wrap gap-3 text-muted small">
+                                <span>Årsmodell: <strong>@vehicle.Year</strong></span>
+                                <span>Farge: <strong>@vehicle.Color</strong></span>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent d-flex gap-2">
+                            <button type="button" class="btn btn-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecords/{vehicle.Id}"))">Se forbruk</button>
+                            <button type="button" class="btn btn-secondary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/create/vehicle/{vehicle.Id}"))">Legg til forbruk</button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/vehicleinventories/{vehicle.Id}"))">Deler</button>
+                        </div>
+                    </div>
+                </div>
             }
         }
         else
         {
-            <tr>
-                <td colspan="6">No vehicles found.</td>
-            </tr>
+            <div class="col">
+                <div class="alert alert-info mb-0">No vehicles found.</div>
+            </div>
         }
-    </tbody>
-
-</table>
-
+    </div>
+</div>
 
 @code {
     private List<VehicleModel> vehicleModels = new List<VehicleModel>();
 
-    protected override async Task OnInitializedAsync()
+    [Parameter] public int? OwnerId { get; set; }
+
+    protected override async Task OnParametersSetAsync()
     {
-        vehicleModels = await vehicleService.GetAllVehiclesAsync();
+        vehicleModels = OwnerId.HasValue
+            ? await vehicleService.GetVehiclesByOwnerIdAsync(OwnerId.Value)
+            : await vehicleService.GetAllVehiclesAsync();
     }
 
     private void CreateVehicle()

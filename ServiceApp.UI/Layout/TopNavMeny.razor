@@ -1,0 +1,56 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@inject ServiceApp.UI.Services.IAuthService Auth
+@inject AuthenticationStateProvider AuthStateProvider
+
+<nav class="navbar navbar-expand-lg navbar-glass" data-bs-theme="dark">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center" href="/">
+            <img src="images/progorb-mark.svg" alt="" height="28" class="me-2" />
+            <span class="brand-gradient">Progorb</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="/owners">Eiere</a></li>
+                <li class="nav-item"><a class="nav-link" href="/vehicles">Kjøretøyer</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="setupDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">Oppsett</a>
+                    <ul class="dropdown-menu" aria-labelledby="setupDropdown">
+                        <li><a class="dropdown-item" href="/servicetypes">Service typer</a></li>
+                        <li><a class="dropdown-item" href="/suppliers">Leverandører</a></li>
+                        <li><a class="dropdown-item" href="/servicecompanies">Firma</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <AuthorizeView>
+                <Authorized>
+                    <form class="d-flex" onsubmit="return false;">
+                        <span class="nav-link text-secondary me-2">Logget inn</span>
+                        <button type="button" class="btn btn-outline-light btn-sm" @onclick="Logout">Logg ut</button>
+                    </form>
+                </Authorized>
+                <NotAuthorized>
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-outline-light btn-sm" href="/register">Registrer</a>
+                        <a class="btn btn-primary btn-sm" href="/login">Logg inn</a>
+                    </div>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+    </div>
+</nav>
+
+@code {
+    private async Task Logout()
+    {
+        await Auth.LogoutAsync();
+        if (AuthStateProvider is ServiceApp.UI.Services.JwtAuthenticationStateProvider jwt)
+            jwt.NotifyUserLogout();
+    }
+}

@@ -12,6 +12,7 @@ public class Vehicle
     public DateTime DateCreated { get; set; } = DateTime.Now;
 
     public Owner? Owner { get; set; }
-
+    public string UserId { get; set; } = default!;
+    public Guid FamilyId { get; set; }
     public ICollection<MileageHistory> MileageHistories { get; set; } = new List<MileageHistory>();
 }

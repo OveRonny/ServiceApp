@@ -10,7 +10,9 @@ public static class GetvehicleById
         private readonly ApplicationDbContext context = context;
         public async Task<Result<Response>> Handle(Query request, CancellationToken cancellationToken)
         {
-            var vehicle = await context.Vehicles.FindAsync(request.Id);
+            var vehicle = await context.Vehicles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(v => v.Id == request.Id, cancellationToken);
             if (vehicle == null)
             {
                 return Result.Fail<Response>($"Vehicle with ID {request.Id} not found.");
@@ -31,7 +33,9 @@ public static class GetvehicleById
                     return Results.NotFound(result.Error);
                 }
                 return Results.Ok(result.Value);
-            });
+            })
+                .RequireAuthorization();
+
         }
     }
 }

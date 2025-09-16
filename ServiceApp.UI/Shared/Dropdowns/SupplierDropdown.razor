@@ -1,0 +1,31 @@
+﻿@inject ISupplierService SupplierService
+
+<div class="mb-3">
+    <InputSelect @bind-Value="selectedSupplierId" @bind-Value:after="OnInput" class="form-select">
+        <option value="0">Velg firma</option>
+        @foreach (var supplier in suppliers)
+        {
+            <option value="@supplier.Id">@supplier.Name</option>
+        }
+    </InputSelect>
+</div>
+
+@code {
+    private List<SupplierModel> suppliers = new List<SupplierModel>();
+
+    [Parameter]
+    public EventCallback<int> SelectedSupplierIdChanged { get; set; }
+
+    [Parameter]
+    public int selectedSupplierId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        suppliers = await SupplierService.GetSuppliersAsync();
+    }
+
+    private async Task OnInput()
+    {
+        await SelectedSupplierIdChanged.InvokeAsync(selectedSupplierId);
+    }
+}

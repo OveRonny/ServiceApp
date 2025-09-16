@@ -1,41 +1,47 @@
 ﻿@page "/servicecompanies"
 @inject IServiceCompanyService ServiceCompanyService
 @inject NavigationManager NavigationManager
+@attribute [Authorize]
 
-<h3>ServiceCompanies</h3>
+<h3>Firma</h3>
 
-<button class="btn btn-primary" @onclick="NavigateToCreate">Create New Service Company</button>
+<button class="btn btn-primary" @onclick="NavigateToCreate">Legg til nytt firma</button>
 
-<table class="table">
-
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Name</th>           
-        </tr>
-    </thead>
-    <tbody>
+<div class="page-section mt-3">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
         @if (serviceCompanies != null && serviceCompanies.Count > 0)
         {
             @foreach (var company in serviceCompanies)
             {
-                <tr>
-                    <td>@company.Id</td>
-                    <td>
-                        <a href="servicecompany/@company.Id">@company.Name</a>
-                    </td>                  
-                </tr>
+                <div class="col">
+                    <div class="card card-service h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="date-pill">Firma</span>
+                            </div>
+
+                            <h5 class="card-title mt-2 mb-1">
+                                <a class="text-decoration-none" href="servicecompany/@company.Id">@company.Name</a>
+                            </h5>
+                        </div>
+                        <div class="card-footer bg-transparent d-flex gap-2">
+                            <button type="button" class="btn btn-primary btn-sm"
+                                    @onclick="@(() => NavigationManager.NavigateTo($"/servicecompany/{company.Id}"))">
+                                Rediger
+                            </button>
+                        </div>
+                    </div>
+                </div>
             }
         }
         else
         {
-            <tr>
-                <td colspan="5">No service companies found.</td>
-            </tr>
+            <div class="col">
+                <div class="alert alert-info mb-0">Ingen firma</div>
+            </div>
         }
-    </tbody>
-
-</table>
+    </div>
+</div>
 
 @code {
     private List<ServiceCompanyModel> serviceCompanies = new List<ServiceCompanyModel>();

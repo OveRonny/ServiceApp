@@ -1,40 +1,77 @@
 ﻿@page "/vehicleinventories/{vehicleId:int}"
 @inject IVehicleInventoryService VehicleInventoryService
+@attribute [Authorize]
 
-<h3>VehicleInventories</h3>
+<h3>Deler</h3>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Vehicle</th>
-            <th>Inventory Date</th>
-            <th>Description</th>
-            <th>Quantity</th>
-        </tr>
-    </thead>
-    <tbody>
+<div class="page-section mt-3">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
         @if (vehicleInventories != null && vehicleInventories.Count > 0)
         {
             @foreach (var inventory in vehicleInventories)
             {
-                <tr>
-                    <td>@inventory.Id</td>
-                    <td>@inventory.Vehicle.Model</td>
-                    <td>@inventory.PurchaseDate.ToShortDateString()</td>
-                    <td>@inventory.Description</td>
-                    <td>@inventory.QuantityInStock</td>
-                </tr>
+                var qty = inventory.QuantityInStock ?? 0;
+                var threshold = inventory.ReorderThreshold ?? int.MaxValue;
+                var lowStock = inventory.QuantityInStock.HasValue && inventory.ReorderThreshold.HasValue && qty <= threshold;
+
+                <div class="col">
+                    <div class="card card-service h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center gap-2">
+                                <span class="date-pill">@inventory.PurchaseDate.ToShortDateString()</span>
+                                @if (!string.IsNullOrWhiteSpace(inventory.Supplier?.Name))
+                                {
+                                    <span class="badge badge-service rounded-pill badge-clip text-truncate" title="@inventory.Supplier?.Name">
+                                        @inventory.Supplier?.Name
+                                    </span>
+                                }
+                                else if (!string.IsNullOrWhiteSpace(inventory.Supplier?.ContactEmail))
+                                {
+                                    <span class="badge badge-service rounded-pill badge-clip text-truncate" title="@inventory.Supplier?.ContactEmail">
+                                        @inventory.Supplier?.ContactEmail
+                                    </span>
+                                }
+                            </div>
+
+                            <h5 class="card-title mt-2 mb-1">@(!string.IsNullOrWhiteSpace(inventory.PartName) ? inventory.PartName : "Part")</h5>
+
+                            @if (!string.IsNullOrWhiteSpace(inventory.Description))
+                            {
+                                <p class="card-text text-muted line-clamp-3 mb-3">@inventory.Description</p>
+                            }
+
+                            <div class="metrics">
+                                <div class="text-muted small">
+                                    Antall: <strong>@qty</strong>
+                                    @if (inventory.ReorderThreshold.HasValue)
+                                    {
+                                        <span class="ms-2">Min: <strong>@inventory.ReorderThreshold</strong></span>
+                                    }
+                                    @if (lowStock)
+                                    {
+                                        <span class="badge bg-danger ms-2">Lav beholdning</span>
+                                    }
+                                </div>
+                                @if (inventory.Cost > 0)
+                                {
+                                    <div class="cost-chip">
+                                        @inventory.Cost.ToString("C")
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
             }
         }
         else
         {
-            <tr>
-                <td colspan="5">No vehicle inventories found.</td>
-            </tr>
+            <div class="col">
+                <div class="alert alert-info mb-0">Ingen deler</div>
+            </div>
         }
-    </tbody>
-</table>
+    </div>
+</div>
 
 @code {
     [Parameter]
@@ -42,11 +79,8 @@
 
     private List<VehicleInventoryModel> vehicleInventories = new List<VehicleInventoryModel>();
 
-
     protected override async Task OnInitializedAsync()
     {
         vehicleInventories = await VehicleInventoryService.GetVehicleInventoryAsync(VehicleId);
     }
-  
-
 }

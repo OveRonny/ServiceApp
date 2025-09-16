@@ -32,7 +32,7 @@ var app = builder.Build();
 try
 {
     await IdentitySeeding.EnsureRolesAsync(app.Services);
-    await IdentitySeeding.EnsureOwnersAdminAsync(app.Services, app.Configuration);
+
 }
 catch (Exception ex)
 {

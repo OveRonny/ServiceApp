@@ -6,9 +6,10 @@ namespace serviceApp.Server.Data;
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
+
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options,
-                              IHttpContextAccessor httpContextAccessor)
-      : base(options)
+                                IHttpContextAccessor httpContextAccessor)
+        : base(options)
     {
         _httpContextAccessor = httpContextAccessor;
     }
@@ -22,9 +23,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         }
     }
 
-    public DbSet<Vehicle> Vehicles { get; set; }
+    // Helper method for query filters
+    private bool FamilyFilter(Guid? entityFamilyId) =>
+        _httpContextAccessor.HttpContext == null || (CurrentFamilyId != null && entityFamilyId == CurrentFamilyId);
 
-    public DbSet<Owner> Owner { get; set; }
+    public DbSet<Vehicle> Vehicles { get; set; }
+    public DbSet<Owner> Owners { get; set; }
     public DbSet<InsurancePolicy> InsurancePolicies { get; set; }
     public DbSet<MileageHistory> MileageHistories { get; set; }
     public DbSet<VehicleInventory> VehicleInventories { get; set; }
@@ -39,59 +43,82 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<Vehicle>()
-            .HasQueryFilter(v => CurrentFamilyId != null && v.FamilyId == CurrentFamilyId);
+        // Vehicles
+        modelBuilder.Entity<Vehicle>(entity =>
+        {
+            entity.HasQueryFilter(v => FamilyFilter(v.FamilyId));
+        });
 
-        modelBuilder.Entity<Owner>()
-            .HasQueryFilter(o => CurrentFamilyId != null && o.FamilyId == CurrentFamilyId);
+        // Owners
+        modelBuilder.Entity<Owner>(entity =>
+        {
+            entity.HasQueryFilter(o => FamilyFilter(o.FamilyId));
+        });
 
-        modelBuilder.Entity<ConsumptionRecord>()
-            .HasQueryFilter(c => CurrentFamilyId != null && c.FamilyId == CurrentFamilyId)
-           .Property(c => c.DieselPricePerLiter)
-              .HasPrecision(9, 2);
+        // MileageHistories
+        modelBuilder.Entity<MileageHistory>(entity =>
+        {
+            entity.HasQueryFilter(m => FamilyFilter(m.FamilyId));
+        });
 
+        // ConsumptionRecords
+        modelBuilder.Entity<ConsumptionRecord>(entity =>
+        {
+            entity.HasQueryFilter(c => FamilyFilter(c.FamilyId));
+            entity.Property(c => c.DieselPricePerLiter).HasPrecision(9, 2);
+            entity.Property(c => c.DieselAdded).HasPrecision(9, 2);
 
-        modelBuilder.Entity<ConsumptionRecord>()
-               .HasQueryFilter(c => CurrentFamilyId != null && c.FamilyId == CurrentFamilyId)
-              .Property(c => c.DieselAdded)
-                  .HasPrecision(9, 2);
+            entity.HasOne(c => c.MileageHistory)
+                  .WithMany()
+                  .HasForeignKey(c => c.MileageHistoryId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
 
-        modelBuilder.Entity<InsurancePolicy>()
-            .HasQueryFilter(c => CurrentFamilyId != null && c.FamilyId == CurrentFamilyId)
-            .Property(i => i.AnnualPrice)
-            .HasPrecision(9, 2);
+        // InsurancePolicies
+        modelBuilder.Entity<InsurancePolicy>(entity =>
+        {
+            entity.HasQueryFilter(i => FamilyFilter(i.FamilyId));
+            entity.Property(i => i.AnnualPrice).HasPrecision(9, 2);
+        });
 
-        modelBuilder.Entity<Parts>()
-            .HasQueryFilter(c => CurrentFamilyId != null && c.FamilyId == CurrentFamilyId)
-            .Property(p => p.Price)
-            .HasPrecision(9, 2);
+        // Parts
+        modelBuilder.Entity<Parts>(entity =>
+        {
+            entity.HasQueryFilter(p => FamilyFilter(p.FamilyId));
+            entity.Property(p => p.Price).HasPrecision(9, 2);
+        });
 
-        modelBuilder.Entity<VehicleInventory>()
-            .HasQueryFilter(c => CurrentFamilyId != null && c.FamilyId == CurrentFamilyId)
-            .Property(v => v.Cost)
-            .HasPrecision(9, 2);
+        // VehicleInventories
+        modelBuilder.Entity<VehicleInventory>(entity =>
+        {
+            entity.HasQueryFilter(v => FamilyFilter(v.FamilyId));
+            entity.Property(v => v.Cost).HasPrecision(9, 2);
+        });
 
-        modelBuilder.Entity<ServiceRecord>()
-            .HasQueryFilter(c => CurrentFamilyId != null && c.FamilyId == CurrentFamilyId)
-            .Property(s => s.Cost)
-            .HasPrecision(9, 2);
+        // ServiceRecords
+        modelBuilder.Entity<ServiceRecord>(entity =>
+        {
+            entity.HasQueryFilter(s => FamilyFilter(s.FamilyId));
+            entity.Property(s => s.Cost).HasPrecision(9, 2);
+        });
 
-        modelBuilder.Entity<ConsumptionRecord>()
-            .HasQueryFilter(c => CurrentFamilyId != null && c.FamilyId == CurrentFamilyId)
-           .HasOne(c => c.MileageHistory)
-           .WithMany()
-           .HasForeignKey(c => c.MileageHistoryId)
-           .OnDelete(DeleteBehavior.Cascade);
+        // ServiceTypes
+        modelBuilder.Entity<ServiceType>(entity =>
+        {
+            entity.HasQueryFilter(s => FamilyFilter(s.FamilyId));
+        });
 
-        modelBuilder.Entity<MileageHistory>()
-            .HasQueryFilter(m => CurrentFamilyId != null && m.FamilyId == CurrentFamilyId);
-
+        // ServiceCompanies
+        modelBuilder.Entity<ServiceCompany>(entity =>
+        {
+            entity.HasQueryFilter(s => FamilyFilter(s.FamilyId));
+        });
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var fid = CurrentFamilyId;
-        if (fid is not null)
+        if (fid != null)
         {
             foreach (var e in ChangeTracker.Entries<Vehicle>().Where(e => e.State == EntityState.Added))
             {
@@ -99,7 +126,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                     e.Entity.FamilyId = fid.Value;
             }
         }
+
         return base.SaveChangesAsync(cancellationToken);
     }
 }
-

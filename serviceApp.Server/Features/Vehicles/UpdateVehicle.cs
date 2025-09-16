@@ -2,8 +2,8 @@
 
 public static class UpdateVehicle
 {
-    public record class Command(int Id, string Make, string Model, string Year, string Color, int OwnerId, string LicensePlate) : ICommand<Response>;
-    public record Response(int Id, string Make, string Model, string Year, string Color, string LicensePlate, int OwnerId, DateTime DateCreated);
+    public record class Command(int Id, string Make, string Model, int Year, string Color, int OwnerId, string LicensePlate) : ICommand<Response>;
+    public record Response(int Id, string Make, string Model, int Year, string Color, string LicensePlate, int OwnerId, DateTime DateCreated);
 
     public class Handler(ApplicationDbContext context) : ICommandHandler<Command, Response>
     {

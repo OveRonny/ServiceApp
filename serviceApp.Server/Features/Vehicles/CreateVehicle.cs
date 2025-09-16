@@ -4,9 +4,9 @@ namespace serviceApp.Server.Features.Vehicles;
 
 public static class CreateVehicle
 {
-    public record Command(string Make, string Model, string Year, string Color, string LicensePlate, int OwnerId) : ICommand<Response>;
+    public record Command(string Make, string Model, int Year, string Color, string LicensePlate, int OwnerId) : ICommand<Response>;
 
-    public record Response(int Id, string Make, string Model, string Year, string Color, string LicensePlate, int OwnerId, DateTime DateCreated);
+    public record Response(int Id, string Make, string Model, int Year, string Color, string LicensePlate, int OwnerId, DateTime DateCreated);
 
     public class Handler(ApplicationDbContext context, ICurrentUser currentUser) : ICommandHandler<Command, Response>
     {

@@ -3,7 +3,7 @@
 public static class GetvehicleById
 {
     public record class Query(int Id) : IQuery<Response>;
-    public record Response(int Id, int OwnerId, string Make, string Model, string Year, string Color,
+    public record Response(int Id, int OwnerId, string Make, string Model, int Year, string Color,
         string LicensePlate, DateTime DateCreated);
     public class Handler(ApplicationDbContext context) : IQueryHandler<Query, Response>
     {

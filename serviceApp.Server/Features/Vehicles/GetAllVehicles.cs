@@ -4,7 +4,7 @@ public static class GetAllVehicles
 {
     public record Query : IQuery<List<Response>>;
 
-    public record Response(int Id, string Make, string Model, string Year,
+    public record Response(int Id, string Make, string Model, int Year,
         string Color, string LicensePlate, DateTime DateCreated, string FirstName);
 
     public class Handler(ApplicationDbContext context) : IQueryHandler<Query, List<Response>>

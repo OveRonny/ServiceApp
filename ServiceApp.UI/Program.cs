@@ -17,8 +17,10 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// Base address for your Server API (adjust if different)
-var apiBase = new Uri("https://progorb.azurewebsites.net/");
+
+var apiBase = builder.HostEnvironment.IsDevelopment()
+    ? new Uri("https://localhost:7119/")
+    : new Uri("https://progorb.azurewebsites.net/");
 
 
 // Plain API client

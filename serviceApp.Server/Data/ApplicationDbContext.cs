@@ -28,7 +28,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         _httpContextAccessor.HttpContext == null || (CurrentFamilyId != null && entityFamilyId == CurrentFamilyId);
 
     public DbSet<Vehicle> Vehicles { get; set; }
-    public DbSet<Owner> Owners { get; set; }
+    public DbSet<Owner> Owner { get; set; }
     public DbSet<InsurancePolicy> InsurancePolicies { get; set; }
     public DbSet<MileageHistory> MileageHistories { get; set; }
     public DbSet<VehicleInventory> VehicleInventories { get; set; }

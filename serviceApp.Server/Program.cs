@@ -15,14 +15,11 @@ builder.Services.AddAuthenticationSetup(builder.Configuration);
 
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins(
-                "https://localhost:7179", // Blazor UI (HTTPS)
-                "http://localhost:5079"    // Blazor UI (HTTP)
-            )
-            .AllowAnyMethod()
-            .AllowAnyHeader();
+        policy.WithOrigins("https://todo.progorb.no")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
     });
 });
 

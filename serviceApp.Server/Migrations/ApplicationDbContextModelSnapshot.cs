@@ -257,7 +257,7 @@ namespace serviceApp.Server.Migrations
 
                     b.HasIndex("VehicleId");
 
-                    b.ToTable("ConsumptionRecords");
+                    b.ToTable("ConsumptionRecords", (string)null);
                 });
 
             modelBuilder.Entity("serviceApp.Server.Entities.InsurancePolicy", b =>
@@ -301,7 +301,7 @@ namespace serviceApp.Server.Migrations
 
                     b.HasIndex("VehicleId");
 
-                    b.ToTable("InsurancePolicies");
+                    b.ToTable("InsurancePolicies", (string)null);
                 });
 
             modelBuilder.Entity("serviceApp.Server.Entities.MileageHistory", b =>
@@ -334,7 +334,7 @@ namespace serviceApp.Server.Migrations
 
                     b.HasIndex("VehicleId");
 
-                    b.ToTable("MileageHistories");
+                    b.ToTable("MileageHistories", (string)null);
                 });
 
             modelBuilder.Entity("serviceApp.Server.Entities.Owner", b =>
@@ -378,7 +378,7 @@ namespace serviceApp.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Owner");
+                    b.ToTable("Owner", (string)null);
                 });
 
             modelBuilder.Entity("serviceApp.Server.Entities.Parts", b =>
@@ -419,7 +419,7 @@ namespace serviceApp.Server.Migrations
 
                     b.HasIndex("VehicleInventoryId");
 
-                    b.ToTable("Parts");
+                    b.ToTable("Parts", (string)null);
                 });
 
             modelBuilder.Entity("serviceApp.Server.Entities.ServiceCompany", b =>
@@ -439,7 +439,7 @@ namespace serviceApp.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ServiceCompanies");
+                    b.ToTable("ServiceCompanies", (string)null);
                 });
 
             modelBuilder.Entity("serviceApp.Server.Entities.ServiceRecord", b =>
@@ -486,7 +486,7 @@ namespace serviceApp.Server.Migrations
 
                     b.HasIndex("VehicleId");
 
-                    b.ToTable("ServiceRecords");
+                    b.ToTable("ServiceRecords", (string)null);
                 });
 
             modelBuilder.Entity("serviceApp.Server.Entities.ServiceType", b =>
@@ -506,7 +506,7 @@ namespace serviceApp.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ServiceTypes");
+                    b.ToTable("ServiceTypes", (string)null);
                 });
 
             modelBuilder.Entity("serviceApp.Server.Entities.Supplier", b =>
@@ -552,7 +552,7 @@ namespace serviceApp.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Suppliers");
+                    b.ToTable("Suppliers", (string)null);
                 });
 
             modelBuilder.Entity("serviceApp.Server.Entities.Vehicle", b =>
@@ -599,7 +599,7 @@ namespace serviceApp.Server.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Vehicles");
+                    b.ToTable("Vehicles", (string)null);
                 });
 
             modelBuilder.Entity("serviceApp.Server.Entities.VehicleInventory", b =>
@@ -646,7 +646,7 @@ namespace serviceApp.Server.Migrations
 
                     b.HasIndex("VehicleId");
 
-                    b.ToTable("VehicleInventories");
+                    b.ToTable("VehicleInventories", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

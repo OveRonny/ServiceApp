@@ -18,7 +18,8 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // Base address for your Server API (adjust if different)
-var apiBase = new Uri("https://localhost:7119/");
+var apiBase = new Uri("https://progorb.azurewebsites.net/");
+
 
 // Plain API client
 builder.Services.AddHttpClient("Api", c => c.BaseAddress = apiBase);

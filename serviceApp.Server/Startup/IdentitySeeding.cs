@@ -12,27 +12,23 @@ public static class IdentitySeeding
 
         foreach (var role in new[] { Roles.Admin, Roles.FamilyOwner, Roles.FamilyGuest })
         {
-            if (!await roleManager.RoleExistsAsync(role))
-                _ = await roleManager.CreateAsync(new IdentityRole(role));
-        }
-    }
-
-    public static async Task EnsureOwnersAdminAsync(IServiceProvider services, IConfiguration config)
-    {
-        using var scope = services.CreateScope();
-        var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        var roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-        if (!await roles.RoleExistsAsync(Roles.Admin))
-            await roles.CreateAsync(new IdentityRole(Roles.Admin));
-
-        var owners = config.GetSection("OwnerEmails").Get<string[]>() ?? Array.Empty<string>();
-        foreach (var email in owners.Where(e => !string.IsNullOrWhiteSpace(e)))
-        {
-            var user = await users.FindByEmailAsync(email);
-            if (user is null) continue; // Optionally create the user here if desired
-            if (!await users.IsInRoleAsync(user, Roles.Admin))
-                _ = await users.AddToRoleAsync(user, Roles.Admin);
+            try
+            {
+                if (!await roleManager.RoleExistsAsync(role))
+                {
+                    var result = await roleManager.CreateAsync(new IdentityRole(role));
+                    if (!result.Succeeded)
+                    {
+                        Console.WriteLine($"Failed to create role {role}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error ensuring role {role}: {ex.Message}");
+                // Optionally: rethrow if you want the app to fail hard
+            }
         }
     }
 }
+

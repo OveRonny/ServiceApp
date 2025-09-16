@@ -28,7 +28,8 @@
 </EditForm>
 
 @code {
-    private RegisterModel model = new();    
+    private RegisterModel model = new();   
+	private string error = string.Empty;
 
     private async Task Submit()
     {

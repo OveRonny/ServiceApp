@@ -29,14 +29,16 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+try
 {
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await db.Database.MigrateAsync();
+    await IdentitySeeding.EnsureRolesAsync(app.Services);
+    await IdentitySeeding.EnsureOwnersAdminAsync(app.Services, app.Configuration);
 }
-
-await IdentitySeeding.EnsureRolesAsync(app.Services);
-await IdentitySeeding.EnsureOwnersAdminAsync(app.Services, app.Configuration);
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
+    logger.LogError(ex, "Identity seeding failed. App will continue to start.");
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -28,14 +28,12 @@
 </EditForm>
 
 @code {
-    private RegisterModel model = new();
-    private string? error;
+    private RegisterModel model = new();    
 
     private async Task Submit()
     {
         var registered = await Auth.RegisterAsync(model.Email, model.Password);     
-
-        // Auto-login after successful registration
+        
         var loggedIn = await Auth.LoginAsync(model.Email, model.Password);
         if (loggedIn && AuthStateProvider is JwtAuthenticationStateProvider jwt)
         {

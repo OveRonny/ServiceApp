@@ -57,7 +57,11 @@
     {
         if (Id > 0)
         {            
-            consumptionRecord = await ConsumptionRecordService.GetConsumptionRecordByIdAsync(Id);
+            var result  = await ConsumptionRecordService.GetConsumptionRecordByIdAsync(Id);
+            if (result != null)
+            {
+                consumptionRecord = result;
+			}
         }
         else if (VehicleId > 0)
         {            

@@ -19,7 +19,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
             "https://todo.progorb.no",
-            "https://localhost:7179"
+            "https://localhost:7179",
+            "https://localhost:7119" // Add your local API and client ports
         )
         .AllowAnyHeader()
         .AllowAnyMethod();

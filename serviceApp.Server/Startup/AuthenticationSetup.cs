@@ -28,10 +28,11 @@ public static class AuthenticationSetup
         services.AddAuthorization();
 
         // Current user helpers / HttpContext
+        services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, AppClaimsPrincipalFactory>();
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUser, CurrentUser>();
 
-        services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, AppClaimsPrincipalFactory>();
+
 
         // If you later switch to claims transformation for FamilyId,
         // register IClaimsTransformation here as well.

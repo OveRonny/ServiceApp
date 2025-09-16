@@ -22,7 +22,7 @@
         </div>
         <div class="mb-3">
             <label for="year" class="form-label">Årsmodell</label>
-            <InputText id="year" class="form-control" @bind-Value="vehicleModel.Year" />
+            <InputNumber id="year" class="form-control" @bind-Value="vehicleModel.Year" />
             <ValidationMessage For="@(() => vehicleModel.Year)" />
         </div>
         <div class="mb-3">

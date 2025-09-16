@@ -86,8 +86,14 @@ public sealed class RegistrationService(
 
     private string BuildConfirmLink(string userId, string token)
     {
-        var uiBase = _config["UiBaseUrl"] ?? "https://localhost:7179";
-        var code = WebUtility.UrlEncode(token);
-        return $"{uiBase}/confirm-email?userId={WebUtility.UrlEncode(userId)}&code={code}";
+        // Use production URL if configured, otherwise fallback to localhost
+        var uiBase = _config["UiBaseUrl"] ?? "https://todo.progorb.no";
+
+        // Encode user ID and token to be safe in URL
+        var encodedUserId = WebUtility.UrlEncode(userId);
+        var encodedToken = WebUtility.UrlEncode(token);
+
+        // Build the full confirmation link
+        return $"{uiBase}/confirm-email?userId={encodedUserId}&code={encodedToken}";
     }
 }

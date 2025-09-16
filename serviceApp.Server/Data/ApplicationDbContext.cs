@@ -6,12 +6,16 @@ namespace serviceApp.Server.Data;
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly Guid? _familyId;
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options,
                                 IHttpContextAccessor httpContextAccessor)
         : base(options)
     {
         _httpContextAccessor = httpContextAccessor;
+        var fidStr = httpContextAccessor.HttpContext?.User?.FindFirstValue("fid");
+        if (Guid.TryParse(fidStr, out var fid))
+            _familyId = fid;
     }
 
     private Guid? CurrentFamilyId
@@ -43,56 +47,44 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(modelBuilder);
 
-        // ===== Domain Entity Filters =====
-        modelBuilder.Entity<Vehicle>().HasQueryFilter(v => FamilyFilter(v.FamilyId));
-        modelBuilder.Entity<Owner>().HasQueryFilter(o => FamilyFilter(o.FamilyId));
-        modelBuilder.Entity<MileageHistory>().HasQueryFilter(m => FamilyFilter(m.FamilyId));
+        // Direct inline filters – no custom method
+        modelBuilder.Entity<Vehicle>()
+            .HasQueryFilter(v => CurrentFamilyId != null && v.FamilyId == CurrentFamilyId);
 
-        modelBuilder.Entity<ConsumptionRecord>(entity =>
-        {
-            entity.HasQueryFilter(c => FamilyFilter(c.FamilyId));
-            entity.Property(c => c.DieselPricePerLiter).HasPrecision(9, 2);
-            entity.Property(c => c.DieselAdded).HasPrecision(9, 2);
+        modelBuilder.Entity<Owner>()
+            .HasQueryFilter(o => _familyId != null && o.FamilyId == _familyId);
 
-            entity.HasOne(c => c.MileageHistory)
-                  .WithMany()
-                  .HasForeignKey(c => c.MileageHistoryId)
-                  .OnDelete(DeleteBehavior.Cascade);
-        });
+        modelBuilder.Entity<ConsumptionRecord>()
+            .HasQueryFilter(c => CurrentFamilyId != null && c.FamilyId == CurrentFamilyId)
+            .Property(c => c.DieselPricePerLiter)
+            .HasPrecision(9, 2);
 
-        modelBuilder.Entity<InsurancePolicy>(entity =>
-        {
-            entity.HasQueryFilter(i => FamilyFilter(i.FamilyId));
-            entity.Property(i => i.AnnualPrice).HasPrecision(9, 2);
-        });
+        modelBuilder.Entity<ConsumptionRecord>()
+            .Property(c => c.DieselAdded)
+            .HasPrecision(9, 2);
 
-        modelBuilder.Entity<Parts>(entity =>
-        {
-            entity.HasQueryFilter(p => FamilyFilter(p.FamilyId));
-            entity.Property(p => p.Price).HasPrecision(9, 2);
-        });
+        modelBuilder.Entity<InsurancePolicy>()
+            .HasQueryFilter(i => CurrentFamilyId != null && i.FamilyId == CurrentFamilyId)
+            .Property(i => i.AnnualPrice)
+            .HasPrecision(9, 2);
 
-        modelBuilder.Entity<VehicleInventory>(entity =>
-        {
-            entity.HasQueryFilter(v => FamilyFilter(v.FamilyId));
-            entity.Property(v => v.Cost).HasPrecision(9, 2);
-        });
+        modelBuilder.Entity<Parts>()
+            .HasQueryFilter(p => CurrentFamilyId != null && p.FamilyId == CurrentFamilyId)
+            .Property(p => p.Price)
+            .HasPrecision(9, 2);
 
-        modelBuilder.Entity<ServiceRecord>(entity =>
-        {
-            entity.HasQueryFilter(s => FamilyFilter(s.FamilyId));
-            entity.Property(s => s.Cost).HasPrecision(9, 2);
-        });
+        modelBuilder.Entity<VehicleInventory>()
+            .HasQueryFilter(v => CurrentFamilyId != null && v.FamilyId == CurrentFamilyId)
+            .Property(v => v.Cost)
+            .HasPrecision(9, 2);
 
-        modelBuilder.Entity<ServiceType>(entity =>
-        {
-            entity.HasQueryFilter(s => FamilyFilter(s.FamilyId));
-        });
+        modelBuilder.Entity<ServiceRecord>()
+            .HasQueryFilter(s => CurrentFamilyId != null && s.FamilyId == CurrentFamilyId)
+            .Property(s => s.Cost)
+            .HasPrecision(9, 2);
 
-        modelBuilder.Entity<ServiceCompany>(entity =>
-        {
-            entity.HasQueryFilter(s => FamilyFilter(s.FamilyId));
-        });
+        modelBuilder.Entity<MileageHistory>()
+            .HasQueryFilter(m => CurrentFamilyId != null && m.FamilyId == CurrentFamilyId);
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

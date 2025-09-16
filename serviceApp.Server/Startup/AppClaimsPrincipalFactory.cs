@@ -4,17 +4,24 @@ using System.Security.Claims;
 
 namespace serviceApp.Server.Startup;
 
-public sealed class AppClaimsPrincipalFactory(
-    UserManager<ApplicationUser> userManager,
-    RoleManager<IdentityRole> roleManager,
-    IOptions<IdentityOptions> optionsAccessor)
-    : UserClaimsPrincipalFactory<ApplicationUser, IdentityRole>(userManager, roleManager, optionsAccessor)
+public sealed class AppClaimsPrincipalFactory
+    : UserClaimsPrincipalFactory<ApplicationUser, IdentityRole>
 {
+    public AppClaimsPrincipalFactory(
+        UserManager<ApplicationUser> userManager,
+        RoleManager<IdentityRole> roleManager,
+        IOptions<IdentityOptions> optionsAccessor)
+        : base(userManager, roleManager, optionsAccessor)
+    {
+    }
+
     protected override async Task<ClaimsIdentity> GenerateClaimsAsync(ApplicationUser user)
     {
         var identity = await base.GenerateClaimsAsync(user);
-        // Include FamilyId so UI/API can filter/authorize data
-        identity.AddClaim(new Claim("fid", user.FamilyId.ToString()));
+        if (!string.IsNullOrEmpty(user.FamilyId.ToString()))
+        {
+            identity.AddClaim(new Claim("fid", user.FamilyId.ToString()));
+        }
         return identity;
     }
 }

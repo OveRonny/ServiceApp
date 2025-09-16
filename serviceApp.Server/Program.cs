@@ -17,9 +17,12 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("https://todo.progorb.no")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy.WithOrigins(
+            "https://todo.progorb.no",
+            "https://localhost:7179"
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod();
     });
 });
 

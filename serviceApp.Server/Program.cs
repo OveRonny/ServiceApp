@@ -29,17 +29,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-try
-{
-    await IdentitySeeding.EnsureRolesAsync(app.Services);
-
-}
-catch (Exception ex)
-{
-    var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
-    logger.LogError(ex, "Identity seeding failed. App will continue to start.");
-}
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

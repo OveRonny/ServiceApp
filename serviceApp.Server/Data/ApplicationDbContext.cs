@@ -43,25 +43,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(modelBuilder);
 
-        // Vehicles
-        modelBuilder.Entity<Vehicle>(entity =>
-        {
-            entity.HasQueryFilter(v => FamilyFilter(v.FamilyId));
-        });
+        // ===== Domain Entity Filters =====
+        modelBuilder.Entity<Vehicle>().HasQueryFilter(v => FamilyFilter(v.FamilyId));
+        modelBuilder.Entity<Owner>().HasQueryFilter(o => FamilyFilter(o.FamilyId));
+        modelBuilder.Entity<MileageHistory>().HasQueryFilter(m => FamilyFilter(m.FamilyId));
 
-        // Owners
-        modelBuilder.Entity<Owner>(entity =>
-        {
-            entity.HasQueryFilter(o => FamilyFilter(o.FamilyId));
-        });
-
-        // MileageHistories
-        modelBuilder.Entity<MileageHistory>(entity =>
-        {
-            entity.HasQueryFilter(m => FamilyFilter(m.FamilyId));
-        });
-
-        // ConsumptionRecords
         modelBuilder.Entity<ConsumptionRecord>(entity =>
         {
             entity.HasQueryFilter(c => FamilyFilter(c.FamilyId));
@@ -74,41 +60,35 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                   .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // InsurancePolicies
         modelBuilder.Entity<InsurancePolicy>(entity =>
         {
             entity.HasQueryFilter(i => FamilyFilter(i.FamilyId));
             entity.Property(i => i.AnnualPrice).HasPrecision(9, 2);
         });
 
-        // Parts
         modelBuilder.Entity<Parts>(entity =>
         {
             entity.HasQueryFilter(p => FamilyFilter(p.FamilyId));
             entity.Property(p => p.Price).HasPrecision(9, 2);
         });
 
-        // VehicleInventories
         modelBuilder.Entity<VehicleInventory>(entity =>
         {
             entity.HasQueryFilter(v => FamilyFilter(v.FamilyId));
             entity.Property(v => v.Cost).HasPrecision(9, 2);
         });
 
-        // ServiceRecords
         modelBuilder.Entity<ServiceRecord>(entity =>
         {
             entity.HasQueryFilter(s => FamilyFilter(s.FamilyId));
             entity.Property(s => s.Cost).HasPrecision(9, 2);
         });
 
-        // ServiceTypes
         modelBuilder.Entity<ServiceType>(entity =>
         {
             entity.HasQueryFilter(s => FamilyFilter(s.FamilyId));
         });
 
-        // ServiceCompanies
         modelBuilder.Entity<ServiceCompany>(entity =>
         {
             entity.HasQueryFilter(s => FamilyFilter(s.FamilyId));

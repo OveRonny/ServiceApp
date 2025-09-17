@@ -36,6 +36,9 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseBlazorFrameworkFiles();
+app.UseStaticFiles();
+
 app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 

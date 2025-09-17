@@ -27,11 +27,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.WebHost.ConfigureKestrel(options =>
-{
-    options.ListenAnyIP(80); // listen on port 80
-});
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -41,9 +36,6 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseBlazorFrameworkFiles();
-app.UseStaticFiles();
-
 app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 
@@ -51,16 +43,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapRegistration();
 app.MapIdentityApi<ApplicationUser>();
-app.MapFamilyAdmin();
 
 app.MapControllers();
 
 app.RegisterEndpointDefinitions();
-
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-app.Urls.Clear();
-app.Urls.Add($"http://0.0.0.0:{port}");
-
-app.MapFallbackToFile("index.html");
 
 app.Run();

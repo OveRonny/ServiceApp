@@ -17,7 +17,6 @@ public static class AuthenticationSetup
                 // options.Password.RequireNonAlphanumeric = false;
                 // options.Password.RequireUppercase = false;
             })
-            .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddApiEndpoints();
 

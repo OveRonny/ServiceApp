@@ -35,8 +35,6 @@ public sealed class RegistrationService(
 
         // Optional: platform admin by config
         var admins = _config.GetSection("OwnerEmails").Get<string[]>() ?? Array.Empty<string>();
-        if (admins.Contains(req.Email, StringComparer.OrdinalIgnoreCase))
-            _ = await _users.AddToRoleAsync(user, Roles.Admin);
 
         _ = await SendConfirmationEmailAsync(user, ct);
         return (true, null);

@@ -27,6 +27,11 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(80); // listen on port 80
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -55,5 +60,7 @@ app.RegisterEndpointDefinitions();
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 app.Urls.Clear();
 app.Urls.Add($"http://0.0.0.0:{port}");
+
+app.MapFallbackToFile("index.html");
 
 app.Run();

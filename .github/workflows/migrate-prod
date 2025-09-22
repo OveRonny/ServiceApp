@@ -1,0 +1,25 @@
+name: Migrate DB (Production)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  migrate_prod:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      ConnectionStrings__DefaultConnection: ${{ secrets.ConnectionStrings__DefaultConnection }}
+      ASPNETCORE_ENVIRONMENT: Production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '9.0.x' }
+      - name: Install dotnet-ef
+        run: |
+          dotnet tool install --global dotnet-ef
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+      - name: Apply EF Core migrations (Prod)
+        run: |
+          dotnet ef database update \
+            --project serviceApp.Server/serviceApp.Server.csproj \
+            --startup-project serviceApp.Server/serviceApp.Server.csproj

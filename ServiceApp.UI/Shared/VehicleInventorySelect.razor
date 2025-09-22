@@ -1,0 +1,77 @@
+﻿@inject IVehicleInventoryService VehicleInventoryService
+
+@if (isLoading)
+{
+    <div class="form-text">Laster deler …</div>
+}
+else if (error is not null)
+{
+    <div class="text-danger small">@error</div>
+}
+else
+{
+    <div class="@ContainerClass">       
+        <InputSelect TValue="int?" @bind-Value="SelectedInventoryId" @bind-Value:after="OnInput" class="form-select" Disabled="@(Disabled || isLoading || inventories.Count == 0)">
+            <option value="0">Velg del</option>
+            @foreach (var del in inventories)
+        {
+            <option value="@del.Id">@del.PartName @del.Description</option>
+        }
+        </InputSelect>
+
+        @if (inventories.Count == 0)
+        {
+            <div class="form-text">Ingen deler tilgjengelig for dette kjøretøyet.</div>
+        }
+    </div>
+}
+
+@code {
+    private readonly string _id = $"invsel_{Guid.NewGuid():N}";
+    [Parameter] public int VehicleId { get; set; }
+    [Parameter] public int? SelectedInventoryId { get; set; }
+    [Parameter] public EventCallback<int?> SelectedInventoryIdChanged { get; set; }
+    [Parameter] public EventCallback<VehicleInventoryModel?> SelectedInventoryChanged { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public string? Label { get; set; } = "Del brukt i service";
+    [Parameter] public bool Compact { get; set; }
+    private List<VehicleInventoryModel> inventories = new();
+    private bool isLoading;
+    private string? error;
+
+    private string ContainerClass => Compact ? "mb-2 mb-md-0" : "mb-3";
+    protected override async Task OnParametersSetAsync()
+    {
+        if (VehicleId <= 0)
+        {
+            inventories.Clear();
+            return;
+        }
+
+        isLoading = true;
+        error = null;
+
+        try
+        {
+            inventories = await VehicleInventoryService.GetVehicleInventoryAsync(VehicleId)
+                          ?? new List<VehicleInventoryModel>();
+        }
+        catch (Exception ex)
+        {
+            error = $"Kunne ikke laste deler: {ex.Message}";
+            inventories.Clear();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnInput()
+    {
+        await SelectedInventoryIdChanged.InvokeAsync(SelectedInventoryId);
+
+        var selected = inventories.FirstOrDefault(i => i.Id == SelectedInventoryId);
+        await SelectedInventoryChanged.InvokeAsync(selected);
+    }
+}

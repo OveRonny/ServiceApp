@@ -8,81 +8,179 @@
 <h3>Kjøretøy deler</h3>
 
 <div class="col-6">
-
-
     <EditForm Model="vehicleInventoryModel" OnValidSubmit="HandleValidSubmit">
         <DataAnnotationsValidator />
 
+        @if (Id <= 0 && VehicleId > 0)
+        {
+            <div class="mb-3">
+                <label class="form-label">Velg eksisterende del</label>
+                <InputSelect TValue="int?" class="form-select"
+                             @bind-Value="selectedExistingId"
+                             @bind-Value:after="OnExistingChanged">
+                    <option value="">-- Ny del --</option>
+                    @foreach (var p in existingForVehicle)
+                    {
+                        <option value="@p.Id">@p.PartName @p.Description (@(p.QuantityInStock ?? 0))</option>
+                    }
+                </InputSelect>
+                <small class="text-muted">
+                    Velg en del for å justere lager. La stå tom for å opprette ny del.
+                </small>
+            </div>
+        }
+
+        @if (selectedExistingId is int && selectedExistingPart is not null)
+        {
+            <!-- Adjust mode details (read-only snapshot) -->
+            <div class="mb-2">
+                <strong>@selectedExistingPart.PartName</strong>
+                <div class="text-muted small">@selectedExistingPart.Description</div>
+                <div class="text-muted small">
+                    Nåværende lager: <strong>@(selectedExistingPart.QuantityInStock ?? 0)</strong> @selectedExistingPart.Unit
+                </div>
+                <div class="text-muted small">
+                    Enhetspris: <strong>@selectedExistingPart.Cost.ToString("C")</strong>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Legg til antall</label>
+                <InputNumber class="form-control" @bind-Value="adjustQuantity" step="0.1" />
+            </div>
+        }
+
         <div class="mb-3">
-            <label for="Vehicle" class="form-label" >Kjøretøy</label>
+            <label class="form-label">Kjøretøy</label>
             <VehicleDropdown @bind-selectedVehicleId="vehicleInventoryModel.VehicleId" />
         </div>
+
         <div class="mb-3">
-            <label for="PartName" class="form-label">Navn</label>
-            <InputText id="Inventory" class="form-control" @bind-value="vehicleInventoryModel.PartName" />
+            <label class="form-label">Part nummer</label>
+            <InputText class="form-control" @bind-Value="vehicleInventoryModel.PartName" disabled="@(selectedExistingId is int)" />
             <ValidationMessage For="@(() => vehicleInventoryModel.PartName)" />
         </div>
+
         <div class="mb-3">
-            <label for="Description" class="form-label">Beskrivelse</label>
-            <InputTextArea id="Inventory" class="form-control" @bind-value="vehicleInventoryModel.Description" />
+            <label class="form-label">Beskrivelse</label>
+            <InputTextArea class="form-control" @bind-Value="vehicleInventoryModel.Description" disabled="@(selectedExistingId is int)" />
             <ValidationMessage For="@(() => vehicleInventoryModel.Description)" />
         </div>
+
         <div class="mb-3">
-            <label for="Cost" class="form-label">Pris</label>
-            <InputNumber id="Inventory" class="form-control" @bind-value="vehicleInventoryModel.Cost" />
+            <label class="form-label">Pris (per enhet)</label>
+            <InputNumber class="form-control" @bind-Value="vehicleInventoryModel.Cost" step="0.01" />
             <ValidationMessage For="@(() => vehicleInventoryModel.Cost)" />
         </div>
+
         <div class="mb-3">
-            <label for="Supplier" class="form-label">Leverandør</label>
-            <SupplierDropdown @bind-selectedSupplierId="vehicleInventoryModel.SupplierId" />
+            <label class="form-label">Enhet</label>
+            <InputSelect class="form-select" @bind-Value="vehicleInventoryModel.Unit" disabled="@(selectedExistingId is int)">
+                @foreach (UnitOfMeasure u in Enum.GetValues(typeof(UnitOfMeasure)))
+                {
+                    <option value="@u">@u</option>
+                }
+            </InputSelect>
         </div>
+
+        @if (selectedExistingId is null)
+        {
+            <div class="mb-3">
+                <label class="form-label">Antall</label>
+                <InputNumber class="form-control" @bind-Value="vehicleInventoryModel.QuantityInStock" step="0.1" />
+                <ValidationMessage For="@(() => vehicleInventoryModel.QuantityInStock)" />
+            </div>
+        }
+
         <div class="mb-3">
-            <label for="QuantityInStock" class="form-label">Antall</label>
-            <InputNumber id="Inventory" class="form-control" @bind-value="vehicleInventoryModel.QuantityInStock" />
-            <ValidationMessage For="@(() => vehicleInventoryModel.QuantityInStock)" />
-        </div>
-        <div class="mb-3">
-            <label for="ReorderThreshold" class="form-label">Minimum lager</label>
-            <InputNumber id="Inventory" class="form-control" @bind-value="vehicleInventoryModel.ReorderThreshold" />
+            <label class="form-label">Minimum lager</label>
+            <InputNumber class="form-control" @bind-Value="vehicleInventoryModel.ReorderThreshold" step="0.1" />
             <ValidationMessage For="@(() => vehicleInventoryModel.ReorderThreshold)" />
         </div>
+
         <div class="mb-3">
-            <label for="PurchaseDate" class="form-label">Dato</label>
-            <InputDate id="Inventory" class="form-control" @bind-value="vehicleInventoryModel.PurchaseDate" />
+            <label class="form-label">Dato</label>
+            <InputDate class="form-control" @bind-Value="vehicleInventoryModel.PurchaseDate" />
             <ValidationMessage For="@(() => vehicleInventoryModel.PurchaseDate)" />
         </div>
 
-        <button type="submit" class="btn btn-primary">Lagre</button>
+        <div class="mb-3">
+            <label class="form-label">Leverandør</label>
+            <SupplierDropdown @bind-selectedSupplierId="vehicleInventoryModel.SupplierId" />
+        </div>
 
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Lagre</button>
+            @if (vehicleInventoryModel.VehicleId > 0)
+            {
+                <NavLink class="btn btn-secondary"
+                         href="@($"/vehicleinventories/{vehicleInventoryModel.VehicleId}")">
+                    <i class="bi bi-arrow-left me-1"></i> Tilbake til deler
+                </NavLink>
+            }
+        </div>
     </EditForm>
 </div>
+
 @code {
     private VehicleInventoryModel vehicleInventoryModel = new();
 
-    [Parameter]
-    public int Id { get; set; }
+    private List<VehicleInventoryModel> existingForVehicle = new();
+    private int? selectedExistingId;
+    private VehicleInventoryModel? selectedExistingPart;
+    private decimal adjustQuantity = 1m;
 
-    [Parameter]
-    public int VehicleId { get; set; }
+    [Parameter] public int Id { get; set; }
+    [Parameter] public int VehicleId { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
-        if(Id > 0)
+        if (Id > 0)
         {
             var result = await VehicleInventoryService.GetVehicleInventoryByIdAsync(Id);
-            if(result != null)
-            {
-                vehicleInventoryModel = result;
-            }
-            else
-            {
-                vehicleInventoryModel = new();
-            }
+            vehicleInventoryModel = result ?? new();
+            selectedExistingId = null;
+            selectedExistingPart = null;
         }
-        else 
+        else
         {
-            vehicleInventoryModel = new();
+            vehicleInventoryModel = new VehicleInventoryModel
+            {
+                VehicleId = VehicleId,
+                PurchaseDate = DateTime.Today
+            };
+
+            if (VehicleId > 0)
+                existingForVehicle = await VehicleInventoryService.GetVehicleInventoryAsync(VehicleId);
         }
+    }
+
+    private void OnExistingChanged()
+    {
+        selectedExistingPart = existingForVehicle.FirstOrDefault(x => x.Id == selectedExistingId);
+        if (selectedExistingPart is not null)
+        {
+            // Show details and default fields for adjust
+            vehicleInventoryModel.VehicleId = selectedExistingPart.VehicleId;
+            vehicleInventoryModel.SupplierId = selectedExistingPart.SupplierId;
+            vehicleInventoryModel.PartName = selectedExistingPart.PartName;
+            vehicleInventoryModel.Description = selectedExistingPart.Description;
+            vehicleInventoryModel.Unit = selectedExistingPart.Unit;
+            // Start with its current unit cost; editable to adjust moving average
+            vehicleInventoryModel.Cost = selectedExistingPart.Cost;
+            vehicleInventoryModel.ReorderThreshold = selectedExistingPart.ReorderThreshold;
+            adjustQuantity = 1m;
+        }
+        else
+        {
+            // Back to new-part mode
+            vehicleInventoryModel = new VehicleInventoryModel
+            {
+                VehicleId = VehicleId,
+                PurchaseDate = DateTime.Today
+            };
+            adjustQuantity = 1m;
+        }
+        StateHasChanged();
     }
 
     private async Task HandleValidSubmit()
@@ -91,10 +189,27 @@
         {
             await VehicleInventoryService.UpdateVehicleInventoryAsync(vehicleInventoryModel);
         }
+        else if (selectedExistingId is int idToAdjust && selectedExistingPart is not null)
+        {
+            // Adjust stock on existing item (QuantityDelta)
+            await VehicleInventoryService.AdjustInventoryAsync(
+                id: idToAdjust,
+                quantityDelta: adjustQuantity,
+                partName: selectedExistingPart.PartName, // required by server command
+                description: selectedExistingPart.Description ?? string.Empty,
+                cost: vehicleInventoryModel.Cost,        // incoming unit price (for weighted average)
+                vehicleId: selectedExistingPart.VehicleId,
+                supplierId: vehicleInventoryModel.SupplierId,
+                reorderThreshold: vehicleInventoryModel.ReorderThreshold,
+                unit: selectedExistingPart.Unit
+            );
+        }
         else
         {
+            // Create brand new item
             await VehicleInventoryService.CreateVehicleInventoryAsync(vehicleInventoryModel);
         }
-        NavigationManager.NavigateTo("/vehicle-inventory");
+
+        NavigationManager.NavigateTo($"/vehicleinventories/{vehicleInventoryModel.VehicleId}");
     }
 }

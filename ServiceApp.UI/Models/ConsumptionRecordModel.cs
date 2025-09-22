@@ -16,8 +16,10 @@ public class ConsumptionRecordModel
 
     public int Mileage { get; set; }
     public int? Hours { get; set; }
+
     public decimal TotalCost { get; set; }
 
     public string Make { get; set; } = string.Empty;
     public string Model { get; set; } = string.Empty;
+
 }

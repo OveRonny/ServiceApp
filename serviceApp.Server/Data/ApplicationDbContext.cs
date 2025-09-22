@@ -47,55 +47,75 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(modelBuilder);
 
-        // Direct inline filters – no custom method
+        // Multi-tenant query filters (deny-by-default when _familyId is null)
         modelBuilder.Entity<Vehicle>()
-            .HasQueryFilter(v => CurrentFamilyId != null && v.FamilyId == CurrentFamilyId);
+            .HasQueryFilter(v => _familyId != null && v.FamilyId == _familyId);
 
         modelBuilder.Entity<Owner>()
             .HasQueryFilter(o => _familyId != null && o.FamilyId == _familyId);
 
-        modelBuilder.Entity<ConsumptionRecord>()
-            .HasQueryFilter(c => CurrentFamilyId != null && c.FamilyId == CurrentFamilyId)
-            .Property(c => c.DieselPricePerLiter)
-            .HasPrecision(9, 2);
+        modelBuilder.Entity<ConsumptionRecord>(b =>
+        {
+            b.HasQueryFilter(c => _familyId != null && c.FamilyId == _familyId);
+            b.Property(c => c.DieselPricePerLiter).HasPrecision(18, 2);
+            b.Property(c => c.DieselAdded).HasPrecision(18, 2);
+        });
 
-        modelBuilder.Entity<ConsumptionRecord>()
-            .Property(c => c.DieselAdded)
-            .HasPrecision(9, 2);
+        modelBuilder.Entity<InsurancePolicy>(b =>
+        {
+            b.HasQueryFilter(i => _familyId != null && i.FamilyId == _familyId);
+            b.Property(i => i.AnnualPrice).HasPrecision(18, 2);
+        });
 
-        modelBuilder.Entity<InsurancePolicy>()
-            .HasQueryFilter(i => CurrentFamilyId != null && i.FamilyId == CurrentFamilyId)
-            .Property(i => i.AnnualPrice)
-            .HasPrecision(9, 2);
+        modelBuilder.Entity<Parts>(b =>
+        {
+            b.HasQueryFilter(p => _familyId != null && p.FamilyId == _familyId);
+            b.Property(p => p.Price).HasPrecision(18, 2);
+            b.HasIndex(p => new { p.FamilyId });
+        });
 
-        modelBuilder.Entity<Parts>()
-            .HasQueryFilter(p => CurrentFamilyId != null && p.FamilyId == CurrentFamilyId)
-            .Property(p => p.Price)
-            .HasPrecision(9, 2);
+        modelBuilder.Entity<VehicleInventory>(b =>
+        {
+            b.HasQueryFilter(v => _familyId != null && v.FamilyId == _familyId);
+            b.Property(v => v.Cost).HasPrecision(18, 2);
+            b.Property(v => v.QuantityInStock).HasPrecision(18, 2);
+            b.Property(v => v.ReorderThreshold).HasPrecision(18, 2);
+            b.HasIndex(v => new { v.FamilyId, v.VehicleId });
+        });
 
-        modelBuilder.Entity<VehicleInventory>()
-            .HasQueryFilter(v => CurrentFamilyId != null && v.FamilyId == CurrentFamilyId)
-            .Property(v => v.Cost)
-            .HasPrecision(9, 2);
-
-        modelBuilder.Entity<ServiceRecord>()
-            .HasQueryFilter(s => CurrentFamilyId != null && s.FamilyId == CurrentFamilyId)
-            .Property(s => s.Cost)
-            .HasPrecision(9, 2);
+        modelBuilder.Entity<ServiceRecord>(b =>
+        {
+            b.HasQueryFilter(s => _familyId != null && s.FamilyId == _familyId);
+            b.Property(s => s.Cost).HasPrecision(18, 2);
+            b.HasIndex(s => new { s.FamilyId, s.VehicleId });
+        });
 
         modelBuilder.Entity<MileageHistory>()
-            .HasQueryFilter(m => CurrentFamilyId != null && m.FamilyId == CurrentFamilyId);
+            .HasQueryFilter(m => _familyId != null && m.FamilyId == _familyId);
+
+        // Optional: additional helpful indexes
+        modelBuilder.Entity<Supplier>().HasIndex(x => new { x.FamilyId });
+        modelBuilder.Entity<ServiceType>().HasIndex(x => new { x.FamilyId });
+        modelBuilder.Entity<ServiceCompany>().HasIndex(x => new { x.FamilyId });
+        modelBuilder.Entity<Owner>().HasIndex(x => new { x.FamilyId });
+        modelBuilder.Entity<Vehicle>().HasIndex(x => new { x.FamilyId });
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        var fid = CurrentFamilyId;
-        if (fid != null)
+        // Stamp FamilyId on inserts for all tracked entities that have a FamilyId property
+        if (_familyId is Guid fid)
         {
-            foreach (var e in ChangeTracker.Entries<Vehicle>().Where(e => e.State == EntityState.Added))
+            foreach (var entry in ChangeTracker.Entries()
+                         .Where(e => e.State == EntityState.Added))
             {
-                if (e.Entity.FamilyId == Guid.Empty)
-                    e.Entity.FamilyId = fid.Value;
+                var familyProp = entry.Properties.FirstOrDefault(p => p.Metadata.Name == nameof(ServiceRecord.FamilyId));
+                if (familyProp != null)
+                {
+                    var current = familyProp.CurrentValue as Guid?;
+                    if (current is null || current == Guid.Empty)
+                        familyProp.CurrentValue = fid;
+                }
             }
         }
 

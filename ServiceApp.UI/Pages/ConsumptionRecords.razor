@@ -12,11 +12,11 @@
         <div class="row">
             <div class="mb-3">
                 <label class="form-label" for="startDate">Startdato:</label>
-                <InputDate class="form-control" id="startDate" @bind-Value="startDate" @bind-Value:after="GetFilteredRecords" />
+                <InputDate class="form-control bg-white text-dark" id="startDate" @bind-Value="startDate" @bind-Value:after="GetFilteredRecords" />
             </div>
             <div class="mb-3">
                 <label class="form-label" for="endDate">Sluttdato:</label>
-                <InputDate class="form-control" id="endDate" @bind-Value="endDate" @bind-Value:after="GetFilteredRecords" />
+                <InputDate class="form-control bg-white text-dark" id="endDate" @bind-Value="endDate" @bind-Value:after="GetFilteredRecords" />
             </div>
         </div>
     </div>
@@ -27,16 +27,16 @@
         {
             <div class="card mb-2">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex justify-content-between text-dark">
                         <strong>@record.Make @record.Model</strong>
                         <span>@record.Date.ToShortDateString()</span>
                     </div>
                     <div class="mt-2">
-                        <div class="small text-muted">Kilometer: <strong>@record.Mileage</strong></div>
-                        <div class="small text-muted">Antall liter: <strong>@record.DieselAdded</strong></div>
-                        <div class="small text-muted">Pris/l: <strong>@record.DieselPricePerLiter</strong></div>
-                        <div class="small text-muted">Forbruk: <strong>@(record.DieselConsumption?.ToString("F2") ?? "-")</strong></div>
-                        <div class="small text-muted">Sum: <strong>@record.TotalCost.ToString("F2")</strong></div>
+                        <div class="small text-dark">Kilometer: <strong>@record.Mileage</strong></div>
+                        <div class="small text-dark">Antall liter: <strong>@record.DieselAdded</strong></div>
+                        <div class="small text-dark">Pris/l: <strong>@record.DieselPricePerLiter</strong></div>
+                        <div class="small text-dark">Forbruk: <strong>@(record.DieselConsumption?.ToString("F2") ?? "-")</strong></div>
+                        <div class="small text-dark">Sum: <strong>@CurrencyFormatter.FormatKr(record.TotalCost)</strong></div>
                     </div>
                 </div>
                 <div class="card-footer d-flex gap-2">
@@ -74,7 +74,7 @@
                         <td>@record.DieselAdded</td>
                         <td class="d-none d-lg-table-cell">@record.DieselPricePerLiter</td>
                         <td class="d-none d-lg-table-cell">@(record.DieselConsumption?.ToString("F2") ?? "-")</td>
-                        <td>@record.TotalCost.ToString("F2")</td>
+                        <td>@CurrencyFormatter.FormatKr(record.TotalCost)</td>
                         <td class="text-nowrap">
                             <button class="btn btn-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/{record.Id}"))">Rediger</button>
                             <button class="btn btn-danger btn-sm" @onclick="@(() => DeleteConsumption(record.Id))">Slett</button>
@@ -87,16 +87,17 @@
 
     <!-- One shared summary used for all screen sizes -->
     <ConsumptionSummary
-        TotalMilage="TotalMilage"
-        TotalDieselAdded="TotalDieselAdded"
-        TotalCost="TotalCost"
-        AveragePricePerLiter="AveragePricePerLiter"
-        AverageDieselConsumption="AvarageDieselConsumption" />
+        TotalMilage="summary.TotalDriven"
+        TotalDieselAdded="summary.TotalDieselAdded"
+        TotalCost="summary.TotalCost"
+        AveragePricePerLiter="summary.AveragePrice"
+        AverageDieselConsumption="summary.AvgConsumption" />
 
 </div>
 
 @code {
     private List<ConsumptionRecordModel> consumptionRecords = new List<ConsumptionRecordModel>();
+    private ConsumptionSummaryModel summary = new();
 
     [Parameter]
     public int VehicleId { get; set; }
@@ -104,16 +105,8 @@
     private DateTime? startDate = DateTime.UtcNow.AddYears(-1); // Standard: Ett år tilbake
     private DateTime? endDate = DateTime.UtcNow; // Standard: Dagens dato
 
-    private decimal TotalDieselAdded => consumptionRecords.Sum(r => r.DieselAdded);
-    private decimal TotalCost => consumptionRecords.Sum(r => r.TotalCost);
-    private int TotalMilage =>
-     consumptionRecords.Any()
-         ? consumptionRecords.Max(r => r.Mileage) - consumptionRecords.Min(r => r.Mileage)
-         : 0;
-    private decimal AveragePricePerLiter =>
-    TotalDieselAdded > 0 ? TotalCost / TotalDieselAdded : 0;
-    private decimal AvarageDieselConsumption =>
-    TotalMilage > 0 ? TotalDieselAdded / TotalMilage : 0;
+
+ 
 
     protected override async Task OnParametersSetAsync()
     {
@@ -122,12 +115,17 @@
 
     private async Task DeleteConsumption(int id)
     {
-        await ConsumptionRecordService.DeleteConsumptionRecordAsync(id);
+        await ConsumptionRecordService.DeleteConsumptionRecordAsync(id);        
         await GetFilteredRecords();
     }
 
     private async Task GetFilteredRecords()
     {
-        consumptionRecords = await ConsumptionRecordService.GetAllConsumptionRecordsAsync(VehicleId, startDate, endDate);
+        var result = await ConsumptionRecordService.GetAllConsumptionRecordsAsync(VehicleId, startDate, endDate);
+        if (result != null)
+        {
+            consumptionRecords = result.Records;
+            summary = result.Summary;
+        }
     }
 }

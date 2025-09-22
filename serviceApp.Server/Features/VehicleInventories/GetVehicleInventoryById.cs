@@ -4,7 +4,7 @@ public static class GetVehicleInventoryById
 {
     public record class Query(int Id) : IQuery<Response>;
     public record Response(int Id, string PartName, decimal Cost, string Description, int VehicleId, int SupplierId,
-        DateTime PurchaseDate, int? QuantityInStock, int? ReorderThreshold);
+        DateTime PurchaseDate, decimal? QuantityInStock, decimal? ReorderThreshold);
 
     public class Handler(ApplicationDbContext context) : IQueryHandler<Query, Response>
     {
@@ -22,22 +22,23 @@ public static class GetVehicleInventoryById
             return Result.Ok(response);
         }
     }
-}
 
-
-[ApiController]
-[Route("api/vehicle-inventory")]
-public class GetVehicleInventoryByIdController(ISender sender) : ControllerBase
-{
-    [HttpGet("{id}")]
-    public async Task<ActionResult<GetVehicleInventoryById.Response>> GetVehicleInventoryById(int id)
+    public class EndPoint : IEndpointDefinition
     {
-        var result = await sender.Send(new GetVehicleInventoryById.Query(id));
-        if (result.Failure)
+        public void MapEndpoints(WebApplication app)
         {
-            return NotFound(result.Error);
+            app.MapGet("api/vehicle-inventory/{id}", async (ISender sender, int id, CancellationToken cancellationToken) =>
+            {
+                var result = await sender.Send(new Query(id), cancellationToken);
+                if (result.Failure)
+                {
+                    return Results.NotFound(result.Error);
+                }
+                return Results.Ok(result.Value);
+            });
         }
-        return Ok(result.Value);
     }
 }
+
+
 

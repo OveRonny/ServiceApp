@@ -4,7 +4,8 @@ namespace serviceApp.Server.Features.ServiceRecords;
 
 public static class CreateServiceRecord
 {
-    public record Command(int VehicleId, int ServiceTypeId, string Description, decimal Cost, int Mileage, int? Hours, int ServiceCompanyId) : ICommand<Response>;
+    public record UsedPart(int VehicleInventoryId, int Quantity);
+    public record Command(int VehicleId, int ServiceTypeId, string Description, decimal Cost, int Mileage, int? Hours, int ServiceCompanyId, IReadOnlyList<UsedPart>? UsedParts = null) : ICommand<Response>;
 
     public record Response(int Id, int VehicleId, int ServiceTypeId, DateTime ServiceDate, string Description, decimal Cost, int Mileage, int? Hours);
 
@@ -12,11 +13,13 @@ public static class CreateServiceRecord
     {
         private readonly ApplicationDbContext context = context;
         private readonly ICurrentUser currentUser = currentUser;
+
         public async Task<Result<Response>> Handle(Command request, CancellationToken cancellationToken)
         {
-
             if (!currentUser.IsAuthenticated || currentUser.FamilyId is null)
                 return Result.Fail<Response>("Not authenticated.");
+
+
 
             var mileage = await CreateMileageAsync(request, cancellationToken);
 
@@ -29,13 +32,70 @@ public static class CreateServiceRecord
                 Cost = request.Cost,
                 MileageHistoryId = mileage.Id,
                 ServiceCompanyId = request.ServiceCompanyId
-
             };
+
+            // Handle used parts (optional)
+            var usedParts = (request.UsedParts ?? Array.Empty<UsedPart>())
+                .Where(p => p.Quantity > 0)
+                .ToList();
+
+            if (usedParts.Count > 0)
+            {
+                // Group duplicates and sum quantities
+                var grouped = usedParts
+                    .GroupBy(p => p.VehicleInventoryId)
+                    .Select(g => new { VehicleInventoryId = g.Key, Quantity = g.Sum(x => x.Quantity) })
+                    .ToList();
+
+                var invIds = grouped.Select(g => g.VehicleInventoryId).ToList();
+
+                // Load inventory items for this vehicle (query filters should apply FamilyId)
+                var inventories = await context.Set<VehicleInventory>()
+                    .Where(i => invIds.Contains(i.Id) && i.VehicleId == request.VehicleId)
+                    .ToListAsync(cancellationToken);
+
+                if (inventories.Count != grouped.Count)
+                {
+                    return Result.Fail<Response>("One or more inventory items were not found for this vehicle.");
+                }
+
+                // Validate and decrement stock; create Parts snapshots
+                foreach (var g in grouped)
+                {
+                    var inv = inventories.First(i => i.Id == g.VehicleInventoryId);
+                    var currentStock = inv.QuantityInStock ?? 0;
+
+                    if (currentStock < g.Quantity)
+                    {
+                        return Result.Fail<Response>($"Not enough stock for '{inv.PartName}'. Available: {currentStock}");
+                    }
+
+                    inv.QuantityInStock = currentStock - g.Quantity;
+
+                    serviceRecord.Parts.Add(new Parts
+                    {
+                        Name = string.IsNullOrWhiteSpace(inv.PartName) ? "Part" : inv.PartName,
+                        Price = inv.Cost,
+                        Description = inv.Description ?? string.Empty,
+                        Quantity = g.Quantity,
+                        VehicleInventoryId = inv.Id,
+                    });
+                }
+            }
+
             context.ServiceRecords.Add(serviceRecord);
             await context.SaveChangesAsync(cancellationToken);
-            return new Response(serviceRecord.Id, serviceRecord.VehicleId,
-                serviceRecord.ServiceTypeId, serviceRecord.ServiceDate, serviceRecord.Description,
-                serviceRecord.Cost, mileage.Mileage, mileage.Hours);
+
+            return new Response(
+                serviceRecord.Id,
+                serviceRecord.VehicleId,
+                serviceRecord.ServiceTypeId,
+                serviceRecord.ServiceDate,
+                serviceRecord.Description,
+                serviceRecord.Cost,
+                mileage.Mileage,
+                mileage.Hours
+            );
         }
 
         private async Task<MileageHistory> CreateMileageAsync(Command request, CancellationToken cancellationToken)

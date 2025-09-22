@@ -10,6 +10,9 @@ public class Parts
     public int ServiceRecordId { get; set; }
     public ServiceRecord? ServiceRecord { get; set; }
 
+    public int? VehicleInventoryId { get; set; }
+    public VehicleInventory? VehicleInventory { get; set; }
+
     public Guid FamilyId { get; set; }
 
 }

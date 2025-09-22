@@ -4,8 +4,6 @@ using serviceApp.Server.Startup;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
-
 builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
@@ -20,7 +18,7 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(
             "https://todo.progorb.no",
             "https://localhost:7179",
-            "https://localhost:7119" // Add your local API and client ports
+            "https://localhost:7119"
         )
         .AllowAnyHeader()
         .AllowAnyMethod();

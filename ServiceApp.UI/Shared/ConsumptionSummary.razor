@@ -1,15 +1,18 @@
 @using Microsoft.AspNetCore.Components
+@using System.Globalization
 
 <div class="card mt-3">
     <div class="card-body">
         <div><strong>Totalt</strong></div>
         <div class="small">Km: <strong>@TotalMilage</strong></div>
         <div class="small">Antall liter: <strong>@TotalDieselAdded.ToString("F2")</strong></div>
-        <div class="small">Sum: <strong>@TotalCost.ToString("F2")</strong></div>
+        <div class="small">Sum: <strong>@CurrencyFormatter.FormatKr(TotalCost)</strong></div>
         <hr />
         <div><strong>Gjennomsnitt</strong></div>
-        <div class="small">Pris/l: <strong>@AveragePricePerLiter.ToString("F2")</strong></div>
-        <div class="small">Forbruk (liter/km): <strong>@AverageDieselConsumption.ToString("F2")</strong></div>
+        <div class="small">
+            Pris/l: <strong>@CurrencyFormatter.FormatKr(AveragePricePerLiter)</strong>     
+        </div>
+        <div class="small">Forbruk (liter/km): <strong>@AverageDieselConsumption?.ToString("F2")</strong></div>
     </div>
 </div>
 
@@ -17,6 +20,6 @@
     [Parameter] public int TotalMilage { get; set; }
     [Parameter] public decimal TotalDieselAdded { get; set; }
     [Parameter] public decimal TotalCost { get; set; }
-    [Parameter] public decimal AveragePricePerLiter { get; set; }
-    [Parameter] public decimal AverageDieselConsumption { get; set; }
+    [Parameter] public decimal? AveragePricePerLiter { get; set; }
+    [Parameter] public decimal? AverageDieselConsumption { get; set; }
 }

@@ -3,9 +3,9 @@
 public static class GetServiceRecordById
 {
     public record Query(int Id) : IQuery<Response>;
-    public record Response(ServiceRecordDto ServiceRecord);
-    public record ServiceRecordDto(int Id, int VehicleId, DateTime Date, decimal TotalCost, string Description,
-        int MileageHistoryId, int Mileage, int? Hours, string VehicleName);
+
+    public record Response(int Id, int VehicleId, DateTime ServiceDate, decimal Cost, string Description,
+        int MileageHistoryId, int Mileage, int? Hours, string VehicleName, List<Parts> Parts, int ServiceTypeId, int ServiceCompanyId);
     public class Handler(ApplicationDbContext context) : IQueryHandler<Query, Response>
     {
         private readonly ApplicationDbContext context = context;
@@ -14,6 +14,9 @@ public static class GetServiceRecordById
             var serviceRecord = await context.ServiceRecords
                 .Include(s => s.MileageHistory)
                 .Include(s => s.Vehicle)
+                .Include(v => v.ServiceCompany)
+                .Include(h => h.Parts)
+                .Include(d => d.ServiceType)
                 .FirstOrDefaultAsync(s => s.Id == request.Id, cancellationToken);
 
             if (serviceRecord == null)
@@ -21,7 +24,7 @@ public static class GetServiceRecordById
                 return Result.Fail<Response>($"ServiceRecord with ID {request.Id} not found.");
             }
 
-            var serviceRecordDto = new ServiceRecordDto(
+            var response = new Response(
                 serviceRecord.Id,
                 serviceRecord.VehicleId,
                 serviceRecord.ServiceDate,
@@ -30,9 +33,20 @@ public static class GetServiceRecordById
                 serviceRecord.MileageHistoryId,
                 serviceRecord.MileageHistory!.Mileage,
                 serviceRecord.MileageHistory.Hours,
-                serviceRecord.MileageHistory.Vehicle?.Make + " " + serviceRecord.MileageHistory?.Vehicle?.Model
+                serviceRecord.MileageHistory.Vehicle?.Make + " " + serviceRecord.MileageHistory?.Vehicle?.Model,
+                serviceRecord.Parts?.Select(p => new Parts
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Price = p.Price,
+                    VehicleInventoryId = p.VehicleInventoryId,
+                    Description = p.Description,
+                    Quantity = p.Quantity
+                }).ToList() ?? new List<Parts>(),
+                serviceRecord.ServiceTypeId,
+                serviceRecord.ServiceCompanyId
             );
-            return Result.Ok(new Response(serviceRecordDto));
+            return Result.Ok(response);
         }
     }
 

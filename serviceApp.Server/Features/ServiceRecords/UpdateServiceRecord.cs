@@ -1,18 +1,27 @@
-﻿namespace serviceApp.Server.Features.ServiceRecords;
+﻿using serviceApp.Server.Features.Autentication;
+using static serviceApp.Server.Features.ServiceRecords.CreateServiceRecord;
+
+namespace serviceApp.Server.Features.ServiceRecords;
 
 public static class UpdateServiceRecord
 {
-    public record Command(int Id, int VehicleId, int ServiceTypeId, string Description, decimal Cost, int Mileage, int? Hours, int ServiceCompanyId) : ICommand<Response>;
+    public record Command(int Id, int VehicleId, int ServiceTypeId, string Description, decimal Cost, int Mileage, int? Hours, int ServiceCompanyId, IReadOnlyList<UsedPart> UsedParts) : ICommand<Response>;
 
     public record Response(int Id, int VehicleId, int ServiceTypeId, DateTime ServiceDate, string Description, decimal Cost, int Mileage, int? Hours);
 
-    public class Handler(ApplicationDbContext context) : ICommandHandler<Command, Response>
+    public class Handler(ApplicationDbContext context, ICurrentUser user) : ICommandHandler<Command, Response>
     {
         private readonly ApplicationDbContext context = context;
+        private readonly ICurrentUser user = user;
+
         public async Task<Result<Response>> Handle(Command request, CancellationToken cancellationToken)
         {
+            if (!user.IsAuthenticated || user.FamilyId is null)
+                return Result.Fail<Response>("Not authenticated.");
+
             var serviceRecord = await context.ServiceRecords
                 .Include(s => s.MileageHistory)
+                .Include(r => r.Parts)
                 .FirstOrDefaultAsync(i => i.Id == request.Id, cancellationToken);
 
             if (serviceRecord == null)
@@ -20,11 +29,65 @@ public static class UpdateServiceRecord
                 return Result.Fail<Response>($"Service record with ID {request.VehicleId} not found.");
             }
 
+            var existingParts = serviceRecord.Parts.Where(p => p.VehicleInventoryId.HasValue).ToList();
+            if (existingParts.Count > 0)
+            {
+                var invIds = existingParts.Select(p => p.VehicleInventoryId!.Value).Distinct().ToList();
+                var invs = await context.VehicleInventories.Where(i => invIds.Contains(i.Id)).ToListAsync(cancellationToken);
+                foreach (var p in existingParts)
+                {
+                    var inv = invs.First(i => i.Id == p.VehicleInventoryId);
+                    inv.QuantityInStock = (inv.QuantityInStock ?? 0) + p.Quantity; // add back
+                }
+            }
+
+            serviceRecord.Parts.Clear();
+
+            // Apply new used parts
+            var grouped = (request.UsedParts ?? Array.Empty<UsedPart>())
+                .Where(p => p.Quantity > 0)
+                .GroupBy(p => p.VehicleInventoryId)
+                .Select(g => new { VehicleInventoryId = g.Key, Quantity = g.Sum(x => x.Quantity) })
+                .ToList();
+
+            if (grouped.Count > 0)
+            {
+                var invIds = grouped.Select(g => g.VehicleInventoryId).ToList();
+                var inventories = await context.VehicleInventories
+                    .Where(i => invIds.Contains(i.Id) && i.VehicleId == request.VehicleId)
+                    .ToListAsync(cancellationToken);
+
+                if (inventories.Count != grouped.Count)
+                    return Result.Fail<Response>("One or more inventory items were not found for this vehicle.");
+
+                foreach (var g in grouped)
+                {
+                    var inv = inventories.First(i => i.Id == g.VehicleInventoryId);
+                    var stock = inv.QuantityInStock ?? 0;
+                    if (stock < g.Quantity)
+                        return Result.Fail<Response>($"Not enough stock for '{inv.PartName}'. Available: {stock}");
+
+                    inv.QuantityInStock = stock - g.Quantity;
+
+                    serviceRecord.Parts.Add(new Parts
+                    {
+                        Name = string.IsNullOrWhiteSpace(inv.PartName) ? "Part" : inv.PartName,
+                        Price = inv.Cost,
+                        Description = inv.Description ?? string.Empty,
+                        Quantity = g.Quantity,
+                        VehicleInventoryId = inv.Id
+                    });
+                }
+            }
+
+
             var mileage = await UpdateMileageAsync(serviceRecord.MileageHistoryId, request, cancellationToken);
 
+            serviceRecord.VehicleId = request.VehicleId;
             serviceRecord.ServiceTypeId = request.ServiceTypeId;
             serviceRecord.Description = request.Description;
             serviceRecord.Cost = request.Cost;
+            serviceRecord.ServiceCompanyId = request.ServiceCompanyId;
             serviceRecord.MileageHistoryId = mileage.Id;
 
             await context.SaveChangesAsync(cancellationToken);

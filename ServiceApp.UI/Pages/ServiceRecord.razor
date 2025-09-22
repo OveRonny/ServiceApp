@@ -5,81 +5,285 @@
 @inject NavigationManager NavigationManager
 @attribute [Authorize]
 
-<h3>ServiceRecord</h3>
+<h3>Service</h3>
 
 <EditForm Model="serviceRecord" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
-    <div class="form-group">
-        <VehicleDropdown @bind-selectedVehicleId="serviceRecord.VehicleId" />
+    <div class="mb-3">
+        <label class="form-label" for="vehicle">Kjøretøy</label>
+        <div class="form-group">
+            <VehicleDropdown @bind-selectedVehicleId="serviceRecord.VehicleId" />
+        </div>
     </div>
-
+    <div class="mb-3">
+        <label class="form-label" for="ServiceCompanyId">Verksted</label>
     <div class="form-group">
         <ServiceCompanyDropdown @bind-SelectedServiceCompanyId="serviceRecord.ServiceCompanyId" />
     </div>
-    <div class="form-group">
-        <ServiceTypeDropdown @bind-SelectedServiceTypeId="serviceRecord.ServiceTypeId" />
     </div>
-    <div class="form-group">
-        <label for="serviceDate">Service Date</label>
-        <InputDate id="serviceDate" @bind-Value="serviceRecord.ServiceDate" class="form-control" />
+    <div class="mb-3">
+        <label class="form-label" for="ServiceTypeId">Service type</label>
+        <div class="form-group">
+            <ServiceTypeDropdown @bind-SelectedServiceTypeId="serviceRecord.ServiceTypeId" />
+        </div>
     </div>
-    <div class="form-group">
-        <label for="description">Description</label>
-        <InputTextArea id="description" @bind-Value="serviceRecord.Description" class="form-control" />
+    <div class="mb-3">
+        <div class="form-group">
+            <label class="form-label" for="serviceDate">Dato</label>
+            <InputDate id="serviceDate" @bind-Value="serviceRecord.ServiceDate" class="form-control" />
+        </div>
     </div>
-    <div class="form-group">
-        <label for="cost">Cost</label>
+    <div class="mb-3">
+        <div class="form-group">
+            <label class="form-label" for="description">Beskrivelse</label>
+            <InputTextArea id="description" @bind-Value="serviceRecord.Description" class="form-control" />
+        </div>
+    </div>
+
+
+    @if (serviceRecord.VehicleId > 0)
+    {
+      
+                <div class="row">
+                    <div class="col-md-7">
+                         <label class="form-label" for="addPart">Legg til del</label>
+                        <VehicleInventorySelect
+                            @key="serviceRecord.VehicleId"
+                            VehicleId="serviceRecord.VehicleId"
+                            @bind-SelectedInventoryId="selectedInventoryId"
+                            SelectedInventoryChanged="OnSelectedInventoryToAdd"
+                            Label="Del fra lager" />
+                    </div>
+                
+                    <div class="col-md-3">                      
+                            <label class="form-label" for="addQty">Antall</label>
+                            <InputNumber id="addQty"
+                                         class="form-control"
+                                         @bind-Value="addQuantity"
+                                         step="0.1" />
+                        
+                     </div>
+                    <div class="col-md-2">
+                         <label class="form-label d-none d-md-block invisible">Placeholder</label>
+                        <button type="button"
+                                class="btn btn-outline-primary"
+                                @onclick="AddSelectedPart"
+                                disabled="@(selectedInventoryId is null || addQuantity <= 0)">
+                            <i class="bi bi-plus-lg me-1"></i> Legg til
+                        </button>
+                    </div>
+                </div>
+                <div class="small text-muted">
+                    @if (selectedInventory is not null)
+                    {
+                        <span>Enhetspris: @selectedInventory.Cost.ToString("C")</span>
+                        @if (!string.IsNullOrWhiteSpace(selectedInventory.Description))
+                        {
+                            <span class="ms-2">- @selectedInventory.Description</span>
+                        }
+                    }
+                </div>
+       
+    }
+
+    <div class="form-group">   
+        <label class="form-label" for="cost">Sum</label>
         <InputNumber id="cost" @bind-Value="serviceRecord.Cost" class="form-control" />
+        <small class="text-muted">Beregnet: @(CalculatedPartsTotal().ToString("C"))</small>
     </div>
+
     <div class="form-group">
-        <label for="mileage">Mileage</label>
+        <label class="form-label" for="mileage">Kilometer</label>
         <InputNumber id="mileage" @bind-Value="serviceRecord.Mileage" class="form-control" />
     </div>
 
+    <div class="d-flex gap-2 mt-3">
+        <button type="submit" class="btn btn-primary">Lagre</button>
+        <button type="button" class="btn btn-secondary" @onclick="NavigateToServiceRecords">Cancel</button>
+        @if (Id > 0)
+        {
+            <button type="button" class="btn btn-danger" @onclick="DeleteServiceRecord">Delete</button>
+        }
+    </div>
 
-    <button type="submit" class="btn btn-primary">Save</button>
-    <button type="button" class="btn btn-secondary" @onclick="NavigateToServiceRecords">Cancel</button>
-    @if (Id > 0)
+    <h5 class="mt-3">Deler brukt</h5>
+    @if (serviceRecord.UsedParts?.Count > 0)
     {
-        <button type="button" class="btn btn-danger" @onclick="DeleteServiceRecord">Delete</button>
-    }   
-
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>Del</th>
+                        <th class="text-end">Enhetspris</th>
+                        <th style="width:160px">Antall</th>
+                        <th class="text-end">Linjesum</th>
+                        <th style="width:80px"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var part in serviceRecord.UsedParts)
+                    {
+                        <tr @key="part.RowId">
+                            <td>
+                                <div>@(part.Description is not null ? part.Description : "Del")</div>
+                                @if (part.VehicleInventoryId is int id)
+                                {
+                                    <div class="small text-black-50">@part.Name</div>
+                                }
+                            </td>
+                            <td class="text-end">@((part.UnitCost ?? 0m).ToString("C"))</td>
+                            <td>
+                                <InputNumber class="form-control form-control-sm"
+                                             @bind-Value="part.Quantity"
+                                             step="0.1"
+                                             @bind-Value:after="OnUsedPartQuantityChanged" />
+                            </td>
+                            <td class="text-end">@(((part.UnitCost ?? 0m) * (part.Quantity > 0 ? part.Quantity : 0)).ToString("C"))</td>
+                            <td class="text-end">
+                                <button type="button"
+                                        class="btn btn-outline-danger btn-sm"
+                                        title="Fjern"
+                                        @onclick="() => RemovePartRow(part)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">Ingen deler lagt til.</div>
+    }
 
 </EditForm>
 
 @code {
-    private ServiceRecordModel serviceRecord = new ServiceRecordModel();
+    private ServiceRecordModel serviceRecord = new();
 
-    [Parameter]
-    public int VehicleId { get; set; }
+    private int? selectedInventoryId;
+    private VehicleInventoryModel? selectedInventory;
+    private decimal addQuantity = 1m;
 
-    [Parameter]
-    public int Id { get; set; }
+    [Parameter] public int VehicleId { get; set; }
+    [Parameter] public int Id { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
-        if(Id > 0)
+        if (Id > 0)
         {
             serviceRecord = await ServiceRecordService.GetServiceRecordByIdAsync(Id);
+            
+            if (serviceRecord.Parts is { Count: > 0 })
+            {
+                serviceRecord.UsedParts = serviceRecord.Parts
+                    .Where(p => p.VehicleInventoryId.HasValue)
+                    .Select(p => new UsedPartModel
+                    {
+                        RowId = Guid.NewGuid(),
+                        VehicleInventoryId = p.VehicleInventoryId,
+                        Quantity = Math.Max(1, p.Quantity),
+                        UnitCost = p.Price,               
+                        Description = p.Description,
+                        Name= p.Name
+                    })
+                    .ToList();
+            }
         }
         else
         {
             serviceRecord = new ServiceRecordModel();
+            if (VehicleId > 0) serviceRecord.VehicleId = VehicleId;
+            
         }
+
+        // reset add-part state
+        selectedInventoryId = null;
+        selectedInventory = null;
+        addQuantity = 1m;
+        RecalcCost();
+    }
+
+    private void OnSelectedInventoryToAdd(VehicleInventoryModel? inv)
+    {
+        selectedInventory = inv;
+        if (addQuantity <= 0) addQuantity = 1m;
+        StateHasChanged();
+    }
+
+    private void AddSelectedPart()
+    {
+        if (selectedInventoryId is not int invId || selectedInventory is null || addQuantity <= 0) return;
+
+        // Merge with existing row if same inventory selected
+        var existing = serviceRecord.UsedParts.FirstOrDefault(p => p.VehicleInventoryId == invId);
+        if (existing is not null)
+        {
+            existing.Quantity += addQuantity;
+            existing.UnitCost = selectedInventory.Cost; 
+            existing.Description = selectedInventory.Description;
+        }
+        else
+        {
+            serviceRecord.UsedParts.Add(new UsedPartModel
+            {
+                RowId = Guid.NewGuid(),
+                VehicleInventoryId = invId,
+                Quantity = addQuantity,
+                UnitCost = selectedInventory.Cost,
+                Description = selectedInventory.Description
+            });
+        }
+
+        // Reset add controls
+        selectedInventoryId = null;
+        selectedInventory = null;
+        addQuantity = 1m;
+
+        RecalcCost();
+    }
+
+    private void RemovePartRow(UsedPartModel part)
+    {
+        serviceRecord.UsedParts.Remove(part);
+        RecalcCost();
+    }
+
+    private void OnUsedPartQuantityChanged()
+    {
+        // Normalize any invalid quantities and recalc
+        foreach (var p in serviceRecord.UsedParts)
+            if (p.Quantity <= 0) p.Quantity = 1m;
+        RecalcCost();
+    }
+
+    private decimal CalculatedPartsTotal()
+        => serviceRecord.UsedParts
+            .Where(p => p.UnitCost.HasValue && p.Quantity > 0)
+            .Sum(p => p.UnitCost!.Value * p.Quantity);
+
+    private void RecalcCost()
+    {
+        var partsTotal = CalculatedPartsTotal();
+        if (partsTotal > 0) serviceRecord.Cost = partsTotal;
     }
 
     private async Task HandleValidSubmit()
     {
+        // Filter invalid rows before posting
+        serviceRecord.UsedParts = serviceRecord.UsedParts
+            .Where(p => p.VehicleInventoryId is int && p.Quantity > 0)
+            .ToList();
+
         if (Id > 0)
-        {
             await ServiceRecordService.UpdateServiceRecordAsync(serviceRecord);
-        }
         else
-        {
             await ServiceRecordService.CreateServiceRecordAsync(serviceRecord);
-        }
+
         NavigateToServiceRecords();
     }
 
@@ -94,8 +298,7 @@
 
     private void NavigateToServiceRecords()
     {
-        VehicleId = serviceRecord.VehicleId;
-        NavigationManager.NavigateTo($"/servicerecords/{VehicleId}");
+        var vid = serviceRecord.VehicleId;
+        NavigationManager.NavigateTo($"/servicerecords/{vid}");
     }
-
 }

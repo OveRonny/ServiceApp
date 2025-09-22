@@ -43,6 +43,8 @@
                             <button type="button" class="btn btn-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecords/{vehicle.Id}"))">Se forbruk</button>
                             <button type="button" class="btn btn-secondary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/create/vehicle/{vehicle.Id}"))">Legg til forbruk</button>
                             <button type="button" class="btn btn-outline-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/vehicleinventories/{vehicle.Id}"))">Deler</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/servicerecord/create/{vehicle.Id}"))">Service</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/servicerecords/{vehicle.Id}"))">Alle Servicer</button>
                         </div>
                     </div>
                 </div>

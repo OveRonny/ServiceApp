@@ -9,7 +9,7 @@ public class ConsumptionRecordService(IHttpClientFactory clients) : IConsumption
 
     private HttpClient ApiAuthed() => _clients.CreateClient("ApiAuthed");
 
-    public async Task<List<ConsumptionRecordModel>> GetAllConsumptionRecordsAsync(int vehicleId, DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<ConsumptionRecordsWithSummaryModel> GetAllConsumptionRecordsAsync(int vehicleId, DateTime? startDate = null, DateTime? endDate = null)
     {
         var query = $"api/consumption-record/vehicle/{vehicleId}?";
 
@@ -25,14 +25,15 @@ public class ConsumptionRecordService(IHttpClientFactory clients) : IConsumption
 
         var http = ApiAuthed();
 
-        return await http.GetFromJsonAsync<List<ConsumptionRecordModel>>(query) ?? [];
+        return await http.GetFromJsonAsync<ConsumptionRecordsWithSummaryModel>(query)
+           ?? new ConsumptionRecordsWithSummaryModel();
     }
 
     public async Task<ConsumptionRecordModel?> GetConsumptionRecordByIdAsync(int id)
     {
         var http = ApiAuthed();
-        return await http.GetFromJsonAsync<ConsumptionRecordModel>($"api/consumption-record/{id}"); 
-               
+        return await http.GetFromJsonAsync<ConsumptionRecordModel>($"api/consumption-record/{id}");
+
     }
 
     public async Task CreateConsumptionRecordAsync(ConsumptionRecordModel consumptionRecord)

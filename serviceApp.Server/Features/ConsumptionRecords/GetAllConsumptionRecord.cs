@@ -2,31 +2,41 @@
 
 public static class GetAllConsumptionRecord
 {
-    public record Query(int VehicleId, DateTime? StartDate, DateTime? EndDate) : IQuery<List<Response>>;
-
+    public record Query(int VehicleId, DateTime? StartDate, DateTime? EndDate) : IQuery<(List<Response> Records, ConsumptionSummaryResponse Summary)>;
 
     public record Response(int Id, int VehicleId, DateTime Date, decimal DieselAdded, decimal DieselPricePerLiter,
         decimal TotalCost, decimal? DieselConsumption, int MileageHistoryId, int Mileage, int? Hours, string Make, string Model);
 
-    public record VehicleDto(int Id, string Make, string Model);
 
+    public record ConsumptionSummaryResponse(
+        decimal? AvgConsumption,
+        decimal? AveragePrice,
+        int TotalDriven,
+        decimal? TotalCost,
+        decimal? TotalDieselAdded
+    );
 
-    public class Handler(ApplicationDbContext context) : IQueryHandler<Query, List<Response>>
+    public class Handler : IQueryHandler<Query, (List<Response> Records, ConsumptionSummaryResponse Summary)>
     {
-        private readonly ApplicationDbContext context = context;
-        public async Task<Result<List<Response>>> Handle(Query request, CancellationToken cancellationToken)
+        private readonly ApplicationDbContext _context;
+
+        public Handler(ApplicationDbContext context)
         {
-            var query = context.ConsumptionRecords
+            _context = context;
+        }
+        public async Task<Result<(List<Response> Records, ConsumptionSummaryResponse Summary)>> Handle(Query request, CancellationToken cancellationToken)
+        {
+            var query = _context.ConsumptionRecords
                 .Include(c => c.MileageHistory)
                 .Include(v => v.Vehicle)
                 .Where(c => c.VehicleId == request.VehicleId);
 
             DateTime? start = request.StartDate?.Date;
-            DateTime? endExclusive = request.EndDate?.Date.AddDays(1); // gjør EndDate inklusiv
+            DateTime? endExclusive = request.EndDate?.Date.AddDays(1);
 
             if (!start.HasValue && !endExclusive.HasValue)
             {
-                var today = DateTime.Today; // bruk DateTime.UtcNow.Date hvis du lagrer tider som UTC
+                var today = DateTime.Today;
                 start = today;
                 endExclusive = today.AddDays(1);
             }
@@ -43,6 +53,15 @@ public static class GetAllConsumptionRecord
 
             var consumptionRecords = await query.ToListAsync(cancellationToken);
 
+            var calculateDriven = new CalculateTotalDrivenService();
+
+            int totalDriven = calculateDriven.CalculateTotalDriven(consumptionRecords, start, endExclusive);
+
+            var calculator = new FuelCalculatorService();
+
+            decimal? avgConsumption = calculator.CalculateAverageConsumption(consumptionRecords);
+            decimal? avgPrice = calculator.CalculateAveragePrice(consumptionRecords, start, endExclusive);
+
             var response = consumptionRecords.Select(v => new Response(
                 v.Id,
                 v.VehicleId,
@@ -58,7 +77,15 @@ public static class GetAllConsumptionRecord
                 v.Vehicle.Model
             )).ToList();
 
-            return Result.Ok(response);
+            var summary = new ConsumptionSummaryResponse(
+                AvgConsumption: avgConsumption,
+                AveragePrice: avgPrice,
+                TotalDriven: totalDriven,
+                TotalCost: consumptionRecords.Sum(c => c.TotalCost),
+                TotalDieselAdded: consumptionRecords.Sum(c => c.DieselAdded)
+            );
+
+            return Result.Ok((response, summary));
         }
     }
 
@@ -74,7 +101,11 @@ public static class GetAllConsumptionRecord
                 {
                     return Results.NotFound(result.Error);
                 }
-                return Results.Ok(result.Value);
+                return Results.Ok(new
+                {
+                    result.Value.Records,
+                    result.Value.Summary
+                });
             });
         }
     }

@@ -1,12 +1,10 @@
-﻿using serviceApp.Server.Extensions;
-
-namespace serviceApp.Server.Features.VehicleInventories;
+﻿namespace serviceApp.Server.Features.VehicleInventories;
 
 public static class GetAllVehicleInventory
 {
     public record Query : IQuery<List<Response>>;
     public record Response(int Id, string PartName, decimal Cost, string Description, int VehicleId, int SupplierId,
-        DateTime PurchaseDate, int? QuantityInStock, int? ReorderThreshold);
+        DateTime PurchaseDate, decimal? QuantityInStock, decimal? ReorderThreshold);
 
     public class Handler(ApplicationDbContext context) : IQueryHandler<Query, List<Response>>
     {
@@ -33,17 +31,5 @@ public static class GetAllVehicleInventory
     }
 }
 
-//[ApiController]
-//[Route("api/vehicle-inventory")]
-//public class GetAllVehicleInventoryController(ISender sender) : ControllerBase
-//{
-//    private readonly ISender sender = sender;
 
-//    [HttpGet]
-//    public async Task<ActionResult<List<GetAllVehicleInventory.Response>>> GetAllVehicleInventories()
-//    {
-//        var result = await sender.Send(new GetAllVehicleInventory.Query());
-//        return Ok(result);
-//    }
-//}
 

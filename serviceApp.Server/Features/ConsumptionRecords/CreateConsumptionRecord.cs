@@ -26,8 +26,7 @@ public static class CreateConsumptionRecord
                 DieselAdded = request.DieselAdded,
                 DieselPricePerLiter = request.DieselPricePerLiter,
                 Date = DateTime.Now,
-                MileageHistoryId = mileage.Id,
-                FamilyId = currentUser.FamilyId!.Value // Use ! to assert non-null after the null check above
+                MileageHistoryId = mileage.Id
             };
             context.ConsumptionRecords.Add(consumptionRecord);
             await context.SaveChangesAsync(cancellationToken);
@@ -40,15 +39,14 @@ public static class CreateConsumptionRecord
 
         private async Task<MileageHistory> CreateMileageAsync(Command request, CancellationToken cancellationToken)
         {
-            // Add null-forgiving operator after null check in Handle
+
             var mileage = new MileageHistory
             {
                 Mileage = request.Mileage,
                 VehicleId = request.VehicleId,
                 Hours = request.Hours,
                 RecordedDate = DateTime.Now,
-                Type = MileageHistory.MileageType.Forbruk,
-                FamilyId = currentUser.FamilyId!.Value // Use ! to assert non-null after the null check in Handle
+                Type = MileageHistory.MileageType.Forbruk
             };
 
             context.MileageHistories.Add(mileage);

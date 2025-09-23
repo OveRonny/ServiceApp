@@ -163,16 +163,14 @@
 
 </EditForm>
 
-<InputFile OnChange="OnInputFileChange" accept="image/*" />
-<button @onclick="SaveRecord">Save</button>
-
+<InputFile class="form-control" OnChange="OnInputFileChange" accept="image/*" />
 
 @if (imageIds != null && imageIds.Count > 0)
 {
     <div>
         @foreach (var id in imageIds)
         {
-            <img src="@($"/api/images/{id}")" style="max-width:200px; margin:10px;" />
+            <img src="https://progorb.azurewebsites.net/api/images/@id" style="max-width:200px; margin:10px;" />
         }
     </div>
 }
@@ -194,7 +192,7 @@
         {
             serviceRecord = await ServiceRecordService.GetServiceRecordByIdAsync(Id);
             imageIds = await ServiceRecordService.GetServiceRecordImageIdsAsync(Id);
-            
+
             if (serviceRecord.Parts is { Count: > 0 })
             {
                 serviceRecord.UsedParts = serviceRecord.Parts
@@ -215,7 +213,7 @@
         {
             serviceRecord = new ServiceRecordModel();
             if (VehicleId > 0) serviceRecord.VehicleId = VehicleId;
-            
+
         }
 
         // reset add-part state
@@ -291,16 +289,33 @@
 
     private async Task HandleValidSubmit()
     {
-        // Filter invalid rows before posting
         serviceRecord.UsedParts = serviceRecord.UsedParts
             .Where(p => p.VehicleInventoryId is int && p.Quantity > 0)
             .ToList();
 
         if (Id > 0)
-            await ServiceRecordService.UpdateServiceRecordAsync(serviceRecord);
+        {           
+            if (selectedFile != null)
+            {
+                await ServiceRecordService.UpdateServiceRecordWithImageAsync(serviceRecord, selectedFile);
+            }
+            else
+            {
+                await ServiceRecordService.UpdateServiceRecordAsync(serviceRecord);
+            }
+        }        
         else
-            await ServiceRecordService.CreateServiceRecordAsync(serviceRecord);
-
+        {
+            if (selectedFile != null)              
+            {
+                await ServiceRecordService.CreateServiceRecordWithImageAsync(serviceRecord, selectedFile);
+            }
+            else
+            {
+                await ServiceRecordService.CreateServiceRecordAsync(serviceRecord);
+            }
+        }
+        
         NavigateToServiceRecords();
     }
 
@@ -324,25 +339,7 @@
         selectedFile = e.File;
     }
 
-    private async Task SaveRecord()
-    {
-        if (selectedFile == null)
-        {
-            // Optionally show a message to the user
-            // e.g., error = "Please select an image to upload.";
-            // return;
-        }
 
-        var success = await ServiceRecordService.CreateServiceRecordWithImageAsync(serviceRecord, selectedFile);
-        if (success)
-        {
-            // Show success message or navigate
-        }
-        else
-        {
-            // Show error
-        }
-    }
 
    
 

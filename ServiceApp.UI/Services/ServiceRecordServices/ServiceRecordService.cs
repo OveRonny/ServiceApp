@@ -107,4 +107,21 @@ public class ServiceRecordService(IHttpClientFactory clients) : IServiceRecordSe
         var http = ApiAuthed();
         return await http.GetFromJsonAsync<List<int>>($"/api/service-record/{serviceRecordId}/images", ct);
     }
+
+    public async Task<bool> UpdateServiceRecordWithImageAsync(ServiceRecordModel record, IBrowserFile? file)
+    {
+        var http = ApiAuthed();
+        using var content = new MultipartFormDataContent();
+        var json = JsonSerializer.Serialize(record);
+        content.Add(new StringContent(json, Encoding.UTF8, "application/json"), "command");
+
+        if (file != null)
+        {
+            var stream = file.OpenReadStream();
+            content.Add(new StreamContent(stream), "file", file.Name);
+        }
+
+        var response = await http.PostAsync("/api/service-record/update-with-image", content);
+        return response.IsSuccessStatusCode;
+    }
 }

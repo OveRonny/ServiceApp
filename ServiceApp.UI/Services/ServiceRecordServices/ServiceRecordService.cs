@@ -125,3 +125,6 @@ public class ServiceRecordService(IHttpClientFactory clients) : IServiceRecordSe
         return response.IsSuccessStatusCode;
     }
 }
+
+
+///api/service-record/update-with-image

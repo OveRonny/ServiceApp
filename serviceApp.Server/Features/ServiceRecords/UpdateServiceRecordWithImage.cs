@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace serviceApp.Server.Features.ServiceRecords;
 
-public class UpdateServiceRecordWithImage
+public class UpdateServiceRecordWithImage : IEndpointDefinition
 {
 
     public void MapEndpoints(WebApplication app)

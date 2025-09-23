@@ -21,7 +21,11 @@
     </div>
     <div class="mb-3">
         <label for="dieselAdded" class="form-label">Antall liter</label>
-        <InputNumber id="dieselAdded" class="form-control" @bind-Value="consumptionRecord.DieselAdded" />
+        <InputText id="dieselAdded" class="form-control" @bind-Value="dieselAddedString" />
+        @if (!string.IsNullOrEmpty(dieselAddedError))
+        {
+            <div class="text-danger">@dieselAddedError</div>
+        }
         <ValidationMessage For="@(() => consumptionRecord.DieselAdded)" />
     </div>
     <div class="mb-3">
@@ -53,6 +57,34 @@
 
     private ConsumptionRecordModel consumptionRecord = new ConsumptionRecordModel();
 
+    private string dieselAddedString
+    {
+        get => consumptionRecord.DieselAdded == 0 ? string.Empty : consumptionRecord.DieselAdded.ToString("G", System.Globalization.CultureInfo.CurrentCulture);
+        set
+        {
+            dieselAddedError = string.Empty;
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                consumptionRecord.DieselAdded = 0;
+                return;
+            }
+            if (value.Contains('.'))
+            {
+                dieselAddedError = "Bruk komma (,) som desimaltegn, ikke punktum (.)";
+                return;
+            }
+            if (decimal.TryParse(value, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.CurrentCulture, out var d))
+            {
+                consumptionRecord.DieselAdded = d;
+            }
+            else
+            {
+                dieselAddedError = "Ugyldig tallformat. Bruk komma (,) som desimaltegn.";
+            }
+        }
+    }
+    private string dieselAddedError = string.Empty;
+
     protected override async Task OnInitializedAsync()
     {
         if (Id > 0)
@@ -75,6 +107,8 @@
 
     private async Task HandleValidSubmit()
     {
+        if (!string.IsNullOrEmpty(dieselAddedError))
+            return;
         if (Id > 0)
         {
             await ConsumptionRecordService.UpdateConsumptionRecordAsync(consumptionRecord);

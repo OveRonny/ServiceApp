@@ -23,10 +23,16 @@ public sealed class SmtpEmailSender(IOptions<EmailOptions> opts) : ISmtpEmailSen
         };
         msg.Body = body.ToMessageBody();
 
-        using var client = new SmtpClient();
+        using var client = new SmtpClient
+        {
+            Timeout = _o.OperationTimeoutSeconds * 1000
+        };
 
         var socket = _o.UseStartTls ? SecureSocketOptions.StartTls : SecureSocketOptions.SslOnConnect;
-        await client.ConnectAsync(_o.Host, _o.Port, socket, ct);
+
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        cts.CancelAfter(TimeSpan.FromSeconds(_o.ConnectTimeoutSeconds));
+        await client.ConnectAsync(_o.Host, _o.Port, socket, cts.Token);
 
         if (!string.IsNullOrWhiteSpace(_o.User))
             await client.AuthenticateAsync(_o.User, _o.Password, ct);

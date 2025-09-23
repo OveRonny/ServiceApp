@@ -23,7 +23,13 @@ public static class AuthenticationSetup
 
         // Bearer tokens + Authorization
         services.AddAuthentication()
-                .AddBearerToken(IdentityConstants.BearerScheme);
+                .AddBearerToken(IdentityConstants.BearerScheme, options =>
+                {
+                    options.BearerTokenExpiration = TimeSpan.FromHours(8);
+                    options.BearerTokenExpiration = TimeSpan.FromDays(30);
+
+                });
+
 
         services.AddAuthorization();
 

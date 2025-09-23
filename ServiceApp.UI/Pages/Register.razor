@@ -25,27 +25,30 @@
     {
         <div class="alert alert-danger mt-3">@error</div>
     }
+    @if (!string.IsNullOrEmpty(info))
+    {
+        <div class="alert alert-info mt-3">@info</div>
+    }
 </EditForm>
 
 @code {
     private RegisterModel model = new();   
-	private string error = string.Empty;
+    private string error = string.Empty;
+    private string info = string.Empty;
 
     private async Task Submit()
     {
-        var registered = await Auth.RegisterAsync(model.Email, model.Password);     
-        
-        var loggedIn = await Auth.LoginAsync(model.Email, model.Password);
-        if (loggedIn && AuthStateProvider is JwtAuthenticationStateProvider jwt)
+        error = string.Empty;
+        info = string.Empty;
+        var registered = await Auth.RegisterAsync(model.Email, model.Password);
+        if (registered)
         {
-            var token = await Auth.GetAccessTokenAsync();
-            if (!string.IsNullOrEmpty(token))
-                jwt.NotifyUserAuthentication(token);
-            Nav.NavigateTo("/");
+            info = "Registrering vellykket. Sjekk e-posten din for å bekrefte kontoen før du logger inn.";
+            Nav.NavigateTo("/login");
         }
         else
         {
-            Nav.NavigateTo("/login");
+            error = "Registrering feilet.";
         }
     }
 }

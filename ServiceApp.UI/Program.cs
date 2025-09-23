@@ -12,7 +12,6 @@ using ServiceApp.UI.Services.ServiceTypeServices;
 using ServiceApp.UI.Services.SupplierServices;
 using ServiceApp.UI.Services.VehicleInventoryServices;
 using ServiceApp.UI.Services.VehicleServices;
-using System.Globalization;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -49,8 +48,7 @@ builder.Services.AddScoped<IVehicleInventoryService, VehicleInventoryService>();
 
 var host = builder.Build();
 
-var culture = new CultureInfo("nb-NO");
-CultureInfo.DefaultThreadCurrentCulture = culture;
-CultureInfo.DefaultThreadCurrentUICulture = culture;
-
+await host.SetDefaultCulture("nb-NO");
 await host.RunAsync();
+
+

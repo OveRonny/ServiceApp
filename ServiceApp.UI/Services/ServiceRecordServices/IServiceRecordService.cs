@@ -13,4 +13,6 @@ public interface IServiceRecordService
     Task<bool> CreateServiceRecordWithImageAsync(ServiceRecordModel record, IBrowserFile? file, CancellationToken ct = default);
     Task<List<int>?> GetServiceRecordImageIdsAsync(int serviceRecordId, CancellationToken ct = default);
     Task<bool> UpdateServiceRecordWithImageAsync(ServiceRecordModel record, IBrowserFile? file);
+    Task<string?> GetImageSasUrlAsync(int imageId);
+    Task<Dictionary<int, string>> GetImageSasUrlsAsync(IEnumerable<int> imageIds);
 }

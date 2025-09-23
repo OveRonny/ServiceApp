@@ -124,7 +124,36 @@ public class ServiceRecordService(IHttpClientFactory clients) : IServiceRecordSe
         var response = await http.PostAsync("/api/service-record/update-with-image", content);
         return response.IsSuccessStatusCode;
     }
+
+    public async Task<string?> GetImageSasUrlAsync(int imageId)
+    {
+        var http = ApiAuthed();
+        // Adjust the endpoint as needed
+        var response = await http.GetAsync($"/api/images/{imageId}/sas");
+        if (response.IsSuccessStatusCode)
+        {
+            var result = await response.Content.ReadFromJsonAsync<SasUrlResponse>();
+            return result?.Url;
+        }
+        return null;
+    }
+
+    public async Task<Dictionary<int, string>> GetImageSasUrlsAsync(IEnumerable<int> imageIds)
+    {
+        var result = new Dictionary<int, string>();
+        foreach (var id in imageIds)
+        {
+            var sasUrl = await GetImageSasUrlAsync(id);
+            if (!string.IsNullOrEmpty(sasUrl))
+                result[id] = sasUrl;
+        }
+        return result;
+    }
+
+    public class SasUrlResponse
+    {
+        public string? Url { get; set; }
+    }
 }
 
 
-///api/service-record/update-with-image

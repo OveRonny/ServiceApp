@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Components\" />
+    <Folder Include="Components\ServiceRecords\" />
   </ItemGroup>
 
 </Project>

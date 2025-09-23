@@ -1,0 +1,30 @@
+@using Microsoft.AspNetCore.Components.Forms
+
+<div class="mb-3">
+    <label class="form-label" for="imageUpload">Last opp bilde</label>
+    <InputFile id="imageUpload" class="form-control" OnChange="OnInputFileChange" accept="image/*" />
+</div>
+
+@if (ImageSasUrls != null && ImageSasUrls.Count > 0 && ImageIds != null)
+{
+    <div>
+        @foreach (var id in ImageIds)
+        {
+            if (ImageSasUrls.TryGetValue(id, out var url))
+            {
+                <img src="@url" style="max-width:200px; margin:10px;" />
+            }
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public List<int>? ImageIds { get; set; }
+    [Parameter] public Dictionary<int, string>? ImageSasUrls { get; set; }
+    [Parameter] public EventCallback<InputFileChangeEventArgs> OnFileSelected { get; set; }
+
+    private void OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        OnFileSelected.InvokeAsync(e);
+    }
+}

@@ -1,0 +1,170 @@
+@using Microsoft.AspNetCore.Components.Forms
+
+@if (VehicleId > 0)
+{
+    <div class="row">
+        <div class="col-md-7">
+            <label class="form-label" for="addPart">Legg til del</label>
+            <VehicleInventorySelect
+                @key="VehicleId"
+                VehicleId="VehicleId"
+                @bind-SelectedInventoryId="selectedInventoryId"
+                SelectedInventoryChanged="OnSelectedInventoryToAdd"
+                Label="Del fra lager" />
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label" for="addQty">Antall</label>
+            <InputNumber id="addQty"
+                         class="form-control"
+                         @bind-Value="addQuantity"
+                         step="0.1" />
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label d-none d-md-block invisible">Placeholder</label>
+            <button type="button"
+                    class="btn btn-outline-primary"
+                    @onclick="AddSelectedPart"
+                    disabled="@(selectedInventoryId is null || addQuantity <= 0)">
+                <i class="bi bi-plus-lg me-1"></i> Legg til
+            </button>
+        </div>
+    </div>
+
+    <div class="small text-muted">
+        @if (selectedInventory is not null)
+        {
+            <span>Enhetspris: @selectedInventory.Cost.ToString("C")</span>
+            @if (!string.IsNullOrWhiteSpace(selectedInventory.Description))
+            {
+                <span class="ms-2">- @selectedInventory.Description</span>
+            }
+        }
+    </div>
+}
+
+<h5 class="mt-3">Deler brukt</h5>
+@if ((UsedParts?.Count ?? 0) > 0)
+{
+    <div class="table-responsive">
+        <table class="table table-sm align-middle">
+            <thead>
+                <tr>
+                    <th>Del</th>
+                    <th class="text-end">Enhetspris</th>
+                    <th style="width:160px">Antall</th>
+                    <th class="text-end">Linjesum</th>
+                    <th style="width:80px"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var part in UsedParts!)
+                {
+                    <tr @key="part.RowId">
+                        <td>
+                            <div>@(part.Description is not null ? part.Description : "Del")</div>
+                            @if (part.VehicleInventoryId is int id)
+                            {
+                                <div class="small text-black-50">@part.Name</div>
+                            }
+                        </td>
+                        <td class="text-end">@((part.UnitCost ?? 0m).ToString("C"))</td>
+                        <td>
+                            <InputNumber class="form-control form-control-sm"
+                                         @bind-Value="part.Quantity"
+                                         step="0.1"
+                                         @bind-Value:after="OnUsedPartQuantityChanged" />
+                        </td>
+                        <td class="text-end">@(((part.UnitCost ?? 0m) * (part.Quantity > 0 ? part.Quantity : 0)).ToString("C"))</td>
+                        <td class="text-end">
+                            <button type="button"
+                                    class="btn btn-outline-danger btn-sm"
+                                    title="Fjern"
+                                    @onclick="() => RemovePartRow(part)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="alert alert-info">Ingen deler lagt til.</div>
+}
+
+@code {
+    [Parameter] public int VehicleId { get; set; }
+
+    // Two-way bind the parts list from parent: @bind-UsedParts
+    [Parameter] public List<UsedPartModel> UsedParts { get; set; } = new();
+    [Parameter] public EventCallback<List<UsedPartModel>> UsedPartsChanged { get; set; }
+
+    private int? selectedInventoryId;
+    private VehicleInventoryModel? selectedInventory;
+    private decimal addQuantity = 1m;
+
+    protected override void OnParametersSet()
+    {
+        UsedParts ??= new();
+        if (addQuantity <= 0) addQuantity = 1m;
+    }
+
+    private void OnSelectedInventoryToAdd(VehicleInventoryModel? inv)
+    {
+        selectedInventory = inv;
+        if (addQuantity <= 0) addQuantity = 1m;
+        StateHasChanged();
+    }
+
+    private async Task NotifyChangedAsync()
+        => await UsedPartsChanged.InvokeAsync(UsedParts);
+
+    private async Task AddSelectedPart()
+    {
+        if (selectedInventoryId is not int invId || selectedInventory is null || addQuantity <= 0) return;
+
+        var existing = UsedParts!.FirstOrDefault(p => p.VehicleInventoryId == invId);
+        if (existing is not null)
+        {
+            existing.Quantity += addQuantity;
+            existing.UnitCost = selectedInventory.Cost;
+            existing.Description = selectedInventory.Description;
+        }
+        else
+        {
+            UsedParts!.Add(new UsedPartModel
+            {
+                RowId = Guid.NewGuid(),
+                VehicleInventoryId = invId,
+                Quantity = addQuantity,
+                UnitCost = selectedInventory.Cost,
+                Description = selectedInventory.Description,
+                Name = selectedInventory.PartName
+            });
+        }
+
+        selectedInventoryId = null;
+        selectedInventory = null;
+        addQuantity = 1m;
+
+        await NotifyChangedAsync();
+    }
+
+    private async Task RemovePartRow(UsedPartModel part)
+    {
+        UsedParts!.Remove(part);
+        await NotifyChangedAsync();
+    }
+
+    private async Task OnUsedPartQuantityChanged()
+    {
+        foreach (var p in UsedParts!)
+            if (p.Quantity <= 0) p.Quantity = 1m;
+
+        await NotifyChangedAsync();
+    }
+}

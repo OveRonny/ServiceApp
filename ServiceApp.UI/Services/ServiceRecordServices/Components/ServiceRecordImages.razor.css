@@ -1,0 +1,23 @@
+label.form-label[for="imageUpload"] {
+    color: #000 !important; /* force black, overrides Bootstrap */
+}
+
+/* File input text and background */
+#imageUpload {
+    color: #000 !important;
+    background-color: #fff !important;
+}
+
+/* “Choose file” button styles */
+#imageUpload::file-selector-button {
+    color: #000 !important;
+    background-color: #fff !important;
+    border: 1px solid #ced4da !important;
+}
+
+/* Safari/older Chromium */
+#imageUpload::-webkit-file-upload-button {
+    color: #000 !important;
+    background-color: #fff !important;
+    border: 1px solid #ced4da !important;
+}

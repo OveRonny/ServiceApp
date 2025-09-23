@@ -23,7 +23,7 @@ public static class GetAllServiceCompany
             {
                 var result = await sender.Send(new Query(), cancellationToken);
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

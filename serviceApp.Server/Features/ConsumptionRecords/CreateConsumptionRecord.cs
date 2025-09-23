@@ -74,7 +74,7 @@ public static class CreateConsumptionRecord
             {
                 var result = await sender.Send(command, cancellationToken);
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

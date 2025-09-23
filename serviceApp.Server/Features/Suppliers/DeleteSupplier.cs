@@ -31,7 +31,7 @@ public static class DeleteSupplier
                     return false;
                 }
                 return true;
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

@@ -41,7 +41,7 @@ public static class DeleteConsumptionRecord
                     return Results.NotFound(result.Error);
                 }
                 return Results.Ok(true);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

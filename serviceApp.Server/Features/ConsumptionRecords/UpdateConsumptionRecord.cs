@@ -89,7 +89,7 @@ public static class UpdateConsumptionRecord
                     return Results.NotFound(result.Error);
                 }
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

@@ -53,6 +53,6 @@ public class CreateServiceRecordWithImage : IEndpointDefinition
             }
 
             return Results.Ok(result.Value);
-        });
+        }).RequireAuthorization();
     }
 }

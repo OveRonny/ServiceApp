@@ -47,7 +47,7 @@ public static class GetVehicleInventoryByVehicleId
             {
                 var result = await sender.Send(new Query(vehicleId, includeZero ?? true), cancellationToken);
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

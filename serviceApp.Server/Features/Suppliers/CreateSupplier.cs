@@ -34,7 +34,7 @@ public static class CreateSupplier
             {
                 var result = await sender.Send(command, cancellationToken);
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

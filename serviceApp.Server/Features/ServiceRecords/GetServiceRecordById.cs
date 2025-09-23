@@ -62,7 +62,7 @@ public static class GetServiceRecordById
                     return Results.NotFound(result.Error);
                 }
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

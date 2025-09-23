@@ -112,7 +112,7 @@ public static class UpdateVehicleInventory
                     return Results.NotFound(result.Error);
                 }
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

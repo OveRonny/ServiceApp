@@ -48,7 +48,7 @@ public static class GetConsumptionRecordById
                     return Results.NotFound(result.Error);
                 }
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

@@ -30,7 +30,7 @@ public static class GetServiceTypeById
                     return Results.NotFound(result.Error);
                 }
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

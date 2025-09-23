@@ -33,7 +33,7 @@ public static class GetOwnerById
                     return Results.NotFound($"Owner with ID {id} not found.");
                 }
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

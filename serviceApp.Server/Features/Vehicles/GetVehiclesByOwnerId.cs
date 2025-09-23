@@ -32,7 +32,7 @@ public static class GetVehiclesByOwnerId
                 var result = await sender.Send(new Query(ownerId), ct);
                 if (result.Failure) return Results.NotFound(result.Error);
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

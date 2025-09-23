@@ -37,7 +37,7 @@ public static class UpdateServiceCompany
                     return Results.NotFound(result.Error);
                 }
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

@@ -31,7 +31,7 @@ public static class GetAllOwners
                 }
 
                 return Results.Ok(result.Value.Owners);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

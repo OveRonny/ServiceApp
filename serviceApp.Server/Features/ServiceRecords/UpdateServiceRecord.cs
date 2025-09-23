@@ -131,7 +131,7 @@ public static class UpdateServiceRecord
                     return Results.NotFound(result.Error);
                 }
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

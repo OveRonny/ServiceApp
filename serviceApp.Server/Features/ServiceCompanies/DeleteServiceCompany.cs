@@ -31,7 +31,7 @@ public static class DeleteServiceCompany
                     return false;
                 }
                 return true;
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

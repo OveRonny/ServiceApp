@@ -13,7 +13,7 @@ public class ServiceRecordImagesEndpoint : IEndpointDefinition
                 .ToListAsync();
 
             return Results.Ok(imageIds);
-        });
+        }).RequireAuthorization();
 
         // Proxy endpoint to stream the image by ID
         app.MapGet("/api/images/{id:int}", async (int id, ApplicationDbContext db, AzureBlobImageService blobService) =>
@@ -27,6 +27,6 @@ public class ServiceRecordImagesEndpoint : IEndpointDefinition
 
             // Optionally, store ContentType in DB; here we default to image/jpeg
             return Results.File(stream, "image/jpeg");
-        });
+        }).RequireAuthorization();
     }
 }

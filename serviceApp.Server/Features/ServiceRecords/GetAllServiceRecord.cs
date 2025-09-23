@@ -47,7 +47,7 @@ public static class GetAllServiceRecord
             {
                 var result = await sender.Send(new Query(vehicleId), cancellationToken);
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

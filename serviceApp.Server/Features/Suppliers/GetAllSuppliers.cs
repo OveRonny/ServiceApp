@@ -29,7 +29,7 @@ public static class GetAllSuppliers
                     return Results.NotFound("No suppliers found.");
                 }
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

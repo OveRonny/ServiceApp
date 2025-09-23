@@ -32,7 +32,7 @@ public static class DeleteVehicle
                     return Results.NotFound(result.Error);
                 }
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 

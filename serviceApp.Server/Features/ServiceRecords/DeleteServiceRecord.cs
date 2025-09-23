@@ -40,7 +40,7 @@ public static class DeleteServiceRecord
                     return false;
                 }
                 return true;
-            });
+            }).RequireAuthorization();
         }
     }
 }

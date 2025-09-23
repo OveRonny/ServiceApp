@@ -100,7 +100,7 @@ public static class CreateVehicleInventory
                     return Results.BadRequest(result.Error);
                 }
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

@@ -32,7 +32,7 @@ public static class DeleteServiceType
                     return false;
                 }
                 return true;
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

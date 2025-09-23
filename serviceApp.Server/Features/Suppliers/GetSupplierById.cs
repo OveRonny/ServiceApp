@@ -33,7 +33,7 @@ public static class GetSupplierById
                     return Results.NotFound($"Supplier with ID {id} not found.");
                 }
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

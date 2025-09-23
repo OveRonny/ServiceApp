@@ -31,7 +31,7 @@ public static class GetServiceCompanyById
                     return Results.NotFound(result.Error);
                 }
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

@@ -36,7 +36,7 @@ public static class CreateServiceType
             {
                 var result = await sender.Send(command, cancellationToken);
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

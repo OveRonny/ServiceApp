@@ -106,7 +106,7 @@ public static class GetAllConsumptionRecord
                     result.Value.Records,
                     result.Value.Summary
                 });
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

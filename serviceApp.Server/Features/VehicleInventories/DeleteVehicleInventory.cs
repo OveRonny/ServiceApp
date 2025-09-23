@@ -31,7 +31,7 @@ public static class DeleteVehicleInventory
                     return Results.NotFound(result.Error);
                 }
                 return Results.Ok(true);
-            });
+            }).RequireAuthorization(); ;
         }
     }
 }

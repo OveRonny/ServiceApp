@@ -53,7 +53,7 @@ public class UpdateServiceRecordWithImage : IEndpointDefinition
             }
 
             return Results.Ok(result.Value);
-        });
+        }).RequireAuthorization(); ;
 
     }
 

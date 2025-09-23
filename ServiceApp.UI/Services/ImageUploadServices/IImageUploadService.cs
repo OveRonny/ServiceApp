@@ -4,5 +4,6 @@ namespace ServiceApp.UI.Services.ImageUploadServices;
 public interface IImageUploadService
 {
     Task<List<string>?> GetImageUrlsAsync(CancellationToken ct = default);
+    Task<List<int>?> GetServiceRecordImageIdsAsync(int serviceRecordId, CancellationToken ct = default);
     Task<string?> UploadImageAsync(IBrowserFile file, CancellationToken ct = default);
 }

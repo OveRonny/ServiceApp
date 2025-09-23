@@ -2,6 +2,7 @@
 @page "/servicerecord/create/{vehicleId:int}"
 @page "/servicerecord/create"
 @inject IServiceRecordService ServiceRecordService
+@inject IImageUploadService ImageUploadService
 @inject NavigationManager NavigationManager
 @attribute [Authorize]
 
@@ -165,10 +166,21 @@
 <InputFile OnChange="OnInputFileChange" accept="image/*" />
 <button @onclick="SaveRecord">Save</button>
 
+
+@if (imageIds != null && imageIds.Count > 0)
+{
+    <div>
+        @foreach (var id in imageIds)
+        {
+            <img src="@($"/api/images/{id}")" style="max-width:200px; margin:10px;" />
+        }
+    </div>
+}
+
 @code {
     private IBrowserFile? selectedFile;
     private ServiceRecordModel serviceRecord = new();
-
+    private List<int>? imageIds;
     private int? selectedInventoryId;
     private VehicleInventoryModel? selectedInventory;
     private decimal addQuantity = 1m;
@@ -181,6 +193,7 @@
         if (Id > 0)
         {
             serviceRecord = await ServiceRecordService.GetServiceRecordByIdAsync(Id);
+            imageIds = await ServiceRecordService.GetServiceRecordImageIdsAsync(Id);
             
             if (serviceRecord.Parts is { Count: > 0 })
             {
@@ -330,4 +343,8 @@
             // Show error
         }
     }
+
+   
+
+   
 }

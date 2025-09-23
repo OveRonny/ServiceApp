@@ -30,4 +30,10 @@ public class ImageUploadService(IHttpClientFactory httpFactory) : IImageUploadSe
         var http = httpFactory.CreateClient("ApiAuthed");
         return await http.GetFromJsonAsync<List<string>>("/api/images/list", cancellationToken: ct);
     }
+
+    public async Task<List<int>?> GetServiceRecordImageIdsAsync(int serviceRecordId, CancellationToken ct = default)
+    {
+        var http = httpFactory.CreateClient("ApiAuthed");
+        return await http.GetFromJsonAsync<List<int>>($"/api/service-record/{serviceRecordId}/images", ct);
+    }
 }

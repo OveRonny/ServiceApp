@@ -11,4 +11,5 @@ public interface IServiceRecordService
     Task UpdateServiceRecordAsync(ServiceRecordModel serviceRecord);
     Task<bool> DeleteServiceRecordAsync(int id);
     Task<bool> CreateServiceRecordWithImageAsync(ServiceRecordModel record, IBrowserFile? file, CancellationToken ct = default);
+    Task<List<int>?> GetServiceRecordImageIdsAsync(int serviceRecordId, CancellationToken ct = default);
 }

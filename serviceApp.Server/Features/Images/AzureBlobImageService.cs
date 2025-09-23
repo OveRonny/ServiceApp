@@ -21,4 +21,11 @@ public class AzureBlobImageService
         await blob.UploadAsync(stream, new BlobHttpHeaders { ContentType = contentType }, cancellationToken: ct);
         return blob.Uri.ToString();
     }
+
+    public async Task<Stream?> GetImageStreamAsync(string blobName, CancellationToken ct = default)
+    {
+        var blob = _container.GetBlobClient(blobName);
+        if (!await blob.ExistsAsync(ct)) return null;
+        return await blob.OpenReadAsync(cancellationToken: ct);
+    }
 }

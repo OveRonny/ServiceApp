@@ -101,4 +101,10 @@ public class ServiceRecordService(IHttpClientFactory clients) : IServiceRecordSe
         var resp = await http.PostAsync("/api/service-record/with-image", content, ct);
         return resp.IsSuccessStatusCode;
     }
+
+    public async Task<List<int>?> GetServiceRecordImageIdsAsync(int serviceRecordId, CancellationToken ct = default)
+    {
+        var http = ApiAuthed();
+        return await http.GetFromJsonAsync<List<int>>($"/api/service-record/{serviceRecordId}/images", ct);
+    }
 }

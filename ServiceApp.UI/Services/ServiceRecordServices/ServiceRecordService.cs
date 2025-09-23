@@ -1,5 +1,9 @@
-﻿using ServiceApp.UI.Models;
+﻿using Microsoft.AspNetCore.Components.Forms;
+using ServiceApp.UI.Models;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
 
 namespace ServiceApp.UI.Services.ServiceRecordServices;
 
@@ -73,5 +77,28 @@ public class ServiceRecordService(IHttpClientFactory clients) : IServiceRecordSe
         var http = ApiAuthed();
         var result = await http.DeleteAsync($"api/service-record/{id}");
         return result.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> CreateServiceRecordWithImageAsync(ServiceRecordModel record, IBrowserFile? file, CancellationToken ct = default)
+    {
+        var http = ApiAuthed();
+        using var content = new MultipartFormDataContent();
+
+        // Add the ServiceRecord command as JSON
+        var recordJson = JsonSerializer.Serialize(record);
+        content.Add(new StringContent(recordJson, Encoding.UTF8, "application/json"), "command");
+
+        // Add the image file if present
+        if (file != null)
+        {
+            var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+            content.Add(new StreamContent(stream)
+            {
+                Headers = { ContentType = new MediaTypeHeaderValue(file.ContentType) }
+            }, "file", file.Name);
+        }
+
+        var resp = await http.PostAsync("/api/service-record/with-image", content, ct);
+        return resp.IsSuccessStatusCode;
     }
 }

@@ -42,6 +42,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ServiceType> ServiceTypes { get; set; }
     public DbSet<ServiceRecord> ServiceRecords { get; set; }
     public DbSet<ServiceCompany> ServiceCompanies { get; set; }
+    public DbSet<ImageFile> ImageFiles { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

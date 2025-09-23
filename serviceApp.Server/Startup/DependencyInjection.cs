@@ -1,5 +1,6 @@
 ﻿using serviceApp.Server.Features.Autentication;
 using serviceApp.Server.Features.Emails;
+using serviceApp.Server.Features.Images;
 
 namespace serviceApp.Server.Startup;
 
@@ -47,6 +48,7 @@ public static class DependencyInjection
 
         services.AddScoped<ISmtpEmailSender, SmtpEmailSender>();
         services.AddScoped<IRegistrationService, RegistrationService>();
+        services.AddScoped<AzureBlobImageService>();
 
         return services;
     }

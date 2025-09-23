@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using ServiceApp.UI;
 using ServiceApp.UI.Services;
 using ServiceApp.UI.Services.ConsumptionRecordServices;
+using ServiceApp.UI.Services.ImageUploadServices;
 using ServiceApp.UI.Services.Owners;
 using ServiceApp.UI.Services.ServiceCompanyServices;
 using ServiceApp.UI.Services.ServiceRecordServices;
@@ -45,6 +46,7 @@ builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddScoped<IServiceRecordService, ServiceRecordService>();
 builder.Services.AddScoped<IServiceCompanyService, ServiceCompanyService>();
 builder.Services.AddScoped<IVehicleInventoryService, VehicleInventoryService>();
+builder.Services.AddScoped<IImageUploadService, ImageUploadService>();
 
 var host = builder.Build();
 

@@ -1,6 +1,7 @@
 using Scalar.AspNetCore;
 using serviceApp.Server.Features.Autentication;
 using serviceApp.Server.Startup;
+using serviceApp.Server.Features.Images;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +42,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapRegistration();
 app.MapIdentityApi<ApplicationUser>();
+
+app.MapImageUpload();
 
 app.MapControllers();
 

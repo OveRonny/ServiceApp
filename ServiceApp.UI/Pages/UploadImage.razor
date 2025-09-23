@@ -1,0 +1,48 @@
+﻿@page "/images"
+@inject IImageUploadService imageUploadService
+@attribute [Authorize]
+
+@if (imageUrls == null)
+{
+    <p>Loading...</p>
+}
+else if (imageUrls.Count == 0)
+{
+    <p>No images found.</p>
+}
+else
+{
+    <div>
+        @foreach (var url in imageUrls)
+        {
+            <img src="@url" style="max-width:200px; margin:10px;" />
+        }
+    </div>
+}
+
+@code {
+    private List<string>? imageUrls;
+    private string? uploadedUrl;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadImages();
+    }
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        error = null;
+        var file = e.File;
+        uploadedUrl = await imageUploadService.UploadImageAsync(file);
+        if (uploadedUrl == null)
+            error = "Upload failed.";
+        else
+            await LoadImages();
+    }
+
+    private async Task LoadImages()
+    {
+        imageUrls  = await imageUploadService.GetImageUrlsAsync();
+    }
+}

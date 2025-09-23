@@ -162,7 +162,11 @@
 
 </EditForm>
 
+<InputFile OnChange="OnInputFileChange" accept="image/*" />
+<button @onclick="SaveRecord">Save</button>
+
 @code {
+    private IBrowserFile? selectedFile;
     private ServiceRecordModel serviceRecord = new();
 
     private int? selectedInventoryId;
@@ -300,5 +304,30 @@
     {
         var vid = serviceRecord.VehicleId;
         NavigationManager.NavigateTo($"/servicerecords/{vid}");
+    }
+
+    private void OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+    }
+
+    private async Task SaveRecord()
+    {
+        if (selectedFile == null)
+        {
+            // Optionally show a message to the user
+            // e.g., error = "Please select an image to upload.";
+            // return;
+        }
+
+        var success = await ServiceRecordService.CreateServiceRecordWithImageAsync(serviceRecord, selectedFile);
+        if (success)
+        {
+            // Show success message or navigate
+        }
+        else
+        {
+            // Show error
+        }
     }
 }

@@ -6,7 +6,7 @@ self.addEventListener('install', event => event.waitUntil(onInstall(event)));
 self.addEventListener('activate', event => event.waitUntil(onActivate(event)));
 self.addEventListener('fetch', event => event.respondWith(onFetch(event)));
 
-const SW_VERSION = 'v3-prod';
+const SW_VERSION = 'v4-prod';
 const CACHE_PREFIX = 'app-cache-';
 const CACHE_NAME = `${CACHE_PREFIX}${SW_VERSION}`;
 
@@ -24,9 +24,8 @@ async function onInstall(event) {
     self.skipWaiting();
     event.waitUntil((async () => {
         const cache = await caches.open(CACHE_NAME);
-        // Cache only static, same-origin assets. Do NOT pre-cache SAS or API.
-        // Optionally add your static shell files here if you don’t use Blazor’s generated manifest.
-        // await cache.addAll(['/index.html', '/css/app.css', '/js/app.js']);
+        // Optionally pre-cache your static shell here.
+        // await cache.addAll(['/index.html']);
     })());
 }
 
@@ -46,18 +45,17 @@ async function onActivate(event) {
 
 function shouldBypass(req) {
     const url = new URL(req.url);
-    // Bypass cross-origin (e.g., https://*.azurewebsites.net, https://*.blob.core.windows.net)
+    // Bypass cross-origin (Azure API, Blob SAS)
     if (url.origin !== self.location.origin) return true;
     // Bypass API calls
     if (url.pathname.startsWith('/api/')) return true;
-    // Bypass SAS/short-lived URLs
+    // Bypass short-lived signed URLs
     if (url.search.includes('sig=')) return true;
     return false;
 }
 
 function isStaticAsset(req) {
     const url = new URL(req.url);
-    // Only cache same-origin static assets
     return (
         url.origin === self.location.origin &&
         (url.pathname.startsWith('/_framework/') ||
@@ -73,52 +71,41 @@ function isStaticAsset(req) {
     );
 }
 
-async function onFetch(event) {
-    const req = event.request;
+self.addEventListener('fetch', event => {
+  const req = event.request;
 
-    if (shouldBypass(req)) {
-        // Let the network handle API, cross-origin, SAS, etc.
-        return;
-    }
+  // Don’t intercept API, cross-origin, or SAS requests
+  if (shouldBypass(req)) return;
 
-    let cachedResponse = null;
-    if (req.method === 'GET') {
-        // For all navigation requests, try to serve index.html from cache,
-        // unless that request is for an offline resource.
-        // If you need some URLs to be server-rendered, edit the following check to exclude those URLs
-        const shouldServeIndexHtml = req.mode === 'navigate'
-            && !manifestUrlList.some(url => url === req.url);
-
-        const request = shouldServeIndexHtml ? 'index.html' : req;
-        const cache = await caches.open(CACHE_NAME);
-        cachedResponse = await cache.match(request);
-    }
-
-    if (!isStaticAsset(req) || req.method !== 'GET') {
-        // Navigation/doc requests: network first, fallback to cache
-        event.respondWith((async () => {
-            try {
-                return await fetch(req);
-            } catch {
-                const cache = await caches.open(CACHE_NAME);
-                const cached = await cache.match(req, { ignoreSearch: true });
-                return cached || Response.error();
-            }
-        })());
-        return;
-    }
-
-    // Static assets: cache-first, then network update
+  // Static assets: cache-first with safe fallback
+  if (req.method === 'GET' && isStaticAsset(req)) {
     event.respondWith((async () => {
-        const cache = await caches.open(CACHE_NAME);
-        const cached = await cache.match(req, { ignoreSearch: true });
-        if (cached) return cached;
+      const cache = await caches.open(CACHE_NAME);
+      const cached = await cache.match(req, { ignoreSearch: true });
+      if (cached) return cached;
 
+      try {
         const resp = await fetch(req);
-        // Avoid caching opaque or error responses
         if (resp && resp.ok && resp.type !== 'opaque') {
-            cache.put(req, resp.clone());
+          cache.put(req, resp.clone());
         }
         return resp;
+      } catch {
+        // Always return a Response, never undefined/null
+        return Response.error();
+      }
     })());
-}
+    return;
+  }
+
+  // All other same-origin requests: network-first, fallback to cache if available
+  event.respondWith((async () => {
+    try {
+      return await fetch(req);
+    } catch {
+      const cache = await caches.open(CACHE_NAME);
+      const cached = await cache.match(req, { ignoreSearch: true });
+      return cached || Response.error();
+    }
+  })());
+});

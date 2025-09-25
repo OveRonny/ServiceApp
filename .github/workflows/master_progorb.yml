@@ -40,11 +40,17 @@ jobs:
       - name: Restore
         run: dotnet restore serviceApp.Server/serviceApp.Server.csproj
 
-      - name: Build (no solution-level output)
-        run: dotnet build serviceApp.Server/serviceApp.Server.csproj -c Release --no-restore
+      - name: Clean
+        run: dotnet clean serviceApp.Server/serviceApp.Server.csproj -c Release
 
-      - name: Publish (server only)
-        run: dotnet publish serviceApp.Server/serviceApp.Server.csproj -c Release -o publish --no-build
+      - name: Publish (Server hosted WASM)
+        run: dotnet publish serviceApp.Server/serviceApp.Server.csproj -c Release -o publish
+
+      # Sanity check: ensure Blazor assets are present
+      - name: Inspect published Blazor assets
+        run: |
+          test -f publish/wwwroot/_framework/blazor.boot.json || (echo "Missing blazor.boot.json" && exit 1)
+          ls -la publish/wwwroot/_framework | head -n 50
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -74,14 +80,6 @@ jobs:
           az account show
           az webapp list --query "[?name=='progorb'].[name,resourceGroup]" -o table
 
-      # Set WEBSITE_RUN_FROM_PACKAGE=1 (requires correct RG)
-      - name: Enable Run From Package
-        run: |
-          az webapp config appsettings set \
-            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --name progorb \
-            --settings WEBSITE_RUN_FROM_PACKAGE=1
-
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
@@ -90,6 +88,7 @@ jobs:
           package: server-publish
 
           
+
 
 
 

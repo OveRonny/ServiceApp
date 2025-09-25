@@ -43,6 +43,8 @@
     </div>
 
     <button type="submit" class="btn btn-primary">Lagre</button>
+    <NavLink class="btn btn-secondary ms-2" href="/vehicles">Avbryt</NavLink>
+    <button type="button" class="btn btn-danger float-end" @onclick="async () => await InsuranceService.DeleteInsurance(policies.Id)">Slett</button>
 </EditForm>
 
 @if (policies is not null && policies.AnnualMileageLimit > 0)

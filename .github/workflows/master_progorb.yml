@@ -69,11 +69,16 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_6D097357F17A4ECEB2385305945AD361 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_67E28BBD350848CB8F3BF88A6299F76B }}
 
-      # One-time or every run: enforce Run From Package to avoid stale wwwroot/_framework files
+      - name: Verify Azure context (debug)
+        run: |
+          az account show
+          az webapp list --query "[?name=='progorb'].[name,resourceGroup]" -o table
+
+      # Set WEBSITE_RUN_FROM_PACKAGE=1 (requires correct RG)
       - name: Enable Run From Package
         run: |
           az webapp config appsettings set \
-            --resource-group ${{ secrets.Progorb }} \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
             --name progorb \
             --settings WEBSITE_RUN_FROM_PACKAGE=1
 
@@ -85,5 +90,6 @@ jobs:
           package: server-publish
 
           
+
 
 

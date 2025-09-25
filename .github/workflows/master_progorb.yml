@@ -73,7 +73,7 @@ jobs:
       - name: Enable Run From Package
         run: |
           az webapp config appsettings set \
-            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --resource-group ${{ secrets.Progorb }} \
             --name progorb \
             --settings WEBSITE_RUN_FROM_PACKAGE=1
 
@@ -85,4 +85,5 @@ jobs:
           package: server-publish
 
           
+
 

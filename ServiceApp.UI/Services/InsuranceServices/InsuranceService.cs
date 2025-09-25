@@ -43,6 +43,13 @@ public class InsuranceService(IHttpClientFactory httpClient) : IInsuranceService
     {
         var http = ApiAuthed();
         var result = await http.GetFromJsonAsync<InsuranseModel>($"api/insurance/remaining-mileage/{vehicleId}");
-        return result;
+        if (result is null)
+        {
+            return null;
+        }
+        else
+        {
+            return result;
+        }
     }
 }

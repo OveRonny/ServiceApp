@@ -9,23 +9,43 @@ public sealed class CurrentUser(
 {
     private readonly IHttpContextAccessor _accessor = accessor;
     private readonly UserManager<ApplicationUser> _userManager = userManager;
-    private Guid? _familyId; // cache per request
+    private Guid? _familyIdCache; // cache per request
 
     public bool IsAuthenticated => _accessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
     public string? UserId => _accessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
 
-    public Guid? FamilyId
+    // If you add a "family_id" claim at sign-in, we can read it without a DB call
+    public Guid? FamilyIdClaim
     {
         get
         {
-            if (_familyId.HasValue) return _familyId;
-            var userId = UserId;
-            if (!IsAuthenticated || string.IsNullOrEmpty(userId)) return null;
-
-            // Synchronous access for simplicity (per-request). If you prefer async, convert to async flow.
-            var user = _userManager.FindByIdAsync(userId).GetAwaiter().GetResult();
-            _familyId = user?.FamilyId;
-            return _familyId;
+            var val = _accessor.HttpContext?.User?.FindFirstValue("family_id");
+            return Guid.TryParse(val, out var gid) ? gid : null;
         }
+    }
+
+    public async Task<Guid?> GetFamilyIdAsync(CancellationToken ct = default)
+    {
+        if (_familyIdCache.HasValue) return _familyIdCache;
+        if (!IsAuthenticated || string.IsNullOrEmpty(UserId)) return null;
+
+        // Prefer claim if present (no DB hit)
+        var fromClaim = FamilyIdClaim;
+        if (fromClaim.HasValue)
+        {
+            _familyIdCache = fromClaim;
+            return _familyIdCache;
+        }
+
+        // Lightweight DB query: only fetch FamilyId, no tracking
+        var uid = UserId!;
+        var familyId = await _userManager.Users
+            .AsNoTracking()
+            .Where(u => u.Id == uid)
+            .Select(u => (Guid?)u.FamilyId)
+            .FirstOrDefaultAsync(ct);
+
+        _familyIdCache = familyId;
+        return _familyIdCache;
     }
 }

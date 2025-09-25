@@ -5,6 +5,7 @@ public class InsurancePolicy
     public int Id { get; set; }
     public string CompanyName { get; set; } = string.Empty;
     public decimal AnnualPrice { get; set; }
+    public decimal TraficInsurancePrice { get; set; }
     public int AnnualMileageLimit { get; set; }
     public int VehicleId { get; set; }
     public Vehicle? Vehicle { get; set; }
@@ -37,5 +38,10 @@ public class InsurancePolicy
 
         // Ensure the remaining mileage is not negative
         return Math.Max(remainingMileage, 0);
+    }
+
+    public decimal CalculateTotal()
+    {
+        return AnnualPrice + TraficInsurancePrice;
     }
 }

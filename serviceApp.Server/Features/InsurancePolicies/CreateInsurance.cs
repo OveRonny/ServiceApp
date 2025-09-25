@@ -2,7 +2,7 @@
 
 public static class CreateInsurance
 {
-    public record Command(string CompanyName, decimal AnnualPrice, int AnnualMileageLimit, int VehicleId,
+    public record Command(string CompanyName, decimal AnnualPrice, decimal TraficInsurancePrice, int AnnualMileageLimit, int VehicleId,
         DateTime RenewalDate, int StartingMileage) : ICommand<Response>;
 
     public record Response(int Id, string CompanyName, decimal AnnualPrice, int AnnualMileageLimit, int VehicleId,
@@ -28,6 +28,7 @@ public static class CreateInsurance
             {
                 CompanyName = request.CompanyName,
                 AnnualPrice = request.AnnualPrice,
+                TraficInsurancePrice = request.TraficInsurancePrice,
                 AnnualMileageLimit = request.AnnualMileageLimit,
                 VehicleId = request.VehicleId,
                 RenewalDate = request.RenewalDate,
@@ -52,21 +53,8 @@ public static class CreateInsurance
             {
                 var result = await sender.Send(command, cancellationToken);
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization();
         }
     }
 }
 
-//[ApiController]
-//[Route("api/insurance")]
-//public class CreateInsuranceController(ISender sender) : ControllerBase
-//{
-//    private readonly ISender sender = sender;
-
-//    [HttpPost]
-//    public async Task<ActionResult<CreateInsurance.Response>> CreateInsurance([FromBody] CreateInsurance.Command command)
-//    {
-//        var result = await sender.Send(command);
-//        return Ok(result.Value);
-//    }
-//}

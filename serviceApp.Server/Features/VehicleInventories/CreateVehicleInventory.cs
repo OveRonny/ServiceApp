@@ -16,7 +16,9 @@ public static class CreateVehicleInventory
 
         public async Task<Result<Response>> Handle(Command request, CancellationToken cancellationToken)
         {
-            if (!currentUser.IsAuthenticated || currentUser.FamilyId is null)
+
+            var familyId = await currentUser.GetFamilyIdAsync(cancellationToken);
+            if (familyId is null)
                 return Result.Fail<Response>("Not authenticated.");
 
             // Normalize quantity (supports decimals for things like oil in liters)

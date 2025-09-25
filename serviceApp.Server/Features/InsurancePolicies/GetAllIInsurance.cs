@@ -40,25 +40,9 @@ public static class GetAllIInsurance
             {
                 var result = await sender.Send(new Query(), cancellationToken);
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization();
         }
     }
 }
 
-//[ApiController]
-//[Route("api/insurance")]
-//public class GetAllIInsuranceController(ISender sender) : ControllerBase
-//{
-//    private readonly ISender sender = sender;
 
-//    [HttpGet]
-//    public async Task<ActionResult<GetAllIInsurance.Response>> GetAllIInsurance()
-//    {
-//        var result = await sender.Send(new GetAllIInsurance.Query());
-//        if (result.Failure)
-//        {
-//            return NotFound(result.Error);
-//        }
-//        return Ok(result.Value);
-//    }
-//}

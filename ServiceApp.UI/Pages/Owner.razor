@@ -51,10 +51,12 @@
                 <ValidationMessage For="@(() => ownerModel.City)" />
             </div>
 
-            <button type="submit" class="btn btn-primary">Save</button>
-            <button type="button" class="btn btn-secondary" @onclick=(NavigateToOwners)>Cancel</button>
-            <button type="button" class="btn btn-danger" @onclick=(DeleteOwner)>Slett</button>
+            <AuthorizeView Policy="Admin" Context="authState">
 
+                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="button" class="btn btn-secondary" @onclick=(NavigateToOwners)>Cancel</button>
+                <button type="button" class="btn btn-danger" @onclick=(DeleteOwner)>Slett</button>
+            </AuthorizeView>
         </EditForm>
     </div>
 </div>

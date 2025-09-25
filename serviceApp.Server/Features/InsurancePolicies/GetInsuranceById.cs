@@ -45,25 +45,8 @@ public static class GetInsuranceById
                     return Results.NotFound(result.Error);
                 }
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization();
         }
     }
 }
 
-//[ApiController]
-//[Route("api/insurance")]
-//public class GetInsuranceByIdController(ISender sender) : ControllerBase
-//{
-//    private readonly ISender sender = sender;
-
-//    [HttpGet("{id}")]
-//    public async Task<ActionResult<GetInsuranceById.Response>> getInsuranceById(int id)
-//    {
-//        var result = await sender.Send(new GetInsuranceById.Query(id));
-//        if (result.Failure)
-//        {
-//            return NotFound(result.Error);
-//        }
-//        return Ok(result.Value);
-//    }
-//}

@@ -1,0 +1,54 @@
+﻿@page "/createuser"
+@attribute [Authorize(Roles = "OwnerAdmin")]
+@inject IUserService UserService
+
+<h3>CreateUser</h3>
+
+
+<EditForm Model="model" OnValidSubmit="CreateAsync">
+    <DataAnnotationsValidator />
+    <div class="row g-2">
+        <div class="col-md-4">
+            <InputText class="form-control" @bind-Value="model.UserName" placeholder="Username/email" />
+        </div>
+        <div class="col-md-4">
+            <InputText class="form-control" @bind-Value="model.Email" placeholder="Email" />
+        </div>
+        <div class="col-md-4">
+            <InputText class="form-control" @bind-Value="model.Password" type="password" placeholder="Password" />
+        </div>
+        <div class="col-md-4">
+            <InputText class="form-control" @bind-Value="model.PhoneNumber" placeholder="Phone" />
+        </div>
+        <div class="col-md-4">
+            <InputSelect class="form-select" @bind-Value="selectedRole">
+                <option value="">-- Velg role --</option>
+                @foreach (var r in roles)
+                {
+                    <option value="@r">@r</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-md-4">
+            <button class="btn btn-primary w-100" type="submit" disabled="@string.IsNullOrWhiteSpace(selectedRole)">Lagre</button>
+        </div>
+    </div>
+</EditForm>
+
+
+@code {
+    private IEnumerable<string> roles = [];
+    private string selectedRole = "";
+    private CreateUserModel model = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        roles = await UserService.GetAllRolesAsync();
+    }
+
+    private async Task CreateAsync()
+    {
+        model.Roles = string.IsNullOrWhiteSpace(selectedRole) ? Array.Empty<string>() : new[] { selectedRole };
+        await UserService.CreateUserAsync(model);
+    }
+}

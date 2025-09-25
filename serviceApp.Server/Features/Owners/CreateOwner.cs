@@ -15,7 +15,8 @@ public static class CreateOwner
 
         public async Task<Result<Response>> Handle(Command request, CancellationToken cancellationToken)
         {
-            if (!currentUser.IsAuthenticated || currentUser.FamilyId is null)
+            var familyId = await currentUser.GetFamilyIdAsync(cancellationToken);
+            if (familyId is null)
                 return Result.Fail<Response>("Not authenticated.");
 
             var owner = new Owner
@@ -26,8 +27,7 @@ public static class CreateOwner
                 Email = request.Email,
                 Address = request.Address,
                 PostalCode = request.PostalCode,
-                City = request.City,
-                FamilyId = currentUser.FamilyId.Value
+                City = request.City
             };
             context.Owner.Add(owner);
             await context.SaveChangesAsync(cancellationToken);
@@ -43,7 +43,7 @@ public static class CreateOwner
             {
                 var result = await sender.Send(command, cancellationToken);
                 return Results.Ok(result);
-            }).RequireAuthorization();
+            }).RequireAuthorization("Admin");
         }
     }
 }

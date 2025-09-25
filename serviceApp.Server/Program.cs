@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Identity;
 using Scalar.AspNetCore;
 using serviceApp.Server.Features.Autentication;
-using serviceApp.Server.Startup;
 using serviceApp.Server.Features.Images;
+using serviceApp.Server.Features.Roles;
+using serviceApp.Server.Startup;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,5 +50,14 @@ app.MapImageUpload();
 app.MapControllers();
 
 app.RegisterEndpointDefinitions();
+
+using (var scope = app.Services.CreateScope())
+{
+    var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var cfg = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+
+    await RoleSeeder.SeedAsync(roleMgr, userMgr, cfg);
+}
 
 app.Run();

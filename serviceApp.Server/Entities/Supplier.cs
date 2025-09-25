@@ -8,7 +8,6 @@ public class Supplier
     public string ContactPhone { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
     public string City { get; set; } = string.Empty;
-    public Guid FamilyId { get; set; }
 
     public string PostalCode { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.Now;

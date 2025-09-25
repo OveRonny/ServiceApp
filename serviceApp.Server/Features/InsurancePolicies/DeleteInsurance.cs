@@ -38,26 +38,10 @@ public static class DeleteInsurance
                     return Results.NotFound(result.Error);
                 }
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization();
         }
     }
 }
 
 
-//[ApiController]
-//[Route("api/insurance")]
-//public class DeleteInsuranceController(ISender sender) : ControllerBase
-//{
-//    private readonly ISender sender = sender;
 
-//    [HttpDelete("{id}")]
-//    public async Task<ActionResult<bool>> DeleteInsurance(int id)
-//    {
-//        var result = await sender.Send(new DeleteInsurance.Command(id));
-//        if (result.Failure)
-//        {
-//            return NotFound(result.Error);
-//        }
-//        return Ok(result.Value);
-//    }
-//}

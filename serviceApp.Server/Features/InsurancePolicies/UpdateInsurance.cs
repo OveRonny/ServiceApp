@@ -3,10 +3,10 @@ namespace serviceApp.Server.Features.InsurancePolicies;
 
 public static class UpdateInsurance
 {
-    public record Command(int Id, string CompanyName, decimal AnnualPrice, int AnnualMileageLimit, int VehicleId,
+    public record Command(int Id, string CompanyName, decimal AnnualPrice, decimal TraficInsurancePrice, int AnnualMileageLimit, int VehicleId,
         DateTime RenewalDate, int StartingMileage) : ICommand<Response>;
 
-    public record Response(int Id, string CompanyName, decimal AnnualPrice, int AnnualMileageLimit, int VehicleId,
+    public record Response(int Id, string CompanyName, decimal AnnualPrice, decimal TraficInsurancePrice, int AnnualMileageLimit, int VehicleId,
         DateTime RenewalDate, int StartingMileage, bool IsActive, DateTime? EndDate);
 
     public class Handler(ApplicationDbContext context) : ICommandHandler<Command, Response>
@@ -15,47 +15,46 @@ public static class UpdateInsurance
 
         public async Task<Result<Response>> Handle(Command request, CancellationToken cancellationToken)
         {
-            // Retrieve the current active policy for the vehicle
-            var currentPolicy = await context.InsurancePolicies
-                .FirstOrDefaultAsync(p => p.VehicleId == request.VehicleId && p.IsActive, cancellationToken);
+            var policy = await context.InsurancePolicies
+             .FirstOrDefaultAsync(p => p.Id == request.Id, cancellationToken);
 
-            if (currentPolicy != null)
-            {
-                // Mark the current policy as inactive
-                currentPolicy.IsActive = false;
-                currentPolicy.EndDate = DateTime.UtcNow;
-            }
+            if (policy is null)
+                return Result.Fail<Response>($"Insurance policy {request.Id} not found.");
 
-            // Create a new policy with the corrected details
-            var newPolicy = new InsurancePolicy
-            {
-                CompanyName = request.CompanyName,
-                AnnualPrice = request.AnnualPrice,
-                AnnualMileageLimit = request.AnnualMileageLimit,
-                VehicleId = request.VehicleId,
-                RenewalDate = request.RenewalDate,
-                StartingMileage = request.StartingMileage,
-                IsActive = true, // New policy is active
-                EndDate = null // Active policy has no end date
-            };
+            if (policy.VehicleId != request.VehicleId)
+                return Result.Fail<Response>("VehicleId mismatch – changing vehicle is not allowed.");
 
-            // Add the new policy to the database
-            context.InsurancePolicies.Add(newPolicy);
+            // (Optional) Prevent editing inactive (historical) policies
+            if (!policy.IsActive)
+                return Result.Fail<Response>("Cannot modify an inactive (archived) policy.");
 
-            // Save changes to the database
+            // If you consider RenewalDate change => treat as replacement, you could branch here.
+            // For now we just update in place.
+            policy.CompanyName        = request.CompanyName;
+            policy.AnnualPrice        = request.AnnualPrice;
+            policy.TraficInsurancePrice = request.TraficInsurancePrice;
+            policy.AnnualMileageLimit = request.AnnualMileageLimit;
+            policy.RenewalDate        = request.RenewalDate;
+            policy.StartingMileage    = request.StartingMileage;
+
+            // Keep active; do NOT touch EndDate unless logic dictates
+            // If you want to auto-extend a 1‑year span, uncomment:
+            // policy.EndDate = null; // or policy.RenewalDate.AddYears(1);
+
             await context.SaveChangesAsync(cancellationToken);
 
             // Return the new policy as a response
             return Result.Ok(new Response(
-                newPolicy.Id,
-                newPolicy.CompanyName,
-                newPolicy.AnnualPrice,
-                newPolicy.AnnualMileageLimit,
-                newPolicy.VehicleId,
-                newPolicy.RenewalDate,
-                newPolicy.StartingMileage,
-                newPolicy.IsActive,
-                newPolicy.EndDate
+                policy.Id,
+                policy.CompanyName,
+                policy.AnnualPrice,
+                policy.TraficInsurancePrice,
+                policy.AnnualMileageLimit,
+                policy.VehicleId,
+                policy.RenewalDate,
+                policy.StartingMileage,
+                policy.IsActive,
+                policy.EndDate
             ));
         }
     }
@@ -76,29 +75,9 @@ public static class UpdateInsurance
                     return Results.NotFound(result.Error);
                 }
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization();
         }
     }
 }
 
-//[ApiController]
-//[Route("api/insurance")]
-//public class UpdateInsuranceController(ISender sender) : ControllerBase
-//{
-//    private readonly ISender sender = sender;
 
-//    [HttpPut("{id}")]
-//    public async Task<ActionResult<UpdateInsurance.Response>> UpdateInsurance(int id, [FromBody] UpdateInsurance.Command command)
-//    {
-//        if (id != command.Id)
-//        {
-//            return BadRequest("ID in the URL does not match the ID in the request body.");
-//        }
-//        var result = await sender.Send(command);
-//        if (result.Failure)
-//        {
-//            return NotFound(result.Error);
-//        }
-//        return Ok(result.Value);
-//    }
-//}

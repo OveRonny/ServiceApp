@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using serviceApp.Server.Features.Autentication;
+using serviceApp.Server.Features.Roles;
 
 namespace serviceApp.Server.Startup;
 
@@ -31,7 +32,17 @@ public static class AuthenticationSetup
                 });
 
 
-        services.AddAuthorization();
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy("AdminOnly", p => p.RequireRole(Roles.Admin));
+            options.AddPolicy("FamilyAdmin", p => p.RequireRole(Roles.Admin, Roles.FamilyOwner, Roles.OwnerAdmin)); // OR between roles
+            options.AddPolicy("OwnerOnly", p => p.RequireRole(Roles.OwnerAdmin));
+
+            options.AddPolicy(Roles.Admin, p => p.RequireRole(Roles.Admin));
+            options.AddPolicy(Roles.FamilyOwner, p => p.RequireRole(Roles.FamilyOwner));
+            options.AddPolicy(Roles.FamilyGuest, p => p.RequireRole(Roles.FamilyGuest));
+            options.AddPolicy(Roles.OwnerAdmin, p => p.RequireRole(Roles.OwnerAdmin));
+        });
 
         // Current user helpers / HttpContext
         services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, AppClaimsPrincipalFactory>();

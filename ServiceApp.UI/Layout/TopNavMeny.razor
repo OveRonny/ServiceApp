@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 @inject ServiceApp.UI.Services.IAuthService Auth
 @inject AuthenticationStateProvider AuthStateProvider
 
@@ -31,13 +32,12 @@
             <AuthorizeView>
                 <Authorized>
                     <form class="d-flex" onsubmit="return false;">
-                        <span class="nav-link text-secondary me-2">Logget inn</span>
+                        <span class="nav-link text-secondary me-2">@GetDisplayName(context.User)</span>
                         <button type="button" class="btn btn-outline-light btn-sm" @onclick="Logout">Logg ut</button>
                     </form>
                 </Authorized>
                 <NotAuthorized>
-                    <div class="d-flex gap-2">
-                        <a class="btn btn-outline-light btn-sm" href="/register">Registrer</a>
+                    <div class="d-flex gap-2">                        
                         <a class="btn btn-primary btn-sm" href="/login">Logg inn</a>
                     </div>
                 </NotAuthorized>
@@ -52,5 +52,30 @@
         await Auth.LogoutAsync();
         if (AuthStateProvider is ServiceApp.UI.Services.JwtAuthenticationStateProvider jwt)
             jwt.NotifyUserLogout();
+    }
+
+    private static string GetDisplayName(ClaimsPrincipal user)
+    {
+        // Prefer proper first-name claims if present
+        var first = user.FindFirst("given_name")?.Value
+                    ?? user.FindFirst(ClaimTypes.GivenName)?.Value;
+        if (!string.IsNullOrWhiteSpace(first))
+            return first;
+
+        // Fallback to name/email or ClaimTypes.Name
+        var email = user.FindFirst("email")?.Value;
+        var name = user.FindFirst("name")?.Value ?? user.Identity?.Name;
+
+        var source = !string.IsNullOrWhiteSpace(first) ? first
+                    : !string.IsNullOrWhiteSpace(name) ? name
+                    : email;
+
+        if (!string.IsNullOrWhiteSpace(source))
+        {
+            var at = source.IndexOf('@');
+            return at > 0 ? source[..at] : source;
+        }
+
+        return "Logget inn";
     }
 }

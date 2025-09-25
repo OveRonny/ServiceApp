@@ -44,9 +44,17 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ServiceCompany> ServiceCompanies { get; set; }
     public DbSet<ImageFile> ImageFiles { get; set; }
 
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<ApplicationUser>(b =>
+        {
+            b.Property(u => u.FamilyId)
+             .HasDefaultValueSql("NEWID()"); // DB-side default
+            b.HasIndex(u => u.FamilyId);
+        });
 
         // Multi-tenant query filters (deny-by-default when _familyId is null)
         modelBuilder.Entity<Vehicle>()
@@ -95,8 +103,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasQueryFilter(m => _familyId != null && m.FamilyId == _familyId);
 
         // Optional: additional helpful indexes
-        modelBuilder.Entity<Supplier>().HasIndex(x => new { x.FamilyId });
-        modelBuilder.Entity<ServiceType>().HasIndex(x => new { x.FamilyId });
+
         modelBuilder.Entity<ServiceCompany>().HasIndex(x => new { x.FamilyId });
         modelBuilder.Entity<Owner>().HasIndex(x => new { x.FamilyId });
         modelBuilder.Entity<Vehicle>().HasIndex(x => new { x.FamilyId });

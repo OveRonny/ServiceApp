@@ -3,7 +3,20 @@
 public static class GetRemainingMileage
 {
     public record class Query(int VehicleId) : IQuery<Response>;
-    public record Response(int RemainingMileage, DateTime? EnDate);
+    public record Response(
+      int Id,
+      string CompanyName,
+      decimal AnnualPrice,
+      int AnnualMileageLimit,
+      int VehicleId,
+      DateTime RenewalDate,
+      int StartingMileage,
+      bool IsActive,
+      DateTime? EndDate,
+      int RemainingMileage,
+      decimal TotalPrice,
+      decimal TraficInsurancePrice);
+
     public class Handler(ApplicationDbContext context) : IQueryHandler<Query, Response>
     {
         private readonly ApplicationDbContext context = context;
@@ -33,8 +46,24 @@ public static class GetRemainingMileage
 
 
             int remainingMileage = insurancePolicy.CalculateRemainingMileage(mileageHistories);
+            decimal totalPrice = insurancePolicy.CalculateTotal();
 
-            return Result.Ok(new Response(remainingMileage, insurancePolicy.EndDate));
+            var dto = new Response(
+                     insurancePolicy.Id,
+                     insurancePolicy.CompanyName,
+                     insurancePolicy.AnnualPrice,
+                     insurancePolicy.AnnualMileageLimit,
+                     insurancePolicy.VehicleId,
+                     insurancePolicy.RenewalDate,
+                     insurancePolicy.StartingMileage,
+                     insurancePolicy.IsActive,
+                     insurancePolicy.EndDate,
+                     remainingMileage,
+                     totalPrice,
+                     insurancePolicy.TraficInsurancePrice
+            );
+
+            return Result.Ok(dto);
         }
     }
 
@@ -50,25 +79,10 @@ public static class GetRemainingMileage
                     return Results.NotFound(result.Error);
                 }
                 return Results.Ok(result.Value);
-            });
+            }).RequireAuthorization();
+
         }
     }
 }
 
-//[ApiController]
-//[Route("api/insurance")]
-//public class GetRemainingMileageController(ISender sender) : ControllerBase
-//{
-//    private readonly ISender sender = sender;
 
-//    [HttpGet("remaining-mileage/{vehicleId}")]
-//    public async Task<ActionResult<GetRemainingMileage.Response>> GetRemainingMileage(int vehicleId)
-//    {
-//        var result = await sender.Send(new GetRemainingMileage.Query(vehicleId));
-//        if (result.Failure)
-//        {
-//            return NotFound(result.Error);
-//        }
-//        return Ok(result.Value);
-//    }
-//}

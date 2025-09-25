@@ -12,11 +12,12 @@ public static class UpdateServiceRecord
     public class Handler(ApplicationDbContext context, ICurrentUser user) : ICommandHandler<Command, Response>
     {
         private readonly ApplicationDbContext context = context;
-        private readonly ICurrentUser user = user;
+        private readonly ICurrentUser currentUser = user;
 
         public async Task<Result<Response>> Handle(Command request, CancellationToken cancellationToken)
         {
-            if (!user.IsAuthenticated || user.FamilyId is null)
+            var familyId = await currentUser.GetFamilyIdAsync(cancellationToken);
+            if (familyId is null)
                 return Result.Fail<Response>("Not authenticated.");
 
             var serviceRecord = await context.ServiceRecords

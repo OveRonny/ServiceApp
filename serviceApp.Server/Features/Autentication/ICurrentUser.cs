@@ -1,8 +1,11 @@
-﻿namespace serviceApp.Server.Features.Autentication;
+﻿
+namespace serviceApp.Server.Features.Autentication;
 
 public interface ICurrentUser
 {
     bool IsAuthenticated { get; }
     string? UserId { get; }
-    Guid? FamilyId { get; }
+    Guid? FamilyIdClaim { get; }
+
+    Task<Guid?> GetFamilyIdAsync(CancellationToken ct = default);
 }

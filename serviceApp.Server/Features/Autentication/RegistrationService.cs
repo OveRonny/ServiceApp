@@ -33,7 +33,7 @@ public sealed class RegistrationService(
         if (!created.Succeeded) return (false, string.Join("; ", created.Errors.Select(e => e.Description)));
 
         // Default: FamilyOwner
-        _ = await _users.AddToRoleAsync(user, Roles.FamilyOwner);
+        //_ = await _users.AddToRoleAsync(user, Roles.FamilyOwner);
 
         // Send confirmation email in the background to avoid delaying the response
         TrySendConfirmationEmail(user);

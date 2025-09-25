@@ -14,9 +14,10 @@ public static class CreateServiceType
 
         public async Task<Result<Response>> Handle(Command request, CancellationToken cancellationToken)
         {
-
-            if (!currentUser.IsAuthenticated || currentUser.FamilyId is null)
+            var familyId = await currentUser.GetFamilyIdAsync(cancellationToken);
+            if (familyId is null)
                 return Result.Fail<Response>("Not authenticated.");
+
 
             var serviceType = new ServiceType
             {

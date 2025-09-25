@@ -17,8 +17,7 @@
 @code {
     private IBrowserFile? selectedFile;
     private ServiceRecordModel serviceRecord = new();
-    private List<int>? imageIds;
-    private int? selectedInventoryId;
+    private List<int>? imageIds; 
     private VehicleInventoryModel? selectedInventory;
     private decimal addQuantity = 1m;
     private Dictionary<int, string> imageSasUrls = new();
@@ -59,7 +58,7 @@
         }
 
         // reset add-part state
-        selectedInventoryId = null;
+       
         selectedInventory = null;
         addQuantity = 1m;
         RecalcCost();

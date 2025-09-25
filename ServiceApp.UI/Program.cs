@@ -6,11 +6,13 @@ using ServiceApp.UI;
 using ServiceApp.UI.Services;
 using ServiceApp.UI.Services.ConsumptionRecordServices;
 using ServiceApp.UI.Services.ImageUploadServices;
+using ServiceApp.UI.Services.InsuranceServices;
 using ServiceApp.UI.Services.Owners;
 using ServiceApp.UI.Services.ServiceCompanyServices;
 using ServiceApp.UI.Services.ServiceRecordServices;
 using ServiceApp.UI.Services.ServiceTypeServices;
 using ServiceApp.UI.Services.SupplierServices;
+using ServiceApp.UI.Services.UserServices;
 using ServiceApp.UI.Services.VehicleInventoryServices;
 using ServiceApp.UI.Services.VehicleServices;
 
@@ -28,7 +30,19 @@ var apiBase = builder.HostEnvironment.IsDevelopment()
 builder.Services.AddHttpClient("Api", c => c.BaseAddress = apiBase);
 
 // Auth
-builder.Services.AddAuthorizationCore();
+builder.Services.AddAuthorizationCore(options =>
+{
+    // Match server names if you use them in the UI
+    options.AddPolicy("Admin", p => p.RequireRole("Admin"));
+    options.AddPolicy("FamilyOwner", p => p.RequireRole("FamilyOwner"));
+    options.AddPolicy("FamilyGuest", p => p.RequireRole("FamilyGuest"));
+    options.AddPolicy("OwnerAdmin", p => p.RequireRole("OwnerAdmin"));
+
+    // Optional: grouped policies mirrored from server
+    options.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
+    options.AddPolicy("FamilyAdmin", p => p.RequireRole("Admin", "FamilyOwner", "OwnerAdmin"));
+    options.AddPolicy("OwnerOnly", p => p.RequireRole("OwnerAdmin"));
+});
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthenticationStateProvider>();
 builder.Services.AddTransient<BearerHandler>();
@@ -47,6 +61,8 @@ builder.Services.AddScoped<IServiceRecordService, ServiceRecordService>();
 builder.Services.AddScoped<IServiceCompanyService, ServiceCompanyService>();
 builder.Services.AddScoped<IVehicleInventoryService, VehicleInventoryService>();
 builder.Services.AddScoped<IImageUploadService, ImageUploadService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IInsuranceService, InsuranceService>();
 
 var host = builder.Build();
 

@@ -15,7 +15,9 @@ public static class CreateVehicle
 
         public async Task<Result<Response>> Handle(Command request, CancellationToken cancellationToken)
         {
-            if (!currentUser.IsAuthenticated || currentUser.FamilyId is null)
+
+            var familyId = await currentUser.GetFamilyIdAsync(cancellationToken);
+            if (familyId is null)
                 return Result.Fail<Response>("Not authenticated.");
 
             var vehicle = new Vehicle
@@ -27,8 +29,7 @@ public static class CreateVehicle
                 LicensePlate = request.LicensePlate,
                 DateCreated = DateTime.Now,
                 OwnerId = request.OwnerId,
-                UserId = currentUser.UserId!,
-                FamilyId = currentUser.FamilyId.Value
+                UserId = currentUser.UserId!
             };
             context.Vehicles.Add(vehicle);
             await context.SaveChangesAsync(cancellationToken);
@@ -40,7 +41,7 @@ public static class CreateVehicle
     {
         public void MapEndpoints(WebApplication app)
         {
-            app.MapPost("api/vehicle", async (ISender sender, CreateVehicle.Command command, CancellationToken cancellationToken) =>
+            app.MapPost("api/vehicle", async (ISender sender, Command command, CancellationToken cancellationToken) =>
             {
                 var result = await sender.Send(command, cancellationToken);
                 return result.Failure ? Results.Unauthorized() : Results.Ok(result.Value);

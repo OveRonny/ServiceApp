@@ -1,4 +1,5 @@
 ﻿using ServiceApp.UI.Models;
+using System.Net;
 using System.Net.Http.Json;
 
 namespace ServiceApp.UI.Services.InsuranceServices;
@@ -39,17 +40,16 @@ public class InsuranceService(IHttpClientFactory httpClient) : IInsuranceService
         await http.DeleteAsync($"api/insurance/{id}");
     }
 
-    public async Task<InsuranseModel?> GetRemainingMilage(int vehicleId)
+    public async Task<InsuranseModel?> GetRemainingMilage(int? vehicleId)
     {
         var http = ApiAuthed();
-        var result = await http.GetFromJsonAsync<InsuranseModel>($"api/insurance/remaining-mileage/{vehicleId}");
-        if (result is null)
-        {
+        using var resp = await http.GetAsync($"api/insurance/remaining-mileage/{vehicleId}", HttpCompletionOption.ResponseHeadersRead);
+
+        // No insurance for this vehicle (404) or no content (204) => return null
+        if (resp.StatusCode == HttpStatusCode.NotFound || resp.StatusCode == HttpStatusCode.NoContent)
             return null;
-        }
-        else
-        {
-            return result;
-        }
+
+        resp.EnsureSuccessStatusCode();
+        return await resp.Content.ReadFromJsonAsync<InsuranseModel>();
     }
 }

@@ -44,9 +44,15 @@ public static class GetRemainingMileage
                             m.RecordedDate <= (insurancePolicy.EndDate ?? DateTime.UtcNow))
                 .ToListAsync(cancellationToken);
 
+            if (mileageHistories.Count == 0)
+            {
+                return Result.Fail<Response>($"No mileage history found for vehicle ID {request.VehicleId} within the insurance policy period.");
+            }
 
             int remainingMileage = insurancePolicy.CalculateRemainingMileage(mileageHistories);
             decimal totalPrice = insurancePolicy.CalculateTotal();
+
+
 
             var dto = new Response(
                      insurancePolicy.Id,

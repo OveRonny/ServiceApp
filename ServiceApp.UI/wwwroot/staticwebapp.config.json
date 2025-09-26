@@ -1,0 +1,29 @@
+{
+  "navigationFallback": { "rewrite": "index.html" },
+  "routes": [
+    {
+      "route": "/_framework/*",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      }
+    },
+    {
+      "route": "/service-worker.js",
+      "headers": {
+        "cache-control": "no-cache, must-revalidate"
+      }
+    },
+    {
+      "route": "/manifest.json",
+      "headers": {
+        "cache-control": "no-cache, must-revalidate"
+      }
+    }
+  ],
+  "globalHeaders": {
+    "cache-control": "no-cache, must-revalidate"
+  },
+  "mimeTypes": {
+    ".wasm": "application/wasm"
+  }
+}

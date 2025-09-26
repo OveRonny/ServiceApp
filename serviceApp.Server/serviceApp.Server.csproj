@@ -5,12 +5,14 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>5d8e5d23-ae89-4e70-9bba-b7c01cb23bb9</UserSecretsId>
+    <!-- Optional: deterministic build -->
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Azure.Storage.Blobs" Version="12.25.0" />
     <PackageReference Include="MailKit" Version="4.13.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.9" />
+    <!-- Removed Microsoft.AspNetCore.Components.WebAssembly.Server -->
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
@@ -22,10 +24,6 @@
     </PackageReference>
     <PackageReference Include="MimeKit" Version="4.13.0" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.7.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\ServiceApp.UI\ServiceApp.UI.csproj" />
   </ItemGroup>
 
 </Project>

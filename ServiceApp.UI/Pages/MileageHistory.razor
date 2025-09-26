@@ -1,0 +1,44 @@
+﻿@page "/mileagehistory"
+@page "/mileagehistory/{Id:int}"
+@inject IMileageHistoryService MileageHistoryService
+
+<h3>MileageHistory</h3>
+
+<EditForm Model="@model" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+     <div class="mb-3">
+        <label for="vehicle" class="form-label">Kjøretøy</label>
+        <VehicleDropdown @bind-SelectedVehicleId="model.VehicleId" />
+        <ValidationMessage For="@(() => model.VehicleId)" />
+     </div>
+
+    <div class="mb-3">
+        <label for="mileage" class="form-label">Kilometer</label>
+        <InputNumber id="mileage" class="form-control" @bind-Value="model.Mileage" />
+        <ValidationMessage For="@(() => model.Mileage)" />
+    </div>
+    <div class="mb-3">
+        <label for="Hours" class="form-label">Timer</label>
+        <InputNumber id="mileage" class="form-control" @bind-Value="model.Hours" />
+        <ValidationMessage For="@(() => model.Hours)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Lagre</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int VehicleId { get; set; }
+    [Parameter]
+    public int Id { get; set; }
+
+
+    private MileageHistoryModel model = new();
+
+    private async Task HandleValidSubmit()
+    {
+        await MileageHistoryService.CreateMileageHistory(model);
+    }
+    
+}

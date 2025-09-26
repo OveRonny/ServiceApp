@@ -15,6 +15,7 @@ public class MileageHistory
     {
         Forsikring,
         Forbruk,
-        Service
+        Service,
+        Kilometerstand
     }
 }

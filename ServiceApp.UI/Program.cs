@@ -12,6 +12,7 @@ using ServiceApp.UI.Services.Owners;
 using ServiceApp.UI.Services.ServiceCompanyServices;
 using ServiceApp.UI.Services.ServiceRecordServices;
 using ServiceApp.UI.Services.ServiceTypeServices;
+using ServiceApp.UI.Services.StatensVegvesenServices;
 using ServiceApp.UI.Services.SupplierServices;
 using ServiceApp.UI.Services.UserServices;
 using ServiceApp.UI.Services.VehicleInventoryServices;
@@ -65,6 +66,7 @@ builder.Services.AddScoped<IImageUploadService, ImageUploadService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IInsuranceService, InsuranceService>();
 builder.Services.AddScoped<IMileageHistoryService, MileageHistoryService>();
+builder.Services.AddScoped<IStatensVegvesenService, StatensVegvesenService>();
 
 var host = builder.Build();
 

@@ -1,6 +1,7 @@
 ﻿using serviceApp.Server.Features.Autentication;
 using serviceApp.Server.Features.Emails;
 using serviceApp.Server.Features.Images;
+using serviceApp.Server.Features.StatensVegvesen.Api;
 
 namespace serviceApp.Server.Startup;
 
@@ -49,6 +50,14 @@ public static class DependencyInjection
         services.AddScoped<ISmtpEmailSender, SmtpEmailSender>();
         services.AddScoped<IRegistrationService, RegistrationService>();
         services.AddScoped<AzureBlobImageService>();
+
+        services.AddHttpClient<ApiStaten>((sp, client) =>
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            client.BaseAddress = new Uri("https://akfell-datautlevering.atlas.vegvesen.no/enkeltoppslag/kjoretoydata");
+            string apiKey = config["ApiKey"] ?? throw new Exception("Finner ikke apiKey");
+            client.DefaultRequestHeaders.Add("SVV-Authorization", "Apikey " + apiKey);
+        });
 
         return services;
     }

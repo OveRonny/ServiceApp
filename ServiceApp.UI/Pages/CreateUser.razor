@@ -8,14 +8,12 @@
 <EditForm Model="model" OnValidSubmit="CreateAsync">
     <DataAnnotationsValidator />
     <div class="row g-2">
+      
         <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="model.UserName" placeholder="Username/email" />
+            <InputText class="form-control" @bind-Value="model.Email" placeholder="Email" autocomplete="off" name="new-user-email" />
         </div>
         <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="model.Email" placeholder="Email" />
-        </div>
-        <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="model.Password" type="password" placeholder="Password" />
+            <InputText class="form-control" @bind-Value="model.Password" type="password" placeholder="Password" autocomplete="new-password" name="new-user-password" />
         </div>
         <div class="col-md-4">
             <InputText class="form-control" @bind-Value="model.PhoneNumber" placeholder="Phone" />
@@ -29,6 +27,13 @@
                 }
             </InputSelect>
         </div>
+        <div class="mb-3">
+            <label class="form-check-label">
+                <InputCheckbox class="form-check-input" @bind-Value="model.CreateNewFamily" />
+                Opprett ny familie for bruker
+            </label>
+        </div>
+
         <div class="col-md-4">
             <button class="btn btn-primary w-100" type="submit" disabled="@string.IsNullOrWhiteSpace(selectedRole)">Lagre</button>
         </div>

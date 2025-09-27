@@ -9,11 +9,16 @@ public static class DeleteVehicle
         private readonly ApplicationDbContext context = context;
         public async Task<Result<bool>> Handle(Command request, CancellationToken cancellationToken)
         {
-            var vehicle = await context.Vehicles.FindAsync(request.Id);
+            var vehicle = await context.Vehicles
+                .Include(v => v.MileageHistories)
+                .FirstOrDefaultAsync(v => v.Id == request.Id, cancellationToken);
             if (vehicle == null)
             {
                 return Result.Fail<bool>($"Vehicle with ID {request.Id} not found.");
             }
+
+            context.MileageHistories.RemoveRange(vehicle.MileageHistories);
+
             context.Vehicles.Remove(vehicle);
             await context.SaveChangesAsync(cancellationToken);
             return true;

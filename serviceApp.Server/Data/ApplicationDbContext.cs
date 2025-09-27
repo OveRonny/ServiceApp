@@ -101,6 +101,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
         modelBuilder.Entity<MileageHistory>()
             .HasQueryFilter(m => _familyId != null && m.FamilyId == _familyId);
+           
+
 
         // Optional: additional helpful indexes
 

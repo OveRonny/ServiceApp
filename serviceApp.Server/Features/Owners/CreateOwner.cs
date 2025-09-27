@@ -43,7 +43,7 @@ public static class CreateOwner
             {
                 var result = await sender.Send(command, cancellationToken);
                 return Results.Ok(result);
-            }).RequireAuthorization("Admin");
+            }).RequireAuthorization();
         }
     }
 }

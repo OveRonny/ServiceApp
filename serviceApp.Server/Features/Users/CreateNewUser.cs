@@ -7,9 +7,9 @@ namespace serviceApp.Server.Features.Users;
 
 public static class CreateNewUser
 {
-    public record Command(string UserName, string Email, string Password, string PhoneNumber, Guid? FamilyId, string[] Roles) : ICommand<Response>;
+    public record Command(string Email, string Password, string PhoneNumber, Guid? FamilyId, string[] Roles, bool CreateNewFamily) : ICommand<Response>;
 
-    public record Response(string UserName, string Email, string PhoneNumber);
+    public record Response(string Email, string PhoneNumber);
 
     public class Handler(UserManager<ApplicationUser> userManager, ICurrentUser currentUser, RoleManager<IdentityRole> roleManager) : ICommandHandler<Command, Response>
     {
@@ -23,13 +23,23 @@ public static class CreateNewUser
             if (existing is not null)
                 return Result.Fail<Response>("Email is already in use.");
 
-            var user = new ApplicationUser
+            Guid familyId;
+            if (request.CreateNewFamily)
             {
-                UserName = request.UserName,
+                familyId = Guid.NewGuid();
+            }
+            else
+            {                
+                familyId = await _current.GetFamilyIdAsync(cancellationToken) ?? Guid.NewGuid();
+            }
+
+            var user = new ApplicationUser
+            {   
+                UserName = request.Email,
                 Email = request.Email,
                 PhoneNumber = request.PhoneNumber,
                 EmailConfirmed = true,
-                FamilyId =  Guid.NewGuid()
+                FamilyId =  familyId
             };
 
             await _users.CreateAsync(user, request.Password);
@@ -38,7 +48,7 @@ public static class CreateNewUser
             if (roleResult.Failure)
                 return Result.Fail<Response>(roleResult.Error!);
 
-            return Result.Ok(new Response(user.UserName!, user.Email!, user.PhoneNumber ?? string.Empty));
+            return Result.Ok(new Response(user.Email!, user.PhoneNumber ?? string.Empty));
         }
 
         private async Task<Result> EnsureRolesAndAssignAsync(ApplicationUser user, IEnumerable<string>? roles)

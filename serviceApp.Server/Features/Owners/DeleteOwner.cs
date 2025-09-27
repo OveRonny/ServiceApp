@@ -31,7 +31,7 @@ public static class DeleteOwner
                     return Results.NotFound(result.Error);
                 }
                 return Results.Ok(true);
-            }).RequireAuthorization("Admin");
+            }).RequireAuthorization();
         }
     }
 }

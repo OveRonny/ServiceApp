@@ -48,7 +48,13 @@
 
 
     </EditForm>
+
+    <button class="btn btn-info mt-4" @onclick="@MoreInfo">Mer info</button>
+
 </div>
+
+
+
 @code {
     private VehicleModel vehicleModel = new VehicleModel();
 
@@ -101,4 +107,9 @@
     {
         NavigationManager.NavigateTo("/vehicles");
     }
+
+    private void MoreInfo()
+    {
+        NavigationManager.NavigateTo($"/vehicle-details/{vehicleModel.LicensePlate}");
+	}
 }

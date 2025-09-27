@@ -1,6 +1,7 @@
 ﻿@page "/consumptionrecord/{id:int}"
 @page "/consumptionrecord"
 @page "/consumptionrecord/create/vehicle/{vehicleId:int}"
+@using ServiceApp.UI.Shared.Utilities
 @inject IConsumptionRecordService ConsumptionRecordService
 @inject NavigationManager NavigationManager
 @attribute [Authorize]
@@ -21,16 +22,21 @@
     </div>
     <div class="mb-3">
         <label for="dieselAdded" class="form-label">Antall liter</label>
-        <InputText id="dieselAdded" class="form-control" @bind-Value="dieselAddedString" />
+        <InputText id="dieselAdded" class="form-control" @bind-Value="dieselAddedInput" />
         @if (!string.IsNullOrEmpty(dieselAddedError))
         {
             <div class="text-danger">@dieselAddedError</div>
         }
         <ValidationMessage For="@(() => consumptionRecord.DieselAdded)" />
     </div>
+
     <div class="mb-3">
         <label for="DieselPricePerLiter" class="form-label">Pris</label>
-        <InputNumber id="DieselPricePerLiter" class="form-control" @bind-Value="consumptionRecord.DieselPricePerLiter" />
+        <InputText id="DieselPricePerLiter" class="form-control" @bind-Value="priceInput" />
+        @if (!string.IsNullOrEmpty(priceError))
+        {
+            <div class="text-danger">@priceError</div>
+        }
         <ValidationMessage For="@(() => consumptionRecord.DieselPricePerLiter)" />
     </div>
     <div class="mb-3">
@@ -57,33 +63,46 @@
 
     private ConsumptionRecordModel consumptionRecord = new ConsumptionRecordModel();
 
-    private string dieselAddedString
+    private string? dieselAddedError;
+    private string? priceError;
+
+    private static string FormatDecimal(decimal v) =>
+        v == 0 ? string.Empty : v.ToString("G", System.Globalization.CultureInfo.CurrentCulture);
+
+    private string dieselAddedInput
     {
-        get => consumptionRecord.DieselAdded == 0 ? string.Empty : consumptionRecord.DieselAdded.ToString("G", System.Globalization.CultureInfo.CurrentCulture);
+        get => FormatDecimal(consumptionRecord.DieselAdded);
         set
         {
-            dieselAddedError = string.Empty;
-            if (string.IsNullOrWhiteSpace(value))
+            if (NumberParsing.TryParseDecimal(value, out var parsed, out var err))
             {
-                consumptionRecord.DieselAdded = 0;
-                return;
-            }
-            if (value.Contains('.'))
-            {
-                dieselAddedError = "Bruk komma (,) som desimaltegn, ikke punktum (.)";
-                return;
-            }
-            if (decimal.TryParse(value, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.CurrentCulture, out var d))
-            {
-                consumptionRecord.DieselAdded = d;
+                dieselAddedError = null;
+                consumptionRecord.DieselAdded = parsed;
             }
             else
             {
-                dieselAddedError = "Ugyldig tallformat. Bruk komma (,) som desimaltegn.";
+                dieselAddedError = err;
             }
         }
     }
-    private string dieselAddedError = string.Empty;
+
+    private string priceInput
+    {
+        get => FormatDecimal(consumptionRecord.DieselPricePerLiter);
+        set
+        {
+            if (NumberParsing.TryParseDecimal(value, out var parsed, out var err))
+            {
+                priceError = null;
+                consumptionRecord.DieselPricePerLiter = parsed;
+            }
+            else
+            {
+                priceError = err;
+            }
+        }
+    }
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -117,7 +136,7 @@
         {
             await ConsumptionRecordService.CreateConsumptionRecordAsync(consumptionRecord);
         }
-        // Redirect to the list page or show a success message
+       
         NavigatToConsumptionRecords();
     }
 

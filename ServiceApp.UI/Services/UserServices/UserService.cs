@@ -21,12 +21,12 @@ public class UserService(IHttpClientFactory clients) : IUserService
     {
         var http = ApiAuthed();
         var user = new
-        {
-            userModel.UserName,
+        {            
             userModel.Email,
             userModel.Password,
             userModel.PhoneNumber,
-            userModel.Roles
+            userModel.Roles,
+            userModel.CreateNewFamily
         };
         await http.PostAsJsonAsync("api/user", user);
     }

@@ -36,18 +36,6 @@
     <script src="lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="blazorCulture.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
-    <script>
-        // Avoid service worker caching in development (which can break Hot Reload)
-        if ('serviceWorker' in navigator) {
-            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            if (isLocalhost) {
-                // Unregister any existing SWs when running locally
-                navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
-            } else {
-                navigator.serviceWorker.register('service-worker.js');
-            }
-        }
-    </script>
 </body>
 
 </html>

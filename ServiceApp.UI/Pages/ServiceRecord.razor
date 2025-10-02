@@ -9,29 +9,56 @@
 <h3>Service</h3>
 
 <div class="mb-3">
-    <ServiceRecordForm  Id="Id" OnServiceRecordDeleted="DeleteServiceRecord" OnServiceRecordSaved="HandleValidSubmit" serviceRecord="serviceRecord" />
+    <ServiceRecordForm Id="Id"
+                       OnServiceRecordDeleted="RequestDelete"
+                       OnServiceRecordSaved="HandleValidSubmit"
+                       serviceRecord="serviceRecord" />
 </div>
-<ServiceRecordImages ImageIds="imageIds" ImageSasUrls="imageSasUrls" OnFileSelected="OnInputFileChange" />
 
+<ServiceRecordImages ImageIds="imageIds"
+                     ImageSasUrls="imageSasUrls"
+                     OnFileSelected="OnInputFileChange" />
+
+<ConfirmModal TContext="ServiceRecordModel"
+              Show="@showDelete"
+              ShowChanged="@(v => showDelete = v)"
+              Title="Slette service?"
+              ConfirmText="Slett"
+              CancelText="Avbryt"
+              Danger="true"
+              Icon="<i class='bi bi-trash-fill text-danger'></i>"
+              Context="serviceRecord"
+              OnConfirm="ConfirmDeleteAsync"
+              OnCancel="CancelDelete"
+              Size="sm"
+              ContextRenderer="DeleteContextFragment" />
 
 @code {
     private IBrowserFile? selectedFile;
     private ServiceRecordModel serviceRecord = new();
-    private List<int>? imageIds; 
+    private List<int>? imageIds;
     private VehicleInventoryModel? selectedInventory;
     private decimal addQuantity = 1m;
     private Dictionary<int, string> imageSasUrls = new();
 
-
-
     [Parameter] public int VehicleId { get; set; }
     [Parameter] public int Id { get; set; }
+
+    private bool showDelete;
+    private bool deleting;
+
+    // Move inline lambda + markup into a RenderFragment<T> property to avoid
+    // "Component attributes do not support complex content" error.
+    private RenderFragment<ServiceRecordModel> DeleteContextFragment => r => @<div>
+        <p>Du er i ferd med å slette service <strong>#@r.Id</strong> (@r.ServiceDate.ToShortDateString()).</p>
+        <p class="mb-0 text-danger">Denne handlingen kan ikke angres.</p>
+    </div>;
 
     protected override async Task OnParametersSetAsync()
     {
         if (Id > 0)
         {
-            serviceRecord = await ServiceRecordService.GetServiceRecordByIdAsync(Id); 
+            serviceRecord = await ServiceRecordService.GetServiceRecordByIdAsync(Id);
             await GetImageIds();
 
             if (serviceRecord.Parts is { Count: > 0 })
@@ -43,9 +70,9 @@
                         RowId = Guid.NewGuid(),
                         VehicleInventoryId = p.VehicleInventoryId,
                         Quantity = Math.Max(1, p.Quantity),
-                        UnitCost = p.Price,               
+                        UnitCost = p.Price,
                         Description = p.Description,
-                        Name= p.Name
+                        Name = p.Name
                     })
                     .ToList();
             }
@@ -54,16 +81,12 @@
         {
             serviceRecord = new ServiceRecordModel();
             if (VehicleId > 0) serviceRecord.VehicleId = VehicleId;
-
         }
 
-        // reset add-part state
-       
         selectedInventory = null;
         addQuantity = 1m;
         RecalcCost();
     }
-
 
     private async Task GetImageIds()
     {
@@ -75,7 +98,6 @@
 
     private void OnUsedPartQuantityChanged()
     {
-        // Normalize any invalid quantities and recalc
         foreach (var p in serviceRecord.UsedParts)
             if (p.Quantity <= 0) p.Quantity = 1m;
         RecalcCost();
@@ -99,29 +121,50 @@
             .ToList();
 
         if (Id > 0)
-        {           
+        {
             if (selectedFile != null)
-            {
                 await ServiceRecordService.UpdateServiceRecordWithImageAsync(serviceRecord, selectedFile);
-            }
             else
-            {
                 await ServiceRecordService.UpdateServiceRecordAsync(serviceRecord);
-            }
-        }        
+        }
         else
         {
-            if (selectedFile != null)              
-            {
+            if (selectedFile != null)
                 await ServiceRecordService.CreateServiceRecordWithImageAsync(serviceRecord, selectedFile);
-            }
             else
-            {
                 await ServiceRecordService.CreateServiceRecordAsync(serviceRecord);
-            }
         }
-        
+
         NavigateToServiceRecords();
+    }
+
+    private Task RequestDelete()
+    {
+        if (Id <= 0) return Task.CompletedTask;
+        showDelete = true;
+        return Task.CompletedTask;
+    }
+
+    private async Task ConfirmDeleteAsync(ServiceRecordModel? _)
+    {
+        if (Id <= 0) { showDelete = false; return; }
+        deleting = true;
+        try
+        {
+            await ServiceRecordService.DeleteServiceRecordAsync(Id);
+            NavigateToServiceRecords();
+        }
+        finally
+        {
+            deleting = false;
+            showDelete = false;
+        }
+    }
+
+    private Task CancelDelete(ServiceRecordModel? _)
+    {
+        showDelete = false;
+        return Task.CompletedTask;
     }
 
     private async Task DeleteServiceRecord()
@@ -140,9 +183,5 @@
     }
 
     private void OnInputFileChange(InputFileChangeEventArgs e)
-    {
-        selectedFile = e.File;
-    }
-
-   
+        => selectedFile = e.File;
 }

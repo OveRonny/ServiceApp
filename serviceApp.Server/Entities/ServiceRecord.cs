@@ -6,7 +6,7 @@ public class ServiceRecord
     public int VehicleId { get; set; }
     public Vehicle? Vehicle { get; set; }
     public string Description { get; set; } = string.Empty;
-    public decimal Cost { get; set; }
+    public decimal? Cost { get; set; }
     public DateTime ServiceDate { get; set; } = DateTime.Now;
     public int ServiceTypeId { get; set; }
     public ServiceType? ServiceType { get; set; }

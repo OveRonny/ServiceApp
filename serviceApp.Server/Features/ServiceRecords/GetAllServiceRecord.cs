@@ -5,7 +5,7 @@ public static class GetAllServiceRecord
     public record Query(int VehicleId) : IQuery<List<Response>>;
 
     public record Response(int Id, int VehicleId, int ServiceTypeId, DateTime ServiceDate, string Description,
-        decimal Cost, int MileageHistoryId, int Mileage, int? Hours, string VehicleName, string? ServiceTypeName);
+        decimal? Cost, int MileageHistoryId, int Mileage, int? Hours, string VehicleName, string? ServiceTypeName);
 
 
     public class Handler(ApplicationDbContext context) : IQueryHandler<Query, List<Response>>

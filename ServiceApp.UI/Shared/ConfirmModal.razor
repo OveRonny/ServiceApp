@@ -1,0 +1,108 @@
+@typeparam TContext
+
+@if (Show)
+{
+    <div class="app-modal-backdrop" role="presentation"></div>
+    <div class="app-modal-wrapper" role="dialog" aria-modal="true" aria-labelledby="@_titleId" aria-describedby="@_bodyId">
+        <div class="app-modal @SizeClass @(Danger ? "app-modal-danger" : "")">
+            <div class="app-modal-header">
+                <div class="d-flex align-items-center gap-2">
+                    @if (!string.IsNullOrWhiteSpace(Icon))
+                    {
+                        <span class="app-modal-icon">@((MarkupString)Icon!)</span>
+                    }
+                    <h5 id="@_titleId" class="mb-0">@Title</h5>
+                </div>
+                <button type="button" class="btn-close btn-sm" aria-label="Lukk" @onclick="Cancel"></button>
+            </div>
+
+            <div class="app-modal-body" id="@_bodyId">
+                @if (Body is not null)
+                {
+                    @Body
+                }
+                else if (ContextRenderer is not null && Context is not null)
+                {
+                    @ContextRenderer(Context)
+                }
+                else
+                {
+                    <p class="mb-0">@Message</p>
+                }
+            </div>
+
+            <div class="app-modal-footer">
+                <button class="btn btn-outline-secondary btn-sm" @onclick="Cancel">@CancelText</button>
+                <button class="btn btn-sm @(Danger ? "btn-danger" : "btn-primary")" disabled="@Busy" @onclick="Confirm">
+                    @if (Busy)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1"></span>
+                    }
+                    @ConfirmText
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Show { get; set; }
+    [Parameter] public EventCallback<bool> ShowChanged { get; set; }
+
+    [Parameter] public string Title { get; set; } = "Bekreft";
+    [Parameter] public string Message { get; set; } = "Er du sikker?";
+    [Parameter] public string ConfirmText { get; set; } = "OK";
+    [Parameter] public string CancelText { get; set; } = "Avbryt";
+    [Parameter] public RenderFragment? Body { get; set; }
+
+    [Parameter] public TContext? Context { get; set; }
+    [Parameter] public RenderFragment<TContext>? ContextRenderer { get; set; }
+
+    [Parameter] public EventCallback<TContext?> OnConfirm { get; set; }
+    [Parameter] public EventCallback<TContext?> OnCancel { get; set; }
+
+    // Visual customization
+    [Parameter] public bool Danger { get; set; } = true;          // Applies danger styling
+    [Parameter] public string? Icon { get; set; } = "<i class='bi bi-exclamation-triangle-fill text-danger'></i>";
+    [Parameter] public string Size { get; set; } = "sm";           // sm | md | lg | xl
+
+    private bool Busy;
+    private readonly string _titleId = $"cm_title_{Guid.NewGuid():N}";
+    private readonly string _bodyId = $"cm_body_{Guid.NewGuid():N}";
+
+    private string SizeClass => Size switch
+    {
+        "sm" => "app-modal-sm",
+        "lg" => "app-modal-lg",
+        "xl" => "app-modal-xl",
+        _ => ""
+    };
+
+    private async Task Confirm()
+    {
+        Busy = true;
+        try
+        {
+            await OnConfirm.InvokeAsync(Context);
+            await CloseAsync();
+        }
+        finally
+        {
+            Busy = false;
+        }
+    }
+
+    private async Task Cancel()
+    {
+        if (Busy) return;
+        await OnCancel.InvokeAsync(Context);
+        await CloseAsync();
+    }
+
+    private async Task CloseAsync()
+    {
+        Show = false;
+        await ShowChanged.InvokeAsync(false);
+        StateHasChanged();
+    }
+}

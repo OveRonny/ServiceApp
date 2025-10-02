@@ -4,7 +4,7 @@ public static class GetServiceRecordById
 {
     public record Query(int Id) : IQuery<Response>;
 
-    public record Response(int Id, int VehicleId, DateTime ServiceDate, decimal Cost, string Description,
+    public record Response(int Id, int VehicleId, DateTime ServiceDate, decimal? Cost, string Description,
         int MileageHistoryId, int Mileage, int? Hours, string VehicleName, List<Parts> Parts, int ServiceTypeId, int ServiceCompanyId);
     public class Handler(ApplicationDbContext context) : IQueryHandler<Query, Response>
     {

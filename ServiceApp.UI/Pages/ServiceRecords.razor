@@ -5,11 +5,11 @@
 
 <h3>ServiceRecords</h3>
 
-<button class="btn btn-primary" @onclick="NavigateToCreate">Create New Service Record</button>
+<button class="btn btn-primary mb-3" @onclick="NavigateToCreate">Create New Service Record</button>
 
 <div class="page-section mt-3">
     <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
-        @if (serviceRecords != null && serviceRecords.Count > 0)
+        @if (serviceRecords is { Count: > 0 })
         {
             @foreach (var record in serviceRecords)
             {
@@ -36,14 +36,18 @@
                                     Kilometer: <strong>@record.Mileage</strong>
                                 </div>
                                 <div class="cost-chip">
-                                    @record.Cost.ToString("C")
+                                    @record.Cost
                                 </div>
                             </div>
                         </div>
-                        <div class="card-footer bg-transparent border-0 pt-0 d-flex justify-content-end">
+                        <div class="card-footer bg-transparent border-0 pt-0 d-flex justify-content-end gap-2">
                             <NavLink class="btn btn-sm btn-outline-secondary" href="@($"/servicerecord/{record.Id}")">
                                 <i class="bi bi-pencil me-1"></i> Edit
                             </NavLink>
+                            <button class="btn btn-sm btn-outline-danger"
+                                    @onclick="() => OpenDelete(record)">
+                                <i class="bi bi-trash me-1"></i> Delete
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -55,24 +59,93 @@
                 <div class="alert alert-info mb-0">No service records found.</div>
             </div>
         }
-    
     </div>
-
 </div>
 
-@code {
-    private List<ServiceRecordModel> serviceRecords = new List<ServiceRecordModel>();
+<ConfirmModal TContext="ServiceRecordModel"
+              Show="@showDelete"
+              ShowChanged="@OnModalChanged"
+              Title="Slette service?"
+              ConfirmText="Slett"
+              CancelText="Avbryt"
+              Context="recordToDelete"
+              OnConfirm="DeleteConfirmed"
+              OnCancel="DeleteCanceled"
+              Size="sm"
+              ContextRenderer="DeleteContextFragment" />
 
-    [Parameter]
-    public int VehicleId { get; set; }
+@code {
+    private List<ServiceRecordModel> serviceRecords = new();
+    [Parameter] public int VehicleId { get; set; }
+
+    private bool showDelete;
+    private ServiceRecordModel? recordToDelete;
+    private bool loading;
+
+    // RenderFragment<T> separated so it is valid attribute content
+    private RenderFragment<ServiceRecordModel> DeleteContextFragment => record => @<div>
+        <p>Du er i ferd med å slette service <strong>#@record.Id</strong> datert @record.ServiceDate.ToShortDateString().</p>
+        <p class="mb-0 text-danger">Denne handlingen kan ikke angres.</p>
+    </div>;
 
     protected override async Task OnInitializedAsync()
     {
-        serviceRecords = await ServiceRecordService.GetServiceRecordsAsync(VehicleId);
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        loading = true;
+        try
+        {
+            serviceRecords = await ServiceRecordService.GetServiceRecordsAsync(VehicleId);
+        }
+        finally
+        {
+            loading = false;
+        }
     }
 
     private void NavigateToCreate()
+        => NavigationManager.NavigateTo("/servicerecord/create");
+
+    private void OpenDelete(ServiceRecordModel record)
     {
-        NavigationManager.NavigateTo("/servicerecord/create");
+        recordToDelete = record;
+        showDelete = true;
+    }
+
+    private Task OnModalChanged(bool value)
+    {
+        showDelete = value;
+        if (!value)
+            recordToDelete = null;
+        return Task.CompletedTask;
+    }
+
+    private async Task DeleteConfirmed(ServiceRecordModel? record)
+    {
+        if (record is null) return;
+        try
+        {
+            await ServiceRecordService.DeleteServiceRecordAsync(record.Id);
+            serviceRecords.RemoveAll(r => r.Id == record.Id);
+        }
+        catch (Exception)
+        {
+            // Optionally log or show toast
+        }
+        finally
+        {
+            recordToDelete = null;
+            showDelete = false;
+            StateHasChanged();
+        }
+    }
+
+    private Task DeleteCanceled(ServiceRecordModel? _)
+    {
+        recordToDelete = null;
+        return Task.CompletedTask;
     }
 }

@@ -5,9 +5,9 @@ namespace serviceApp.Server.Features.ServiceRecords;
 public static class CreateServiceRecord
 {
     public record UsedPart(int VehicleInventoryId, int Quantity);
-    public record Command(int VehicleId, int ServiceTypeId, string Description, decimal Cost, int Mileage, int? Hours, int ServiceCompanyId, IReadOnlyList<UsedPart>? UsedParts = null) : ICommand<Response>;
+    public record Command(int VehicleId, int ServiceTypeId, string Description, decimal? Cost, int Mileage, int? Hours, int ServiceCompanyId, IReadOnlyList<UsedPart>? UsedParts = null) : ICommand<Response>;
 
-    public record Response(int Id, int VehicleId, int ServiceTypeId, DateTime ServiceDate, string Description, decimal Cost, int Mileage, int? Hours);
+    public record Response(int Id, int VehicleId, int ServiceTypeId, DateTime ServiceDate, string Description, decimal? Cost, int Mileage, int? Hours);
 
     public class Handler(ApplicationDbContext context, ICurrentUser currentUser) : ICommandHandler<Command, Response>
     {

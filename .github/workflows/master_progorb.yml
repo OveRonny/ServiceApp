@@ -71,7 +71,7 @@ jobs:
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_5D4F99BDA47B4F63A7EA87048AD9C692 }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_6D097357F17A4ECEB2385305945AD361 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_67E28BBD350848CB8F3BF88A6299F76B }}
+          auth-type: workload_identity
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
@@ -80,6 +80,7 @@ jobs:
           package: publish.zip
 
           
+
 
 
 

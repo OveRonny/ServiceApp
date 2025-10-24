@@ -28,9 +28,17 @@ public class ConsumptionRecord
         .OrderByDescending(m => m.RecordedDate)
         .FirstOrDefault();
 
-        if (previousMileage == null || MileageHistory.Mileage <= previousMileage.Mileage)
-            return null;
+        if (previousMileage == null) return null;
 
-        return DieselAdded / (MileageHistory.Mileage - previousMileage.Mileage);
+        var diffUnits = MileageHistory.Mileage - previousMileage.Mileage;
+        if (diffUnits <= 0) return null;
+
+        // If Mileage is stored in 0.1 km units (e.g., 206 => 20.6 km), convert to km
+        const decimal unitToKm = 0.1m; // change to 1m if already km, or 0.001m if meters
+        var distanceKm = diffUnits * unitToKm;
+
+        if (distanceKm <= 0) return null;
+
+        return DieselAdded / distanceKm; // e.g., 15 / 20.6 = 0.728 L/km
     }
 }

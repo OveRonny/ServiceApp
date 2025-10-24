@@ -2,10 +2,10 @@
 
 public static class UpdateVehicleInventory
 {
-    public record Command(int Id, string PartName, decimal Cost, string Description, int VehicleId, int SupplierId, decimal? QuantityInStock, decimal? ReorderThreshold, UnitOfMeasure Unit = UnitOfMeasure.Piece,
-        decimal? QuantityDelta = null) : ICommand<Response>;
+    public record Command(int Id, string PartName, decimal Cost, string Description, int VehicleId, int SupplierId, int? QuantityInStock, int? ReorderThreshold,
+        int? QuantityDelta = null) : ICommand<Response>;
 
-    public record Response(int Id, string PartName, decimal Cost, string Description, int VehicleId, int SupplierId, DateTime PurchaseDate, decimal? QuantityInStock, decimal? ReorderThreshold, UnitOfMeasure Unit);
+    public record Response(int Id, string PartName, decimal Cost, string Description, int VehicleId, int SupplierId, DateTime PurchaseDate, int? QuantityInStock, int? ReorderThreshold);
 
     public class Handler(ApplicationDbContext context) : ICommandHandler<Command, Response>
     {
@@ -24,19 +24,18 @@ public static class UpdateVehicleInventory
             vehicleInventory.Description = request.Description;
             vehicleInventory.VehicleId = request.VehicleId;
             vehicleInventory.SupplierId = request.SupplierId;
-            vehicleInventory.ReorderThreshold = request.ReorderThreshold;
-            vehicleInventory.Unit = request.Unit;
+          
 
             // Stock handling:
             // 1) If QuantityDelta provided -> adjust by delta; weighted-average Cost if adding stock.
             // 2) Else if QuantityInStock provided -> set absolute quantity (no cost averaging).
             if (request.QuantityDelta.HasValue)
             {
-                var oldQty = vehicleInventory.QuantityInStock ?? 0m;
+                var oldQty = vehicleInventory.QuantityInStock ?? 0;
                 var delta = request.QuantityDelta.Value;
                 var newQty = oldQty + delta;
 
-                if (newQty < 0m)
+                if (newQty < 0)
                     return Result.Fail<Response>($"Resulting stock would be negative ({newQty}).");
 
                 // If adding stock, compute weighted-average unit cost using the provided Cost as the incoming unit price.
@@ -44,7 +43,7 @@ public static class UpdateVehicleInventory
                 {
                     var oldCost = vehicleInventory.Cost;
                     var totalQty = oldQty + delta;
-                    if (totalQty > 0m)
+                    if (totalQty > 0)
                     {
                         vehicleInventory.Cost = Math.Round(((oldQty * oldCost) + (delta * request.Cost)) / totalQty, 2);
                     }
@@ -58,7 +57,7 @@ public static class UpdateVehicleInventory
             else if (request.QuantityInStock.HasValue)
             {
                 // Absolute set of quantity
-                if (request.QuantityInStock.Value < 0m)
+                if (request.QuantityInStock.Value < 0)
                     return Result.Fail<Response>("QuantityInStock cannot be negative.");
 
                 vehicleInventory.QuantityInStock = request.QuantityInStock;
@@ -90,8 +89,8 @@ public static class UpdateVehicleInventory
                 vehicleInventory.SupplierId,
                 vehicleInventory.PurchaseDate,
                 vehicleInventory.QuantityInStock,
-                vehicleInventory.ReorderThreshold,
-                vehicleInventory.Unit
+                vehicleInventory.ReorderThreshold
+              
             );
         }
     }

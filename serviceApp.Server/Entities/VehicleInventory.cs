@@ -6,8 +6,8 @@ public class VehicleInventory
 {
     public int Id { get; set; }
     public string PartName { get; set; } = string.Empty;
-    public decimal? QuantityInStock { get; set; }
-    public decimal? ReorderThreshold { get; set; }
+    public int? QuantityInStock { get; set; }
+    public int? ReorderThreshold { get; set; }
     public string Description { get; set; } = string.Empty;
     public decimal Cost { get; set; }
     public DateTime PurchaseDate { get; set; }
@@ -16,8 +16,6 @@ public class VehicleInventory
     public int SupplierId { get; set; }
     public Supplier? Supplier { get; set; }
     public Guid FamilyId { get; set; }
-
-    public UnitOfMeasure Unit { get; set; } = UnitOfMeasure.Piece;
 
     public ICollection<Parts> Parts { get; set; } = new List<Parts>();
 
@@ -30,10 +28,3 @@ public class VehicleInventory
             : false;
 }
 
-public enum UnitOfMeasure
-{
-    Piece = 0,
-    Liter = 1,
-    Meter = 2,
-    Kilogram = 3
-}

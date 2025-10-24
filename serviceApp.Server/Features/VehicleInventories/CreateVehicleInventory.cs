@@ -4,10 +4,10 @@ namespace serviceApp.Server.Features.VehicleInventories;
 
 public static class CreateVehicleInventory
 {
-    public record Command(string PartName, decimal Cost, string Description, int VehicleId, int SupplierId, decimal? QuantityInStock, decimal? ReorderThreshold, UnitOfMeasure Unit = UnitOfMeasure.Piece,
+    public record Command(string PartName, decimal Cost, string Description, int VehicleId, int SupplierId, int? QuantityInStock, decimal? ReorderThreshold,
         bool UpsertIfExists = true) : ICommand<Response>;
 
-    public record Response(int Id, string PartName, decimal Cost, string Description, int VehicleId, int SupplierId, DateTime PurchaseDate, decimal? QuantityInStock, decimal? ReorderThreshold, UnitOfMeasure Unit);
+    public record Response(int Id, string PartName, decimal Cost, string Description, int VehicleId, int SupplierId, DateTime PurchaseDate, int? QuantityInStock, int? ReorderThreshold);
 
     public class Handler(ApplicationDbContext context, ICurrentUser currentUser) : ICommandHandler<Command, Response>
     {
@@ -22,7 +22,7 @@ public static class CreateVehicleInventory
                 return Result.Fail<Response>("Not authenticated.");
 
             // Normalize quantity (supports decimals for things like oil in liters)
-            var qtyToAdd = request.QuantityInStock ?? 0m;
+            var qtyToAdd = request.QuantityInStock ?? 0;
 
             // Optional upsert: if an inventory item with same Vehicle + PartName + Unit exists, increment stock
             if (request.UpsertIfExists)
@@ -30,20 +30,19 @@ public static class CreateVehicleInventory
                 var existing = await context.VehicleInventories
                     .FirstOrDefaultAsync(v =>
                         v.VehicleId == request.VehicleId &&
-                        v.PartName == request.PartName &&
-                        v.Unit == request.Unit,
+                        v.PartName == request.PartName,                      
                         cancellationToken);
 
                 if (existing is not null)
                 {
-                    var oldQty = existing.QuantityInStock ?? 0m;
+                    var oldQty = existing.QuantityInStock ?? 0;
                     var newQty = oldQty + qtyToAdd;
 
                     // Weighted-average unit cost (all prices already include VAT in your scenario)
                     if (newQty > 0)
                     {
                         existing.Cost = Math.Round(
-                            ((oldQty * existing.Cost) + (qtyToAdd * request.Cost)) / newQty, 2);
+                            ((oldQty * existing.Cost) + (qtyToAdd * request.Cost)) / newQty, 2);                      
                     }
 
                     existing.QuantityInStock = newQty;
@@ -64,8 +63,8 @@ public static class CreateVehicleInventory
                         existing.SupplierId,
                         existing.PurchaseDate,
                         existing.QuantityInStock,
-                        existing.ReorderThreshold,
-                        existing.Unit
+                        existing.ReorderThreshold
+                       
                     );
                 }
             }
@@ -76,17 +75,16 @@ public static class CreateVehicleInventory
                 Cost = request.Cost,
                 VehicleId = request.VehicleId,
                 SupplierId = request.SupplierId,
-                QuantityInStock = request.QuantityInStock,
-                ReorderThreshold = request.ReorderThreshold,
+                QuantityInStock = request.QuantityInStock,               
                 Description = request.Description,
                 PurchaseDate = DateTime.Now,
-                Unit = request.Unit
+               
             };
             context.VehicleInventories.Add(vehicleInventory);
             await context.SaveChangesAsync(cancellationToken);
             return new Response(vehicleInventory.Id, vehicleInventory.PartName, vehicleInventory.Cost, vehicleInventory.Description,
                 vehicleInventory.VehicleId, vehicleInventory.SupplierId, vehicleInventory.PurchaseDate,
-                vehicleInventory.QuantityInStock, vehicleInventory.ReorderThreshold, vehicleInventory.Unit);
+                vehicleInventory.QuantityInStock, vehicleInventory.ReorderThreshold);
         }
     }
 

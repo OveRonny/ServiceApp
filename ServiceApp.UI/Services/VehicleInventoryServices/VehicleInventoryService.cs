@@ -44,14 +44,14 @@ public class VehicleInventoryService(IHttpClientFactory clients) : IVehicleInven
 
     public async Task AdjustInventoryAsync(
         int id,
-        decimal quantityDelta,
+        int quantityDelta,
         string partName,
         string description,
         decimal cost,
         int vehicleId,
         int supplierId,
-        decimal? reorderThreshold,
-        UnitOfMeasure unit)
+        int? reorderThreshold)
+        
     {
         var http = ApiAuthed();
 
@@ -64,8 +64,7 @@ public class VehicleInventoryService(IHttpClientFactory clients) : IVehicleInven
             VehicleId = vehicleId,
             SupplierId = supplierId,
             QuantityInStock = (decimal?)null, // not used when delta is provided
-            ReorderThreshold = reorderThreshold,
-            Unit = unit,
+            ReorderThreshold = reorderThreshold,         
             QuantityDelta = quantityDelta     // key field to adjust stock
         };
 

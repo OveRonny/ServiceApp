@@ -12,12 +12,11 @@ public interface IVehicleInventoryService
     Task DeleteVehicleInventoryAsync(int id);
     Task AdjustInventoryAsync(
         int id,
-        decimal quantityDelta,
+        int quantityDelta,
         string partName,
         string description,
         decimal cost,
         int vehicleId,
         int supplierId,
-        decimal? reorderThreshold,
-        UnitOfMeasure unit);
+        int? reorderThreshold);     
 }

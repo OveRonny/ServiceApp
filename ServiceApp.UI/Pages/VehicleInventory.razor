@@ -37,7 +37,7 @@
                 <strong>@selectedExistingPart.PartName</strong>
                 <div class="text-muted small">@selectedExistingPart.Description</div>
                 <div class="text-muted small">
-                    Nåværende lager: <strong>@(selectedExistingPart.QuantityInStock ?? 0)</strong> @selectedExistingPart.Unit
+                    Nåværende lager: <strong>@(selectedExistingPart.QuantityInStock ?? 0)</strong> 
                 </div>
                 <div class="text-muted small">
                     Enhetspris: <strong>@selectedExistingPart.Cost.ToString("C")</strong>
@@ -72,15 +72,6 @@
             <ValidationMessage For="@(() => vehicleInventoryModel.Cost)" />
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Enhet</label>
-            <InputSelect class="form-select" @bind-Value="vehicleInventoryModel.Unit" disabled="@(selectedExistingId is int)">
-                @foreach (UnitOfMeasure u in Enum.GetValues(typeof(UnitOfMeasure)))
-                {
-                    <option value="@u">@u</option>
-                }
-            </InputSelect>
-        </div>
 
         @if (selectedExistingId is null)
         {
@@ -127,7 +118,7 @@
     private List<VehicleInventoryModel> existingForVehicle = new();
     private int? selectedExistingId;
     private VehicleInventoryModel? selectedExistingPart;
-    private decimal adjustQuantity = 1m;
+    private int adjustQuantity = 1;
 
     [Parameter] public int Id { get; set; }
     [Parameter] public int VehicleId { get; set; }
@@ -163,12 +154,11 @@
             vehicleInventoryModel.VehicleId = selectedExistingPart.VehicleId;
             vehicleInventoryModel.SupplierId = selectedExistingPart.SupplierId;
             vehicleInventoryModel.PartName = selectedExistingPart.PartName;
-            vehicleInventoryModel.Description = selectedExistingPart.Description;
-            vehicleInventoryModel.Unit = selectedExistingPart.Unit;
-            // Start with its current unit cost; editable to adjust moving average
+            vehicleInventoryModel.Description = selectedExistingPart.Description;         
+        
             vehicleInventoryModel.Cost = selectedExistingPart.Cost;
             vehicleInventoryModel.ReorderThreshold = selectedExistingPart.ReorderThreshold;
-            adjustQuantity = 1m;
+            adjustQuantity = 1;
         }
         else
         {
@@ -178,7 +168,7 @@
                 VehicleId = VehicleId,
                 PurchaseDate = DateTime.Today
             };
-            adjustQuantity = 1m;
+            adjustQuantity = 1;
         }
         StateHasChanged();
     }
@@ -200,8 +190,7 @@
                 cost: vehicleInventoryModel.Cost,        // incoming unit price (for weighted average)
                 vehicleId: selectedExistingPart.VehicleId,
                 supplierId: vehicleInventoryModel.SupplierId,
-                reorderThreshold: vehicleInventoryModel.ReorderThreshold,
-                unit: selectedExistingPart.Unit
+                reorderThreshold: vehicleInventoryModel.ReorderThreshold               
             );
         }
         else

@@ -1,7 +1,4 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy ASP.NET Core API - progorb
+name: Build and deploy ASP.NET Core API - ServiceApp
 
 on:
   push:
@@ -10,7 +7,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write
+  id-token: write  # Required for OIDC
 
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
@@ -66,12 +63,10 @@ jobs:
           name: api-publish
           path: .
 
-      - name: Azure Login (OIDC)
+      - name: Azure Login
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_5D4F99BDA47B4F63A7EA87048AD9C692 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_6D097357F17A4ECEB2385305945AD361 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_67E28BBD350848CB8F3BF88A6299F76B }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
@@ -79,7 +74,11 @@ jobs:
           app-name: progorb
           package: publish.zip
 
-          
+
+
+
+
+
 
 
 

@@ -19,8 +19,7 @@ Deployed on **Azure** for global access.
 
 This project uses **Vertical Slice Architecture** for organized, feature-based development. Each feature (slice) contains:
 - Command & Query handlers  
-- EF Core DbContext access scoped to the slice  
-- DTOs / Models for the feature  
+- EF Core DbContext access scoped to the slice    
 - API endpoints colocated with business logic  
 
 Additional backend features:

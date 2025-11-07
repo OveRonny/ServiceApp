@@ -38,7 +38,7 @@
     private ServiceRecordModel serviceRecord = new();
     private List<int>? imageIds;
     private VehicleInventoryModel? selectedInventory;
-    private decimal addQuantity = 1m;
+    // private decimal addQuantity = 1m;
     private Dictionary<int, string> imageSasUrls = new();
 
     [Parameter] public int VehicleId { get; set; }
@@ -69,7 +69,7 @@
                     {
                         RowId = Guid.NewGuid(),
                         VehicleInventoryId = p.VehicleInventoryId,
-                        Quantity = Math.Max(1, p.Quantity),
+						Quantity = p.Quantity,
                         UnitCost = p.Price,
                         Description = p.Description,
                         Name = p.Name
@@ -83,8 +83,7 @@
             if (VehicleId > 0) serviceRecord.VehicleId = VehicleId;
         }
 
-        selectedInventory = null;
-        addQuantity = 1m;
+        selectedInventory = null;    
         RecalcCost();
     }
 
@@ -96,12 +95,12 @@
             : new Dictionary<int, string>();
     }
 
-    private void OnUsedPartQuantityChanged()
-    {
-        foreach (var p in serviceRecord.UsedParts)
-            if (p.Quantity <= 0) p.Quantity = 1m;
-        RecalcCost();
-    }
+   //  private void OnUsedPartQuantityChanged()
+   //  {
+   //      foreach (var p in serviceRecord.UsedParts)
+			// if (p.Quantity <= 0) p.Quantity = 1;
+   //      RecalcCost();
+   //  }
 
     private decimal CalculatedPartsTotal()
         => serviceRecord.UsedParts

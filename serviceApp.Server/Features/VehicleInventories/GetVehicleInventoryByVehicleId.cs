@@ -5,7 +5,7 @@ public static class GetVehicleInventoryByVehicleId
     public record class Query(int VehicleId, bool IncludeZero = true) : IQuery<List<Response>>;
 
     public record Response(int Id, string PartName, decimal Cost, string Description, int VehicleId, int SupplierId,
-        DateTime PurchaseDate, decimal? QuantityInStock, decimal? ReorderThreshold);
+        DateTime PurchaseDate, int? QuantityInStock, int? ReorderThreshold);
 
     public class Handler(ApplicationDbContext context) : IQueryHandler<Query, List<Response>>
     {

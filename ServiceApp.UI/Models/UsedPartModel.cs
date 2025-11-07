@@ -6,7 +6,7 @@ public class UsedPartModel
     public Guid RowId { get; set; } = Guid.NewGuid();
 
     public int? VehicleInventoryId { get; set; }
-    public decimal Quantity { get; set; } = 1m;
+    public int Quantity { get; set; }
 
     // UI-only: unit cost and description for display
     public decimal? UnitCost { get; set; }

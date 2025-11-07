@@ -4,7 +4,7 @@ namespace serviceApp.Server.Features.VehicleInventories;
 
 public static class CreateVehicleInventory
 {
-    public record Command(string PartName, decimal Cost, string Description, int VehicleId, int SupplierId, int? QuantityInStock, decimal? ReorderThreshold,
+    public record Command(string PartName, decimal Cost, string Description, int VehicleId, int SupplierId, DateTime PurchaseDate, int? QuantityInStock, decimal? ReorderThreshold,
         bool UpsertIfExists = true) : ICommand<Response>;
 
     public record Response(int Id, string PartName, decimal Cost, string Description, int VehicleId, int SupplierId, DateTime PurchaseDate, int? QuantityInStock, int? ReorderThreshold);
@@ -21,10 +21,10 @@ public static class CreateVehicleInventory
             if (familyId is null)
                 return Result.Fail<Response>("Not authenticated.");
 
-            // Normalize quantity (supports decimals for things like oil in liters)
+            
             var qtyToAdd = request.QuantityInStock ?? 0;
 
-            // Optional upsert: if an inventory item with same Vehicle + PartName + Unit exists, increment stock
+            
             if (request.UpsertIfExists)
             {
                 var existing = await context.VehicleInventories
@@ -46,7 +46,7 @@ public static class CreateVehicleInventory
                     }
 
                     existing.QuantityInStock = newQty;
-                    existing.PurchaseDate = DateTime.Now;
+                    existing.PurchaseDate = request.PurchaseDate;
                     existing.SupplierId = request.SupplierId;
                     // Keep existing description if set; otherwise take the new one
                     if (string.IsNullOrWhiteSpace(existing.Description))
@@ -77,7 +77,7 @@ public static class CreateVehicleInventory
                 SupplierId = request.SupplierId,
                 QuantityInStock = request.QuantityInStock,               
                 Description = request.Description,
-                PurchaseDate = DateTime.Now,
+                PurchaseDate = request.PurchaseDate,
                
             };
             context.VehicleInventories.Add(vehicleInventory);

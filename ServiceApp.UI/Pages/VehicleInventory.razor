@@ -109,6 +109,15 @@
                 </NavLink>
             }
         </div>
+
+        @if (Id > 0)
+        {
+            <div class="mt-3">
+                <button type="button" class="btn btn-danger" @onclick="DeleteVehicleInventoryAsync">
+                    <i class="bi bi-trash me-1"></i> Slett del
+                </button>
+            </div>
+		}
     </EditForm>
 </div>
 
@@ -155,7 +164,7 @@
             vehicleInventoryModel.SupplierId = selectedExistingPart.SupplierId;
             vehicleInventoryModel.PartName = selectedExistingPart.PartName;
             vehicleInventoryModel.Description = selectedExistingPart.Description;         
-        
+
             vehicleInventoryModel.Cost = selectedExistingPart.Cost;
             vehicleInventoryModel.ReorderThreshold = selectedExistingPart.ReorderThreshold;
             adjustQuantity = 1;
@@ -200,5 +209,14 @@
         }
 
         NavigationManager.NavigateTo($"/vehicleinventories/{vehicleInventoryModel.VehicleId}");
+    }
+
+    public async Task DeleteVehicleInventoryAsync()
+    {
+        if(Id > 0)
+        {
+            await VehicleInventoryService.DeleteVehicleInventoryAsync(Id);
+            NavigationManager.NavigateTo($"/vehicleinventories/{vehicleInventoryModel.VehicleId}");
+        }    
     }
 }

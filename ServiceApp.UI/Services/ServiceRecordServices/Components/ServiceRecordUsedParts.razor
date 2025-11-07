@@ -15,18 +15,20 @@
 
         <div class="col-md-3">
             <label class="form-label" for="addQty">Antall</label>
-            <InputNumber id="addQty"
-                         class="form-control"
-                         @bind-Value="addQuantity"
-                         step="0.1" />
+            <InputNumber  id="addQty"
+                              class="form-control"
+                              @bind-Value="addQuantity"
+                              step="1"
+                              min="1"
+                              inputmode="numeric" />
         </div>
 
         <div class="col-md-2">
             <label class="form-label d-none d-md-block invisible">Placeholder</label>
             <button type="button"
                     class="btn btn-outline-primary"
-                    @onclick="AddSelectedPart"
-                    disabled="@(selectedInventoryId is null || addQuantity <= 0)">
+                    @onclick="AddSelectedPart">
+                       
                 <i class="bi bi-plus-lg me-1"></i> Legg til
             </button>
         </div>
@@ -71,10 +73,12 @@
                         </td>
                         <td class="text-end">@((part.UnitCost ?? 0m).ToString("C"))</td>
                         <td>
-                            <InputNumber class="form-control form-control-sm"
-                                         @bind-Value="part.Quantity"
-                                         step="0.1"
-                                         @bind-Value:after="OnUsedPartQuantityChanged" />
+                            <InputNumber TValue="int" class="form-control form-control-sm"
+                                              @bind-Value="part.Quantity"
+                                              step="1"
+                                              min="1"
+                                              inputmode="numeric"
+                                              @bind-Value:after="OnUsedPartQuantityChanged" />
                         </td>
                         <td class="text-end">@(((part.UnitCost ?? 0m) * (part.Quantity > 0 ? part.Quantity : 0)).ToString("C"))</td>
                         <td class="text-end">
@@ -105,18 +109,21 @@ else
 
     private int? selectedInventoryId;
     private VehicleInventoryModel? selectedInventory;
-    private decimal addQuantity = 1m;
+    private int addQuantity = 1;
 
     protected override void OnParametersSet()
     {
         UsedParts ??= new();
-        if (addQuantity <= 0) addQuantity = 1m;
+        if (addQuantity < 1) addQuantity = 1;
+        // Ensure all existing quantities are at least 1
+        foreach (var p in UsedParts)
+            if (p.Quantity < 1) p.Quantity = 1;
     }
 
     private void OnSelectedInventoryToAdd(VehicleInventoryModel? inv)
     {
         selectedInventory = inv;
-        if (addQuantity <= 0) addQuantity = 1m;
+        if (addQuantity < 1) addQuantity = 1;
         StateHasChanged();
     }
 
@@ -125,7 +132,7 @@ else
 
     private async Task AddSelectedPart()
     {
-        if (selectedInventoryId is not int invId || selectedInventory is null || addQuantity <= 0) return;
+        if (selectedInventoryId is not int invId || selectedInventory is null || addQuantity < 1) return;
 
         var existing = UsedParts!.FirstOrDefault(p => p.VehicleInventoryId == invId);
         if (existing is not null)
@@ -149,7 +156,7 @@ else
 
         selectedInventoryId = null;
         selectedInventory = null;
-        addQuantity = 1m;
+        addQuantity = 1;
 
         await NotifyChangedAsync();
     }
@@ -163,7 +170,7 @@ else
     private async Task OnUsedPartQuantityChanged()
     {
         foreach (var p in UsedParts!)
-            if (p.Quantity <= 0) p.Quantity = 1m;
+            if (p.Quantity < 1) p.Quantity = 1;
 
         await NotifyChangedAsync();
     }

@@ -2,7 +2,7 @@
 
 public static class UpdateVehicleInventory
 {
-    public record Command(int Id, string PartName, decimal Cost, string Description, int VehicleId, int SupplierId, int? QuantityInStock, int? ReorderThreshold,
+    public record Command(int Id, string PartName, decimal Cost, string Description, int VehicleId, int SupplierId, DateTime PurchaseDate ,int? QuantityInStock, int? ReorderThreshold,
         int? QuantityDelta = null) : ICommand<Response>;
 
     public record Response(int Id, string PartName, decimal Cost, string Description, int VehicleId, int SupplierId, DateTime PurchaseDate, int? QuantityInStock, int? ReorderThreshold);
@@ -24,6 +24,7 @@ public static class UpdateVehicleInventory
             vehicleInventory.Description = request.Description;
             vehicleInventory.VehicleId = request.VehicleId;
             vehicleInventory.SupplierId = request.SupplierId;
+            vehicleInventory.PurchaseDate = request.PurchaseDate;
           
 
             // Stock handling:

@@ -5,7 +5,7 @@ public static class GetAllConsumptionRecord
     public record Query(int VehicleId, DateTime? StartDate, DateTime? EndDate) : IQuery<(List<Response> Records, ConsumptionSummaryResponse Summary)>;
 
     public record Response(int Id, int VehicleId, DateTime Date, decimal DieselAdded, decimal DieselPricePerLiter,
-        decimal TotalCost, decimal? DieselConsumption, int MileageHistoryId, int Mileage, int? Hours, string Make, string Model);
+        decimal TotalCost, decimal? DieselConsumption, int MileageHistoryId, int Mileage, int? Hours, string Make, string Model, int? DrivenKm);
 
 
     public record ConsumptionSummaryResponse(
@@ -56,10 +56,11 @@ public static class GetAllConsumptionRecord
             var calculateDriven = new CalculateTotalDrivenService();
 
             int totalDriven = calculateDriven.CalculateTotalDriven(consumptionRecords, start, endExclusive);
+            int drivenLastRecordToNow = calculateDriven.CalculateDrivenLastRecordToNow(consumptionRecords);
 
             var calculator = new FuelCalculatorService();
 
-            decimal? avgConsumption = calculator.CalculateAverageConsumption(consumptionRecords);
+            decimal? avgConsumption = calculator.CalculateAveragePer100Km(consumptionRecords);
             decimal? avgPrice = calculator.CalculateAveragePrice(consumptionRecords, start, endExclusive);
 
             var response = consumptionRecords.Select(v => new Response(
@@ -74,7 +75,8 @@ public static class GetAllConsumptionRecord
                 v.MileageHistory!.Mileage,
                 v.MileageHistory.Hours,
                 v.Vehicle!.Make,
-                v.Vehicle.Model
+                v.Vehicle.Model,
+                v.DrivenKm
             )).ToList();
 
             var summary = new ConsumptionSummaryResponse(

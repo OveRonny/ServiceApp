@@ -74,5 +74,5 @@ public class FuelCalculatorService
 
 public static class DecimalExtensions
 {
-    public static decimal MultiplyBy100(this decimal value) => value * 100m;
+    public static decimal MultiplyBy100(this decimal value) => value * 10m;
 }

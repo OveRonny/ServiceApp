@@ -7,6 +7,14 @@
 <div class="container-xxl">
     <h3>Forbruk</h3>
 
+    @* Show the vehicle once (if we have records) so it doesn't repeat in the grid *@
+    @if (consumptionRecords?.Count > 0)
+    {
+        <div class="mb-2">
+            <strong>Kjøretøy:</strong> @consumptionRecords.First().Make @consumptionRecords.First().Model
+        </div>
+    }
+
     <button class="btn btn-primary mb-3" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/create/vehicle/{VehicleId}"))">Legg til</button>
     <div class="col-6">
         <div class="row">
@@ -54,8 +62,8 @@
                 <tr>
                     <th class="d-none d-lg-table-cell">Id</th>
                     <th>Dato</th>
-                    <th>Kjøretøy</th>
                     <th class="d-none d-sm-table-cell">Kilometer</th>
+                    <th class="text-end">Kjørte kilometer</th>
                     <th>Antall liter</th>
                     <th class="d-none d-lg-table-cell">Pris</th>
                     <th class="d-none d-lg-table-cell">Forbruk</th>
@@ -69,8 +77,8 @@
                     <tr>
                         <td class="d-none d-lg-table-cell">@record.Id</td>
                         <td>@record.Date.ToShortDateString()</td>
-                        <td>@record.Make @record.Model</td>
                         <td class="d-none d-sm-table-cell">@record.Mileage</td>
+                        <td class="text-end">@record.DrivenKm</td>
                         <td>@record.DieselAdded</td>
                         <td class="d-none d-lg-table-cell">@record.DieselPricePerLiter</td>
                         <td class="d-none d-lg-table-cell">@(record.DieselConsumption?.ToString("F2") ?? "-")</td>

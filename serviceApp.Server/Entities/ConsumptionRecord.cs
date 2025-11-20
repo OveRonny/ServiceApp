@@ -1,4 +1,6 @@
-﻿namespace serviceApp.Server.Entities;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace serviceApp.Server.Entities;
 
 public class ConsumptionRecord
 {
@@ -18,6 +20,8 @@ public class ConsumptionRecord
 
     public decimal? DieselConsumption => CalculateDieselConsumption();
 
+    [NotMapped]
+    public int? DrivenKm { get; set; }
 
     public decimal? CalculateDieselConsumption()
     {
@@ -41,4 +45,6 @@ public class ConsumptionRecord
 
         return DieselAdded / distanceKm; // e.g., 15 / 20.6 = 0.728 L/km
     }
+
+  
 }

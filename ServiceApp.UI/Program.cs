@@ -25,7 +25,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 var apiBase = builder.HostEnvironment.IsDevelopment()
     ? new Uri("https://localhost:7119/")
-    : new Uri("https://progorb-api.azurewebsites.net/");
+    : new Uri("https://progorb-api.azurewebsites.net/");  //progorb-api.azurewebsites.net
 
 
 // Plain API client

@@ -34,7 +34,24 @@
         <span class="dismiss">🗙</span>
     </div>
     <script src="lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="blazorCulture.js"></script>
+    <script>
+        // Minimal culture interop used by the app via JSInvoke: blazorCulture.get / set
+        window.blazorCulture = {
+            get: () => {
+                try {
+                    return localStorage.getItem('.AspNetCore.Culture') || '';
+                } catch { return ''; }
+            },
+            set: (value) => {
+                try {
+                    if (value) localStorage.setItem('.AspNetCore.Culture', value);
+                    else localStorage.removeItem('.AspNetCore.Culture');
+                    // Also set cookie so server APIs can pick it up if needed
+                    document.cookie = '.AspNetCore.Culture=' + (value || '') + '; path=/';
+                } catch { }
+            }
+        };
+    </script>
     <script src="_framework/blazor.webassembly.js"></script>
 </body>
 

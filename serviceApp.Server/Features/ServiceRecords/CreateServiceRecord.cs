@@ -1,11 +1,14 @@
-﻿using serviceApp.Server.Features.Autentication;
+﻿using System.Linq;
+using serviceApp.Server.Features.Autentication;
+
 
 namespace serviceApp.Server.Features.ServiceRecords;
 
 public static class CreateServiceRecord
 {
     public record UsedPart(int VehicleInventoryId, int Quantity);
-    public record Command(int VehicleId, int ServiceTypeId, string Description, decimal? Cost, int Mileage, int? Hours, int ServiceCompanyId, IReadOnlyList<UsedPart>? UsedParts = null) : ICommand<Response>;
+    public record Command(int VehicleId, int ServiceTypeId, string Description, decimal? Cost, int Mileage,
+        int? Hours, int ServiceCompanyId, DateTime ServiceDate, IReadOnlyList<UsedPart>? UsedParts = null) : ICommand<Response>;
 
     public record Response(int Id, int VehicleId, int ServiceTypeId, DateTime ServiceDate, string Description, decimal? Cost, int Mileage, int? Hours);
 
@@ -28,7 +31,7 @@ public static class CreateServiceRecord
             {
                 VehicleId = request.VehicleId,
                 ServiceTypeId = request.ServiceTypeId,
-                ServiceDate = DateTime.Now,
+                ServiceDate = request.ServiceDate,
                 Description = request.Description,
                 Cost = request.Cost,
                 MileageHistoryId = mileage.Id,
@@ -82,6 +85,11 @@ public static class CreateServiceRecord
                         VehicleInventoryId = inv.Id,
                     });
                 }
+
+                // Calculate total parts cost and add to record cost
+                var partsTotal = serviceRecord.Parts?.Sum(p => (p.Price ?? 0m) * p.Quantity) ?? 0m;
+                serviceRecord.Cost = (request.Cost ?? 0m) + partsTotal;
+               
             }
 
             context.ServiceRecords.Add(serviceRecord);

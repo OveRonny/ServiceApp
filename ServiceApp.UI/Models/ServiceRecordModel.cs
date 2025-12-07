@@ -18,7 +18,7 @@ public class ServiceRecordModel
     public ServiceCompanyModel? ServiceCompany { get; set; }
 
     public int? VehicleInventoryId { get; set; }
-    public decimal QuantityUsed { get; set; } = 1m;
+    public int QuantityUsed { get; set; } 
 
     public string? ServiceTypeName { get; set; } = string.Empty;
     public string? VehicleName { get; set; }

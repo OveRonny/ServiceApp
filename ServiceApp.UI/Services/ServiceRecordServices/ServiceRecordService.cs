@@ -37,13 +37,13 @@ public class ServiceRecordService(IHttpClientFactory clients) : IServiceRecordSe
         var usedParts = (model.UsedParts ?? new())
             .Where(p => p.VehicleInventoryId is int && p.Quantity > 0)
             // If your API expects int quantities, cast here. Remove the cast if server accepts decimal.
-            .Select(p => new { VehicleInventoryId = p.VehicleInventoryId!.Value})
+            .Select(p => new { VehicleInventoryId = p.VehicleInventoryId!.Value, p.Quantity })
             .ToList();
 
         // Fallback for legacy single-select (optional)
         if (usedParts.Count == 0 && model.VehicleInventoryId is int invId && model.QuantityUsed > 0)
         {
-            usedParts.Add(new { VehicleInventoryId = invId });
+            usedParts.Add(new { VehicleInventoryId = invId, Quantity = model.QuantityUsed });
         }
 
         var command = new
@@ -55,6 +55,7 @@ public class ServiceRecordService(IHttpClientFactory clients) : IServiceRecordSe
             model.Mileage,
             model.Hours,               // API command has Hours (nullable)
             model.ServiceCompanyId,
+            model.ServiceDate,
             UsedParts = usedParts
         };
 

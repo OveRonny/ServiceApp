@@ -10,6 +10,7 @@ public static class DeleteServiceRecord
         {
             var serviceRecord = await context.ServiceRecords
                 .Include(s => s.MileageHistory)
+                .Include(s => s.Parts)
                 .FirstOrDefaultAsync(s => s.Id == request.Id, cancellationToken);
 
             if (serviceRecord == null)
@@ -17,10 +18,35 @@ public static class DeleteServiceRecord
                 return Result.Fail<bool>($"ServiceRecord with ID {request.Id} not found.");
             }
 
+            if (serviceRecord.Parts != null && serviceRecord.Parts.Any())
+            {
+                foreach (var part in serviceRecord.Parts)
+                {
+                    // If the Parts entity stores VehicleInventoryId, try to find the inventory row
+                    if (part.VehicleInventoryId != 0) // assuming 0 means unset; adjust if nullable
+                    {
+                        var inventory = await context.VehicleInventories
+                            .FirstOrDefaultAsync(v => v.Id == part.VehicleInventoryId && v.VehicleId == serviceRecord.VehicleId, cancellationToken);
+
+                        if (inventory != null)
+                        {
+                            inventory.QuantityInStock = (inventory.QuantityInStock ?? 0) + part.Quantity;
+                            // tracked entity will be saved; no explicit Update required
+                        }
+                        // If inventory is missing, skip restoration to avoid throwing during delete.
+                        // Optionally log or handle this case if you prefer stricter behavior.
+                    }
+                }
+
+                context.Parts.RemoveRange(serviceRecord.Parts);
+            }
+
             if (serviceRecord.MileageHistory != null)
             {
                 context.MileageHistories.Remove(serviceRecord.MileageHistory);
             }
+
+           
 
             context.ServiceRecords.Remove(serviceRecord);
             await context.SaveChangesAsync(cancellationToken);

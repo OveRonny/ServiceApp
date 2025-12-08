@@ -27,7 +27,7 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish Progorb.ServiceApp.Wasm/serviceApp.Server/serviceApp.Server.csproj -c Release -o ${{ github.workspace }}/publish
+        run: dotnet publish serviceApp.Server/serviceApp.Server.csproj -c Release -o ${{ github.workspace }}/publish
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -64,5 +64,6 @@ jobs:
           package: ./publish
 
           
+
 
 

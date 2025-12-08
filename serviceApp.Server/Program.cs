@@ -7,12 +7,6 @@ using serviceApp.Server.Startup;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
-
-builder.Services.AddOpenApi();
-
-builder.Services.AddDependency(builder.Configuration);
-builder.Services.AddAuthenticationSetup(builder.Configuration);
 
 builder.Services.AddCors(options =>
 {
@@ -24,9 +18,18 @@ builder.Services.AddCors(options =>
             "https://localhost:7119"
         )
         .AllowAnyHeader()
-        .AllowAnyMethod();
+        .AllowAnyMethod()
+        .AllowCredentials();
     });
 });
+
+builder.Services.AddControllers();
+
+builder.Services.AddOpenApi();
+
+builder.Services.AddDependency(builder.Configuration);
+builder.Services.AddAuthenticationSetup(builder.Configuration);
+
 
 var app = builder.Build();
 

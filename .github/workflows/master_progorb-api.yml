@@ -27,7 +27,7 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish serviceApp.Server/serviceApp.Server.csproj -c Release -o ./publish
+        run: dotnet publish serviceApp.Server/serviceApp.Server.csproj -c Release -o ./api-publish
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -64,6 +64,7 @@ jobs:
           package: ./api-publish
 
           
+
 
 
 

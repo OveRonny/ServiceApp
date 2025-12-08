@@ -33,7 +33,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: api-build
-          path: ./artifact
+          path: ./api-publish
 
   deploy:
     runs-on: ubuntu-latest
@@ -46,7 +46,8 @@ jobs:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: .net-app
+          name: api-build
+          path: ./artifact
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -61,9 +62,10 @@ jobs:
         with:
           app-name: 'progorb-api'
           slot-name: 'Production'
-          package: ./artifact
+          package: ./api-publish
 
           
+
 
 
 

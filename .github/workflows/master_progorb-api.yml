@@ -27,7 +27,8 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+        run: dotnet publish ServiceApp.Server/ServiceApp.Server.csproj -c Release -o ${{ github.workspace }}/myapp
+
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -62,4 +63,5 @@ jobs:
           app-name: 'progorb-api'
           slot-name: 'Production'
           package: .
+
           

@@ -32,4 +32,4 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "ServiceApp.UI"
-          output_location: "ServiceApp.UI/bin/Release/net10.0/publish/wwwroot"
+          output_location: "publish/wwwroot"

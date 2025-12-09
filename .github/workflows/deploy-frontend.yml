@@ -17,10 +17,11 @@ jobs:
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.x'
+          dotnet-version: '9.0.10'
 
       - name: Restore dependencies
-        run: dotnet restore ServiceApp.UI/ServiceApp.UI.csproj
+      - run: dotnet clean ServiceApp.UI/ServiceApp.UI.csproj
+      - run: dotnet restore ServiceApp.UI/ServiceApp.UI.csproj
 
       - name: Build Blazor UI
         run: dotnet publish ServiceApp.UI/ServiceApp.UI.csproj -c Release -o ${{github.workspace}}/publish

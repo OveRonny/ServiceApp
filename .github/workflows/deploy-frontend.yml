@@ -14,10 +14,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup .NET 10
+      - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.x'
+          dotnet-version: '9.x'
 
       - name: Restore dependencies
         run: dotnet restore ServiceApp.UI/ServiceApp.UI.csproj
@@ -32,4 +32,4 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "ServiceApp.UI"
-          output_location: "ServiceApp.UI/bin/Release/net10.0/publish/wwwroot"
+          output_location: "publish/wwwroot"

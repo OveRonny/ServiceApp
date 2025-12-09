@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -24,42 +24,62 @@ jobs:
           dotnet-version: '10.x'
 
       - name: Build with dotnet
-        run: dotnet build --configuration Release
+        run: dotnet build serviceApp.Server/serviceApp.Server.csproj --configuration Release
 
-      - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+      - name: Publish API
+        run: dotnet publish serviceApp.Server/serviceApp.Server.csproj -c Release -o ./api-publish
+
+      - name: Verify publish output
+        run: ls -R ./api-publish
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
-          name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          name: api-build
+          path: ./api-publish
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: .net-app
+          name: api-build
+          path: ./artifact
+
+      - name: List artifact content
+        run: ls -R ./artifact
       
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_97383AED743446A0B63A8ABCC3E5846B }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_1904642E1A44484E8F516252F710D672 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_CE147A22D47C421F9CE6729DFB31B59C }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_B635DD1A69754F8A9E0CDE8FC3E47659 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A93769371BDF433980CC63E74DFC4E5B }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_86E495002BC6425AB504E02545084B78 }}
 
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'progorb-api'
-          slot-name: 'Production'
-          package: .
+          package: ./artifact
+
+
           
+
+
+
+
+
+
+
+
+
+
+
+
+

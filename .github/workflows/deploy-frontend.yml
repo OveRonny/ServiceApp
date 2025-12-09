@@ -19,7 +19,7 @@ jobs:
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.10'
+          dotnet-version: '9.0.7'
 
       # 3️⃣ Clean and restore dependencies
       - name: Clean and restore

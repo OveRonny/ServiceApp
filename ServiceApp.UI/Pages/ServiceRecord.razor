@@ -37,7 +37,7 @@
     private IBrowserFile? selectedFile;
     private ServiceRecordModel serviceRecord = new();
     private List<int>? imageIds;
-    private VehicleInventoryModel? selectedInventory;
+    // private VehicleInventoryModel? selectedInventory;
     // private decimal addQuantity = 1m;
     private Dictionary<int, string> imageSasUrls = new();
 
@@ -83,7 +83,7 @@
             if (VehicleId > 0) serviceRecord.VehicleId = VehicleId;
         }
 
-        selectedInventory = null;    
+        // selectedInventory = null;    
         RecalcCost();
     }
 

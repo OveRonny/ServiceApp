@@ -31,29 +31,37 @@
 
     <!-- Mobile cards (xs-sm) -->
     <div class="d-md-none">
-        @foreach (var record in consumptionRecords)
+        @if (consumptionRecords is not null && consumptionRecords.Count == 0)
         {
-            <div class="card mb-2">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between text-dark">
-                        <strong>@record.Make @record.Model</strong>
-                        <span>@record.Date.ToShortDateString()</span>
-                    </div>
-                    <div class="mt-2">
-                        <div class="small text-dark">Kilometer: <strong>@record.Mileage</strong></div>
-                        <div class="small text-dark">kjørte km <strong>@record.DrivenKm</strong></div>
-                        <div class="small text-dark">Antall liter: <strong>@record.DieselAdded</strong></div>
-                        <div class="small text-dark">Pris/l: <strong>@record.DieselPricePerLiter</strong></div>
-                        <div class="small text-dark">Forbruk: <strong>@(record.DieselConsumption?.ToString("F2") ?? "-")</strong></div>
-                        <div class="small text-dark">Sum: <strong>@CurrencyFormatter.FormatKr(record.TotalCost)</strong></div>
-                    </div>
-                </div>
-                <div class="card-footer d-flex gap-2">
-                    <button class="btn btn-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/{record.Id}"))">Rediger</button>
-                    <button class="btn btn-danger btn-sm" @onclick="@(() => DeleteConsumption(record.Id))">Slett</button>
-                </div>
-            </div>
+            <div class="alert alert-info">Ingen forbruksdata funnet for det valgte tidsrommet.</div>
         }
+        else if (consumptionRecords is not null)
+        {
+            @foreach (var record in consumptionRecords)
+            {
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between text-dark">
+                            <strong>@($"{record?.Make ?? string.Empty} {record?.Model ?? string.Empty}")</strong>
+                            <span>@(record?.Date.ToShortDateString() ?? "-")</span>
+                        </div>
+                        <div class="mt-2">
+                            <div class="small text-dark">Kilometer: <strong>@(record?.Mileage ?? 0)</strong></div>
+                            <div class="small text-dark">kjørte km <strong>@(record?.DrivenKm ?? 0)</strong></div>
+                            <div class="small text-dark">Antall liter: <strong>@(record?.DieselAdded ?? 0)</strong></div>
+                            <div class="small text-dark">Pris/l: <strong>@(record?.DieselPricePerLiter ?? 0)</strong></div>
+                            <div class="small text-dark">Forbruk: <strong>@(record?.DieselConsumption is not null ? record.DieselConsumption.Value.ToString("F2") : "-")</strong></div>
+                            <div class="small text-dark">Sum: <strong>@CurrencyFormatter.FormatKr(record?.TotalCost ?? 0)</strong></div>
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex gap-2">
+                        <button class="btn btn-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/{record?.Id ?? 0}"))">Rediger</button>
+                        <button class="btn btn-danger btn-sm" @onclick="@(() => DeleteConsumption(record?.Id ?? 0))">Slett</button>
+                    </div>
+                </div>
+            }
+        }        
+
     </div>
 
     <!-- Desktop table (md and up) -->
@@ -73,23 +81,36 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var record in consumptionRecords)
+                @if(consumptionRecords is not null && consumptionRecords.Count == 0)
                 {
                     <tr>
-                        <td class="d-none d-lg-table-cell">@record.Id</td>
-                        <td>@record.Date.ToShortDateString()</td>
-                        <td class="d-none d-sm-table-cell">@record.Mileage</td>
-                        <td class="text-end">@record.DrivenKm</td>
-                        <td>@record.DieselAdded</td>
-                        <td class="d-none d-lg-table-cell">@record.DieselPricePerLiter</td>
-                        <td class="d-none d-lg-table-cell">@(record.DieselConsumption?.ToString("F2") ?? "-")</td>
-                        <td>@CurrencyFormatter.FormatKr(record.TotalCost)</td>
-                        <td class="text-nowrap">
-                            <button class="btn btn-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/{record.Id}"))">Rediger</button>
-                            <button class="btn btn-danger btn-sm" @onclick="@(() => DeleteConsumption(record.Id))">Slett</button>
+                        <td colspan="9">
+                            <div class="alert alert-info mb-0">Ingen forbruksdata funnet for det valgte tidsrommet.</div>
                         </td>
                     </tr>
                 }
+                else if (consumptionRecords is not null)
+                {
+                    @foreach (var record in consumptionRecords)
+                    {
+                        <tr>
+                            <td class="d-none d-lg-table-cell">@record.Id</td>
+                            <td>@record.Date.ToShortDateString()</td>
+                            <td class="d-none d-sm-table-cell">@record.Mileage</td>
+                            <td class="text-end">@record.DrivenKm</td>
+                            <td>@record.DieselAdded</td>
+                            <td class="d-none d-lg-table-cell">@record.DieselPricePerLiter</td>
+                            <td class="d-none d-lg-table-cell">@(record.DieselConsumption?.ToString("F2") ?? "-")</td>
+                            <td>@CurrencyFormatter.FormatKr(record.TotalCost)</td>
+                            <td class="text-nowrap">
+                                <button class="btn btn-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/{record.Id}"))">Rediger</button>
+                                <button class="btn btn-danger btn-sm" @onclick="@(() => DeleteConsumption(record.Id))">Slett</button>
+                            </td>
+                        </tr>
+                    }
+                }
+                
+         
             </tbody>
         </table>
     </div>

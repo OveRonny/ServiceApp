@@ -1,6 +1,4 @@
-label.form-label[for="imageUpload"] {
-    color: #000 !important; /* force black, overrides Bootstrap */
-}
+
 
 /* File input text and background */
 #imageUpload {

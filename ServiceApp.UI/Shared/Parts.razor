@@ -11,24 +11,34 @@
             </tr>
         </thead>
         <tbody>
-            @if(serviceRecord.Parts != null && serviceRecord.Parts.Count > 0)              
-            @foreach (var part in serviceRecord.Parts)
+            @if(serviceRecord.Parts != null && serviceRecord.Parts.Count > 0)   
             {
-                <tr>
-                    <td><InputText @bind-Value="part.Name" class="form-control" /></td>
-                    <td><InputNumber @bind-Value="part.Price" class="form-control" /></td>
-                    <td><InputNumber @bind-Value="part.Quantity" class="form-control" /></td>
-                    <td><InputText @bind-Value="part.Description" class="form-control" /></td>
-                    <td>
-                        <button class="btn btn-danger" @onclick="() => RemovePart(part)" disabled="@(!CanRemovePart(part))">Remove</button>
-                    </td>
-                </tr>
+                @foreach (var part in serviceRecord.Parts)
+                {
+                    <tr>
+                        <td><InputText @bind-Value="part.Name" class="form-control" /></td>
+                        <td><InputNumber @bind-Value="part.Price" class="form-control" /></td>
+                        <td><InputNumber @bind-Value="part.Quantity" class="form-control" /></td>
+                        <td><InputText @bind-Value="part.Description" class="form-control" /></td>
+                        <td>
+                            <button class="btn btn-danger"
+                                    @onclick="@(() => RemovePart(part))"
+                                    disabled="@ShouldDisableRemove(part)">
+                                Remove
+                            </button>
+                        </td>
+
+                    </tr>
+                }
             }
         </tbody>
         <tfoot>
             <tr>
                 <td colspan="4"><strong>Total Cost:</strong></td>
-                <td><strong>@serviceRecord.Parts?.Sum(p => (p.Price ?? 0) * p.Quantity).ToString("F2")</strong></td>
+                @{
+                    var total = serviceRecord.Parts?.Sum(p => (p.Price ?? 0) * p.Quantity) ?? 0;
+                }
+                <td><strong>@total.ToString("F2")</strong></td>
             </tr>
         </tfoot>
     </table>
@@ -52,5 +62,7 @@
     }
 
     private bool CanRemovePart(PartsModel part) => part.Id == 0;
+    private bool ShouldDisableRemove(PartsModel part) =>
+        !CanRemovePart(part);
 }
 

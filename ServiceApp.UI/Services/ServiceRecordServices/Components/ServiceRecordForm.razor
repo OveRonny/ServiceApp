@@ -4,65 +4,66 @@
 <EditForm Model="serviceRecord" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
     <ValidationSummary />
-
-    <div class="mb-3">
-        <label class="form-label" for="vehicle">Kjøretøy</label>
-        <div class="form-group">
-            <VehicleDropdown @bind-selectedVehicleId="serviceRecord.VehicleId" />
+    <div class="col-6">
+        <div class="mb-3">
+            <label class="form-label" for="vehicle">Merke</label>
+            <div class="form-group">
+                <VehicleDropdown @bind-selectedVehicleId="serviceRecord.VehicleId" />
+            </div>
         </div>
-    </div>
 
-    <div class="mb-3">
-        <label class="form-label" for="ServiceCompanyId">Verksted</label>
-        <div class="form-group">
-            <ServiceCompanyDropdown @bind-SelectedServiceCompanyId="serviceRecord.ServiceCompanyId" />
+        <div class="mb-3">
+            <label class="form-label" for="ServiceCompanyId">Verksted</label>
+            <div class="form-group">
+                <ServiceCompanyDropdown @bind-SelectedServiceCompanyId="serviceRecord.ServiceCompanyId" />
+            </div>
         </div>
-    </div>
 
-    <div class="mb-3">
-        <label class="form-label" for="ServiceTypeId">Service type</label>
-        <div class="form-group">
-            <ServiceTypeDropdown @bind-SelectedServiceTypeId="serviceRecord.ServiceTypeId" />
+        <div class="mb-3">
+            <label class="form-label" for="ServiceTypeId">Service type</label>
+            <div class="form-group">
+                <ServiceTypeDropdown @bind-SelectedServiceTypeId="serviceRecord.ServiceTypeId" />
+            </div>
         </div>
-    </div>
 
-    <div class="mb-3">
-        <div class="form-group">
-            <label class="form-label" for="serviceDate">Dato</label>
-            <InputDate id="serviceDate" @bind-Value="serviceRecord.ServiceDate" class="form-control" />
+        <div class="mb-3">
+            <div class="form-group">
+                <label class="form-label" for="serviceDate">Dato</label>
+                <InputDate id="serviceDate" @bind-Value="serviceRecord.ServiceDate" class="form-control" />
+            </div>
         </div>
-    </div>
 
-    <div class="mb-3">
-        <div class="form-group">
-            <label class="form-label" for="description">Beskrivelse</label>
-            <InputTextArea id="description" @bind-Value="serviceRecord.Description" class="form-control" />
+        <div class="mb-3">
+            <div class="form-group">
+                <label class="form-label" for="description">Beskrivelse</label>
+                <InputTextArea id="description" @bind-Value="serviceRecord.Description" class="form-control" />
+            </div>
         </div>
-    </div>
 
-    <div class="form-group">
-        <label class="form-label" for="cost">Sum</label>
-        <InputNumber id="cost" @bind-Value="serviceRecord.Cost" class="form-control" />
-        <small class="text-muted">Beregnet: @(CalculatedPartsTotal().ToString("C"))</small>
-    </div>
+        <div class="form-group">
+            <label class="form-label" for="cost">Sum</label>
+            <InputNumber id="cost" @bind-Value="serviceRecord.Cost" class="form-control" />
+            <small class="text-muted">Beregnet: @(CalculatedPartsTotal().ToString("C"))</small>
+        </div>
 
-    <div class="form-group">
-        <label class="form-label" for="mileage">Kilometer</label>
-        <InputNumber id="mileage" @bind-Value="serviceRecord.Mileage" class="form-control" />
-    </div>
+        <div class="form-group">
+            <label class="form-label" for="mileage">Kilometer</label>
+            <InputNumber id="mileage" @bind-Value="serviceRecord.Mileage" class="form-control" />
+        </div>
 
    
 
-    <div class="d-flex gap-2 mt-3 mb-3">
-        <button type="submit" class="btn btn-primary">Lagre</button>
-        <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
-        @if (Id > 0)
-        {
-            <button type="button" class="btn btn-danger" @onclick="DeleteServiceRecord">Delete</button>
-        }
-    </div>
-    <div class="mb-3">
-        <ServiceRecordUsedParts VehicleId="serviceRecord.VehicleId" @bind-UsedParts="serviceRecord.UsedParts" />
+        <div class="d-flex gap-2 mt-3 mb-3">
+            <button type="submit" class="btn btn-primary">Lagre</button>
+            <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+            @if (Id > 0)
+            {
+                <button type="button" class="btn btn-danger" @onclick="DeleteServiceRecord">Delete</button>
+            }
+        </div>
+        <div class="mb-3">
+            <ServiceRecordUsedParts VehicleId="serviceRecord.VehicleId" @bind-UsedParts="serviceRecord.UsedParts" />
+        </div>
     </div>
 </EditForm>
 

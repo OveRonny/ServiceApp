@@ -53,7 +53,7 @@ else
 
         try
         {
-            inventories = await VehicleInventoryService.GetVehicleInventoryAsync(VehicleId)
+            inventories = await VehicleInventoryService.GetVehicleInventoryAsync(VehicleId,false)
                           ?? new List<VehicleInventoryModel>();
         }
         catch (Exception ex)

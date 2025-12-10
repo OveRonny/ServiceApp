@@ -1,28 +1,52 @@
 {
-  "navigationFallback": { "rewrite": "index.html" },
-  "routes": [
-    {
-      "route": "/_framework/*",
+  "navigationFallback": {
+    "rewrite": "index.html",
+    "exclude": [ "/service-worker.js", "/manifest.json" ]
+  },
+
+  "responseOverrides": {
+    "/index.html": {
       "headers": {
-        "cache-control": "public, max-age=31536000, immutable"
+        "Cache-Control": "no-cache, must-revalidate"
       }
     },
-    {
-      "route": "/service-worker.js",
+    "/service-worker.js": {
       "headers": {
-        "cache-control": "no-cache, must-revalidate"
+        "Cache-Control": "no-cache, must-revalidate"
       }
     },
-    {
-      "route": "/manifest.json",
+    "/manifest.json": {
       "headers": {
-        "cache-control": "no-cache, must-revalidate"
+        "Cache-Control": "no-cache, must-revalidate"
+      }
+    },
+    "/_framework/*": {
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    "/*.dll": {
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    "/*.wasm": {
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    "/*.js": {
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    "/*.css": {
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
       }
     }
-  ],
-  "globalHeaders": {
-    "cache-control": "no-cache, must-revalidate"
   },
+
   "mimeTypes": {
     ".wasm": "application/wasm"
   }

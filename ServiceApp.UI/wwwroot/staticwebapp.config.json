@@ -1,53 +1,65 @@
 {
   "navigationFallback": {
-    "rewrite": "index.html",
-    "exclude": [ "/service-worker.js", "/manifest.json" ]
+    "rewrite": "/index.html",
+    "exclude": [
+      "/service-worker.js",
+      "/manifest.json"
+    ]
   },
 
-  "responseOverrides": {
-    "/index.html": {
+  "routes": [
+    {
+      "route": "/index.html",
       "headers": {
-        "Cache-Control": "no-cache, must-revalidate"
+        "cache-control": "no-cache, must-revalidate"
       }
     },
-    "/service-worker.js": {
+    {
+      "route": "/service-worker.js",
       "headers": {
-        "Cache-Control": "no-cache, must-revalidate"
+        "cache-control": "no-cache, must-revalidate"
       }
     },
-    "/manifest.json": {
+    {
+      "route": "/manifest.json",
       "headers": {
-        "Cache-Control": "no-cache, must-revalidate"
+        "cache-control": "no-cache, must-revalidate"
       }
     },
-    "/_framework/*": {
+    {
+      "route": "/_framework/*",
       "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
+        "cache-control": "public, max-age=31536000, immutable"
       }
     },
-    "/*.dll": {
+    {
+      "route": "/*.dll",
       "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
+        "cache-control": "public, max-age=31536000, immutable"
       }
     },
-    "/*.wasm": {
+    {
+      "route": "/*.wasm",
       "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
+        "cache-control": "public, max-age=31536000, immutable"
       }
     },
-    "/*.js": {
+    {
+      "route": "/*.js",
       "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
+        "cache-control": "public, max-age=31536000, immutable"
       }
     },
-    "/*.css": {
+    {
+      "route": "/*.css",
       "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
+        "cache-control": "public, max-age=31536000, immutable"
       }
     }
-  },
+  ],
 
   "mimeTypes": {
     ".wasm": "application/wasm"
   }
 }
+

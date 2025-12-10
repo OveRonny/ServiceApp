@@ -11,20 +11,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2️⃣ Setup .NET 9 (eksakt versjon)
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.x'
+          dotnet-version: '9.0.7'
 
-      - name: Restore dependencies
-        run: dotnet restore ServiceApp.UI/ServiceApp.UI.csproj
+      # 3️⃣ Clean and restore dependencies
+      - name: Clean and restore
+        run: |
+          dotnet clean ServiceApp.UI/ServiceApp.UI.csproj
+          dotnet restore ServiceApp.UI/ServiceApp.UI.csproj
 
+      # 4️⃣ Build and publish Blazor UI
       - name: Build Blazor UI
-        run: dotnet publish ServiceApp.UI/ServiceApp.UI.csproj -c Release -o ${{github.workspace}}/publish
+        run: dotnet publish ServiceApp.UI/ServiceApp.UI.csproj -c Release -o ${{ github.workspace }}/publish
 
+      # 5️⃣ Deploy to Azure Static Web App
       - name: Deploy to Azure Static Web App
         uses: Azure/static-web-apps-deploy@v1
         with:
@@ -33,3 +40,4 @@ jobs:
           action: "upload"
           app_location: "ServiceApp.UI"
           output_location: "publish/wwwroot"
+

@@ -2,7 +2,7 @@
 
 public static class UpdateConsumptionRecord
 {
-    public record Command(int Id, int VehicleId, decimal DieselAdded, decimal DieselPricePerLiter, int Mileage, int? Hours) : ICommand<Response>;
+    public record Command(int Id, int VehicleId, decimal DieselAdded, decimal DieselPricePerLiter, DateTime Date, int Mileage, int? Hours) : ICommand<Response>;
     public record Response(int Id, int VehicleId, DateTime Date, decimal DieselAdded, decimal DieselPricePerLiter,
         decimal TotalCost, decimal? DieselConsumption, int Mileage);
 
@@ -27,6 +27,7 @@ public static class UpdateConsumptionRecord
             consumptionRecord.VehicleId = request.VehicleId;
             consumptionRecord.DieselAdded = request.DieselAdded;
             consumptionRecord.DieselPricePerLiter = request.DieselPricePerLiter;
+            consumptionRecord.Date = request.Date;
 
 
             var updatedMileage = await UpdateMilage(consumptionRecord.MileageHistoryId, request, cancellationToken);

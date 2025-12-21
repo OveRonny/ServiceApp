@@ -4,7 +4,7 @@ namespace serviceApp.Server.Features.ConsumptionRecords;
 
 public static class CreateConsumptionRecord
 {
-    public record Command(int VehicleId, decimal DieselAdded, decimal DieselPricePerLiter, int Mileage, int? Hours) : ICommand<Response>;
+    public record Command(int VehicleId, decimal DieselAdded, decimal DieselPricePerLiter, DateTime Date, int Mileage, int? Hours) : ICommand<Response>;
     public record Response(int Id, int VehicleId, DateTime Date, decimal DieselAdded, decimal DieselPricePerLiter,
         decimal TotalCost, decimal? DieselConsumption, int Mileage);
 
@@ -26,7 +26,7 @@ public static class CreateConsumptionRecord
                 VehicleId = request.VehicleId,
                 DieselAdded = request.DieselAdded,
                 DieselPricePerLiter = request.DieselPricePerLiter,
-                Date = DateTime.Now,
+                Date = request.Date,
                 MileageHistoryId = mileage.Id
             };
             context.ConsumptionRecords.Add(consumptionRecord);

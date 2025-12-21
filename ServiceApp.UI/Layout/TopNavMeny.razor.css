@@ -1,11 +1,11 @@
 /* Glass navbar */
 .navbar-glass {
-  background: rgba(255,255,255,0.75) !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-  position: relative;     /* create stacking context */
-  z-index: 1100;          /* higher than cards/sections */
+    background: rgba(255,255,255,0.75) !important;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    position: relative; /* create stacking context */
+    z-index: 1100; /* higher than cards/sections */
 }
 
 /* Dropdown (light) */
@@ -64,11 +64,11 @@
 
 /* Firefox (unprefixed background-clip support) */
 @supports (background-clip: text) and (not (-webkit-background-clip: text)) {
-  .navbar-brand .brand-gradient {
-    background-image: linear-gradient(90deg, var(--brand-primary), var(--brand-secondary), var(--brand-accent));
-    background-size: 200% 100%;
-    background-clip: text;
-    color: transparent;
-  }
+    .navbar-brand .brand-gradient {
+        background-image: linear-gradient(90deg, var(--brand-primary), var(--brand-secondary), var(--brand-accent));
+        background-size: 200% 100%;
+        background-clip: text;
+        color: transparent;
+    }
 }
 

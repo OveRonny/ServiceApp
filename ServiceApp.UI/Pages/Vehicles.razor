@@ -9,7 +9,7 @@
 <button type="button" class="btn btn-primary" @onclick="CreateVehicle">Nytt kjøretøy</button>
 
 <div class="page-section mt-3">
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-2 g-3">
         @if (vehicleModels != null && vehicleModels.Count > 0)
         {
             @foreach (var vehicle in vehicleModels)
@@ -39,13 +39,14 @@
                                 <span>Farge: <strong>@vehicle.Color</strong></span>
                             </div>
                         </div>
-                        <div class="card-footer bg-transparent d-flex gap-2">
-                            <button type="button" class="btn btn-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecords/{vehicle.Id}"))">Se forbruk</button>
-                            <button type="button" class="btn btn-secondary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/create/vehicle/{vehicle.Id}"))">Legg til forbruk</button>
+                        <div class="row">                         
+                            <button type="button" class="btn btn-outline-primary btn-sm " @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecords/{vehicle.Id}"))">Se forbruk</button>                          
+                            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/create/vehicle/{vehicle.Id}"))">Legg til forbruk</button>
                             <button type="button" class="btn btn-outline-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/vehicleinventories/{vehicle.Id}"))">Deler</button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/servicerecord/create/{vehicle.Id}"))">Service</button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/servicerecords/{vehicle.Id}"))">Alle Servicer</button>
-							<button type="button" class="btn btn-outline-secondary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/insurance/{vehicle.Id}"))">Forsikring</button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/servicerecord/create/{vehicle.Id}"))">Service</button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/servicerecords/{vehicle.Id}"))">Alle Servicer</button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/insurance/{vehicle.Id}"))">Forsikring</button>
+                           
                         </div>
                     </div>
                 </div>

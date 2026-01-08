@@ -60,7 +60,10 @@
 @code {
     private List<MemberDto>? members;
 
-    protected override async Task OnInitializedAsync() => await Load();
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
 
     private async Task Load()
     {

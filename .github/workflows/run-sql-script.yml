@@ -33,7 +33,7 @@ jobs:
           inlineScript: |
             az keyvault secret show \
               --vault-name "${{ secrets.KEYVAULT_NAME }}" \
-              --name "${{ Server=tcp:progorb.database.windows.net,1433;Initial Catalog=todoprogorbdb;Persist Security Info=False;User ID=AdminProgorb;Password=Orb432225orb!;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30; }}" \
+              --name "${{ secrets.SQL_CONN_SECRET_NAME }}" \
               --query value -o tsv > conn.txt
 
       - name: Export connection

@@ -5,26 +5,37 @@ on:
 
 permissions:
   id-token: write
-  contents: read
+  contents:  read
 
 jobs:
-  migrate:
+  migrate: 
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Checkout
+      - name:  Checkout
         uses: actions/checkout@v4
 
-      - name: Setup .NET 10
+      - name:  Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
+
+      - name: Debug - Check if subscription ID exists
+        run: |
+          if [ -z "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]; then
+            echo "ERROR: AZURE_SUBSCRIPTION_ID is empty"
+            exit 1
+          else
+            echo "AZURE_SUBSCRIPTION_ID is set (length: ${#AZURE_SUBSCRIPTION_ID})"
+          fi
+        env: 
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Azure login (OIDC)
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          tenant-id:  ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Verify Azure context
@@ -36,7 +47,7 @@ jobs:
 
       - name: Fetch SQL connection string from Key Vault
         uses: azure/CLI@v2
-        with:
+        with: 
           inlineScript: |
             az keyvault secret show \
               --vault-name "${{ secrets.KEYVAULT_NAME }}" \
@@ -57,14 +68,14 @@ jobs:
       - name: Install dotnet-ef
         run: |
           dotnet tool install --global dotnet-ef
-          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+          echo "$HOME/. dotnet/tools" >> $GITHUB_PATH
 
-      - name: Show migrations
-        working-directory: serviceApp.Server
+      - name:  Show migrations
+        working-directory:  serviceApp.Server
         run: dotnet ef migrations list
 
       - name: Apply EF Core migrations
-        working-directory: serviceApp.Server
+        working-directory: serviceApp. Server
         env:
           DOTNET_CLI_TELEMETRY_OPTOUT: 1
           SQL_CONN: ${{ env.SQL_CONN }}

@@ -43,4 +43,12 @@ public class AzureBlobImageService
         sasBuilder.SetPermissions(BlobSasPermissions.Read);
         return blobClient.GenerateSasUri(sasBuilder).ToString();
     }
+
+    // Delete by blob name within the configured container; include snapshots
+    public async Task<bool> DeleteAsync(string blobName, CancellationToken ct = default)
+    {
+        var client = _container.GetBlobClient(blobName);
+        var response = await client.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, cancellationToken: ct);
+        return response.Value;
+    }
 }

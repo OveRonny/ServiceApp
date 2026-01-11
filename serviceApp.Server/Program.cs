@@ -49,6 +49,7 @@ app.MapRegistration();
 app.MapIdentityApi<ApplicationUser>();
 
 app.MapImageUpload();
+app.GetImageForVehicle();
 
 app.MapControllers();
 

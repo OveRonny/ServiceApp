@@ -1,18 +1,15 @@
-﻿namespace serviceApp.Server.Entities;
+﻿namespace ServiceApp.UI.Models;
 
-public class ImageFile
+public class ImageModel
 {
     public int Id { get; set; }
     public string Url { get; set; } = string.Empty;
-    public ImageEntityType EntityType { get; set; }
-    public int EntityId { get; set; }
     public DateTime UploadedAt { get; set; }
     public bool IsPrimary { get; set; }
-
 }
 
 public enum ImageEntityType
 {
-    Vehicle,
-    ServiceRecord
+    Vehicle = 0,
+    ServiceRecord = 1
 }

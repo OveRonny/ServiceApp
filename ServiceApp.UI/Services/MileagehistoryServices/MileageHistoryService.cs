@@ -14,6 +14,17 @@ public class MileageHistoryService(IHttpClientFactory clients) : IMileageHistory
         return await http.GetFromJsonAsync<List<MileageHistoryModel>>($"api/mileagehistory/vehicle/{vehicleId}") ?? [];
     }
 
+    public async Task<MileageHistoryModel?> GetLastMileage(int? vehicleId)
+    {
+        var http = ApiAuthed();
+        var result = await http.GetFromJsonAsync<MileageHistoryModel>($"api/mileagehistory/last/{vehicleId}");
+        if (result is not null)
+            return result;
+
+        return null;
+
+    }
+
     public async Task<MileageHistoryModel?> GetMileageHistoryById(int id)
     {
         var http = ApiAuthed();
@@ -37,4 +48,6 @@ public class MileageHistoryService(IHttpClientFactory clients) : IMileageHistory
         var http = ApiAuthed();
         await http.DeleteAsync($"api/mileagehistory/{id}");
     }
+
+
 }

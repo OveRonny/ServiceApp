@@ -1,122 +1,195 @@
 ﻿@page "/"
-@inject NavigationManager NavigationManager
+@inject IVehicleService vehicleService
+@inject IImageUploadService ImageService
+@inject IMileageHistoryService MileageService
+@inject NavigationManager navigation
+@inject IJSRuntime JS
 
 <PageTitle>Home</PageTitle>
 
 <div class="container-xxl">
-    
-    <div class="page-section p-4 p-md-5 mb-3">
-        <h1 class="page-title mb-2">Progorb ServiceApp</h1>
-        <p class="text-muted mb-4">
-            Administrer kjøretøy, eiere, service og deler – raskt og enkelt.
-        </p>
-      
-        <div class="d-flex flex-wrap gap-2">
-            <button class="btn btn-primary" @onclick='() => NavigationManager.NavigateTo("/vehicle")'>Legg til kjøretøy</button>
-            <button class="btn btn-secondary" @onclick='() => NavigationManager.NavigateTo("/servicerecord/create")'>Ny service</button>
-        </div>
+    <div class="mb-3">
+        <h1>Mine kjøretøy</h1>
     </div>
-   
+
+    <!-- Hidden file input shared across cards -->
+    <InputFile id="vehicle-file-picker" OnChange="OnImageSelected" accept="image/*" style="display:none" />
+
     <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
-        <div class="col">
-            <div class="card card-service h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="date-pill">🚗 Kjøretøy</span>   
-                    </div>
-                    <h5 class="card-title mt-2 mb-1">Administrer kjøretøy</h5>
-                    <p class="card-text text-muted mb-3">Se alle kjøretøy, legg til nye og oppdater detaljer.</p>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/vehicles")'>Gå til kjøretøy</button>
-                        <button class="btn btn-outline-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/vehicle")'>Legg til</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @foreach (var vehicle in vehicleModels)
+        {
+            var imgUrl = vehiclePrimaryImages.TryGetValue(vehicle.Id, out var url) && !string.IsNullOrWhiteSpace(url)
+                ? url
+                : "images/vehicle-sample3.png";
 
-        <div class="col">
-            <div class="card card-service h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="date-pill">👤 Eiere</span>
-                    </div>
-                    <h5 class="card-title mt-2 mb-1">Administrer eiere</h5>
-                    <p class="card-text text-muted mb-3">Hold oversikt over eiere og kontaktinformasjon.</p>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/owners")'>Gå til eiere</button>
-                        <button class="btn btn-outline-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/owner")'>Ny eier</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-  
+            <div class="col">
+                <div class="card card-service h-100">
+                    <div class="card-header position-relative">
+                        @if (string.Equals(imgUrl, "images/vehicle-sample3.png", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <button type="button"
+                                    class="d-block p-0 border-0 bg-transparent w-100"
+                                    title="Last opp bilde"
+                                    @onclick="() => TriggerUploadAsync(vehicle.Id)">
+                                <img class="card-img-top" src="@imgUrl" alt="Last opp bilde" style="cursor:pointer;">
+                            </button>
+                        }
+                        else
+                        {
+                            <a href="/vehicle/@vehicle.Id" class="d-block">
+                                <img class="card-img-top" src="@imgUrl" alt="Vehicle image">
+                            </a>
+                        }
 
-        <div class="col">
-            <div class="card card-service h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="date-pill">🧾 Service</span>
+                        <!-- Change photo overlay -->
+                        <button type="button"
+                                class="btn btn-sm btn-change-photo"
+                                title="Bytt bilde"
+                                @onclick="() => TriggerUploadAsync(vehicle.Id)">
+                            <span class="fs-5">📷</span> Last nytt bilde
+                        </button>
+                        <a 
+                            class="btn btn-sm btn-change-photo" href="/images/@vehicle.Id" title="Velg primærbilde">
+                            <span class="fs-5">📷</span> Velg primærbilde
+                        </a>
                     </div>
-                    <h5 class="card-title mt-2 mb-1">Service og historikk</h5>
-                    <p class="card-text text-muted mb-3">Registrer service og vedlikehold for kjøretøy.</p>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/servicerecord/create")'>Ny service</button>
-                        <button class="btn btn-outline-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/vehicles")'>Finn kjøretøy</button>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <div class="col">
-            <div class="card card-service h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="date-pill">⛽ Forbruk</span>
-                    </div>
-                    <h5 class="card-title mt-2 mb-1">Drivstoff & forbruk</h5>
-                    <p class="card-text text-muted mb-3">Se og registrer forbruk per kjøretøy.</p>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/vehicles")'>Velg kjøretøy</button>
-                        <button class="btn btn-outline-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/vehicles")'>Oversikt</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <h5 class="card-title mb-0">@vehicle.FirstName</h5>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Mer
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li class="menu-section">Handlinger</li>
+                                    <li><a class="dropdown-item" href="/vehicle/@vehicle.Id">Rediger</a></li>
+                                    <li><button class="dropdown-item" type="button" @onclick="@(() => TriggerUploadAsync(vehicle.Id))">Last opp bilde</button></li>
+                                    <li><a class="dropdown-item" href="/consumptionrecords/@vehicle.Id">Forbruk</a></li>
+                                    <li><a class="dropdown-item" href="/consumptionrecord/create/vehicle/@vehicle.Id">Nytt forbruk</a></li>
+                                    <li><a class="dropdown-item" href="/servicerecord/create/@vehicle.Id">Ny service</a></li>
+                                    <li><a class="dropdown-item" href="/servicerecords/@vehicle.Id">Alle servicer</a></li>
+                                    <li><a class="dropdown-item" href="/insurance/@vehicle.Id">Forsikring</a></li>
+                                </ul>
+                            </div>
+                        </div>
 
-        <div class="col">
-            <div class="card card-service h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="date-pill">🛠️ Deler</span>
-                    </div>
-                    <h5 class="card-title mt-2 mb-1">Deler & lager</h5>
-                    <p class="card-text text-muted mb-3">Se lager og deler per kjøretøy.</p>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/vehicles")'>Finn kjøretøy</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+                        <div class="card-subtitle mt-2">@($"{vehicle.Year} {vehicle.Make} {vehicle.Model}")</div>
 
-        <div class="col">
-            <div class="card card-service h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="date-pill">⚙️ Oppsett</span>
+                        <div class="meta">
+                            <div class="mb-2">
+                                <label class="label d-block mb-1">Siste kilometer</label>
+                                @if (vehicleLastMileage.TryGetValue(vehicle.Id, out var last) && last is not null)
+                                {
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="fs-5 fw-semibold text-light">@last.Mileage</span>
+                                        
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-body-secondary small">Ingen data</span>
+                                }
+                            </div>
+                            
+                        </div>
                     </div>
-                    <h5 class="card-title mt-2 mb-1">Oppsett og registre</h5>
-                    <p class="card-text text-muted mb-3">Vedlikehold registre for service, firma og leverandører.</p>
-                    <div class="d-flex flex-wrap gap-2">
-                        <button class="btn btn-outline-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/servicetypes")'>Service typer</button>
-                        <button class="btn btn-outline-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/servicecompanies")'>Firma</button>
-                        <button class="btn btn-outline-primary btn-sm" @onclick='() => NavigationManager.NavigateTo("/suppliers")'>Leverandører</button>
-                    </div>
+                
                 </div>
+
             </div>
+        }
+        <div class="col">
+            <button class="card card-service h-100 w-100 border-2 border-dashed d-flex flex-column align-items-center justify-content-center"
+                    style="min-height: 220px; border-style: dashed;"
+                    type="button"
+                    title="Legg til nytt kjøretøy"
+                    @onclick="AddNewVehicle">
+                <div class="fs-1" aria-hidden="true">🚗</div>
+                <div class="mt-2 fw-semibold">Legg til nytt kjøretøy</div>
+            </button>
         </div>
     </div>
-
 </div>
 
+@code{
+    private List<VehicleModel> vehicleModels = new();
+    private readonly Dictionary<int, string> vehiclePrimaryImages = new();
+    private readonly Dictionary<int, MileageHistoryModel?> vehicleLastMileage = new();
+    private int? uploadForVehicleId;
+    private MileageHistoryModel mileageHistory = new();
 
+    protected override async Task OnInitializedAsync()
+    {
+        vehicleModels = await vehicleService.GetAllVehiclesAsync();
 
+        // Load SAS URL for each vehicle's primary image; fallback handled in UI
+        foreach (var v in vehicleModels)
+        {
+            var img = await ImageService.GetPrimaryVehicleImageSasAsync(v.Id);
+            if (img is not null && !string.IsNullOrWhiteSpace(img.Url))
+                vehiclePrimaryImages[v.Id] = img.Url;
+           
+        }
+
+        await LoadLastMileageAsync();
+    }
+
+    private async Task LoadLastMileageAsync()
+    {
+        // Optional throttling to avoid overloading the API
+        var semaphore = new SemaphoreSlim(4);
+        var tasks = vehicleModels.Select(async v =>
+        {
+            await semaphore.WaitAsync();
+            try
+            {
+                var last = await MileageService.GetLastMileage(v.Id);
+                return (v.Id, Mileage: last);
+            }
+            catch
+            {
+                return (v.Id, Mileage: (MileageHistoryModel?)null);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }).ToList();
+
+        var results = await Task.WhenAll(tasks);
+        foreach (var r in results)
+            vehicleLastMileage[r.Id] = r.Mileage;
+    }
+
+    private async Task TriggerUploadAsync(int vehicleId)
+    {
+        uploadForVehicleId = vehicleId;
+        await JS.InvokeVoidAsync("blazorHelpers.clickById", "vehicle-file-picker");
+    }
+
+    private async Task OnImageSelected(InputFileChangeEventArgs e)
+    {
+        if (uploadForVehicleId is null) return;
+        var file = e.File;
+        if (file is null) return;
+
+        var uploaded = await ImageService.UploadImageAsync(ImageEntityType.Vehicle, uploadForVehicleId.Value, file);
+        if (uploaded is not null && !string.IsNullOrWhiteSpace(uploaded.Url))
+        {
+            // Immediately request a fresh SAS for the new primary (or the uploaded image)
+            var sas = await ImageService.GetPrimaryVehicleImageSasAsync(uploadForVehicleId.Value);
+            if (sas is not null && !string.IsNullOrWhiteSpace(sas.Url))
+                vehiclePrimaryImages[uploadForVehicleId.Value] = sas.Url;
+
+            StateHasChanged();
+        }
+
+        uploadForVehicleId = null;
+    }
+
+    private void AddNewVehicle()
+    {        
+        navigation.NavigateTo("/vehicle");
+    }
+}

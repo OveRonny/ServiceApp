@@ -1,0 +1,103 @@
+﻿@page "/images/{VehicleId:int}"
+@inject IImageUploadService ImageService
+@inject NavigationManager Nav
+
+<h3>Bilder for kjøretøy @VehicleId</h3>
+
+<div class="container">
+
+    @if (Images is null)
+    {
+        <p>Laster...</p>
+    }
+    else
+    {
+        <div class="mb-3">
+            <InputFile OnChange="Upload" accept="image/*" />
+            @if (!string.IsNullOrEmpty(Error))
+            {
+                <div class="text-danger mt-2">@Error</div>
+            }
+        </div>
+
+        @if (Images.Count == 0)
+        {
+            <p>Ingen bilder funnet.</p>
+        }
+        else
+        {
+            <div class="row row-cols-2 row-cols-md-3 g-3">
+                @foreach (var img in Images)
+                {
+                    <div class="col">
+                        <div class="card h-100">
+                            <img src="@GetImageUrl(img)" class="card-img-top" alt="Vehicle image" />
+                            <div class="card-body p-2 d-flex justify-content-between align-items-center">
+                                <span class="badge @(img.IsPrimary ? "bg-primary" : "bg-secondary")">
+                                    @(img.IsPrimary ? "Primær" : " ")
+                                </span>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary" @onclick="() => SetPrimary(img.Id)">Sett primær</button>
+                                    <button class="btn btn-outline-danger" @onclick="() => Delete(img.Id)">Slett</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+
+</div>
+
+@code {
+    [Parameter] public int VehicleId { get; set; }
+
+    private List<ImageModel>? Images;
+    private string? Error;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        Images = await ImageService.GetImagesAsync(ImageEntityType.Vehicle, VehicleId);
+    }
+
+    private async Task Upload(InputFileChangeEventArgs e)
+    {
+        Error = null;
+        var file = e.File;
+        var uploaded = await ImageService.UploadImageAsync(ImageEntityType.Vehicle, VehicleId, file);
+        if (uploaded is null)
+        {
+            Error = "Opplasting feilet.";
+        }
+        else
+        {
+            await Load();
+        }
+    }
+
+    private async Task SetPrimary(int imageId)
+    {
+        await ImageService.SetPrimaryAsync(imageId);
+        await Load();
+    }
+
+    private async Task Delete(int imageId)
+    {
+        await ImageService.DeleteAsync(imageId);
+        await Load();
+    }
+
+    private string GetImageUrl(ImageModel img)
+    {
+        // Cache-busting: prefer UploadedAt ticks; fallback to Id.
+        var version = img.UploadedAt.Ticks.ToString();
+        var separator = img.Url.Contains('?') ? "&" : "?";
+        return $"{img.Url}{separator}v={version}";
+    }
+}

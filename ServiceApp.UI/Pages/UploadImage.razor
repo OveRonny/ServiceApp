@@ -1,48 +1,126 @@
-﻿@page "/images"
-@inject IImageUploadService imageUploadService
+﻿@page "/images/{EntityTypeInt:int}/{EntityId:int}"
+@page "/vehicle/{EntityId:int}/images"
+@page "/service-record/{EntityId:int}/images"
+
+@inject IImageUploadService ImageUploadService
+@inject NavigationManager NavigationManager
 @attribute [Authorize]
 
-@if (imageUrls == null)
+<h3>Images</h3>
+
+@if (!HasContext)
+{
+    <div class="alert alert-info">
+        Provide an entity context in the URL:
+        <ul class="mb-0">
+            <li>/vehicle/{EntityId}/images</li>
+            <li>/service-record/{EntityId}/images</li>
+            <li>/images/{entityType:int}/{EntityId} where 0 = Vehicle, 1 = ServiceRecord</li>
+        </ul>
+    </div>
+}
+else if (images is null)
 {
     <p>Loading...</p>
 }
-else if (imageUrls.Count == 0)
-{
-    <p>No images found.</p>
-}
 else
 {
-    <div>
-        @foreach (var url in imageUrls)
+    <div class="mb-3">
+        <InputFile OnChange="OnInputFileChange" accept="image/*" />
+        @if (!string.IsNullOrEmpty(error))
         {
-            <img src="@url" style="max-width:200px; margin:10px;" />
+            <div class="text-danger mt-2">@error</div>
         }
     </div>
+
+    @if (images.Count == 0)
+    {
+        <p>No images found.</p>
+    }
+    else
+    {
+        <div class="row row-cols-2 row-cols-md-3 g-3">
+            @foreach (var img in images)
+            {
+                <div class="col">
+                    <div class="card h-100">
+                        <img src="@img.Url" class="card-img-top" style="height:140px;object-fit:cover;" alt="Image" />
+                        <div class="card-body p-2">
+                            <small class="text-muted">@img.UploadedAt.ToLocalTime().ToString("g")</small>
+                            @if (img.IsPrimary)
+                            {
+                                <span class="badge bg-primary ms-2">Primary</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
 }
 
 @code {
-    private List<string>? imageUrls;
-    private string? uploadedUrl;
+    // Route/context
+    [Parameter] public int EntityId { get; set; }
+    [Parameter] public int? EntityTypeInt { get; set; } // 0=Vehicle, 1=ServiceRecord
+
+    private ImageEntityType? ResolvedType { get; set; }
+    private bool HasContext => EntityId > 0 && ResolvedType is not null;
+
+    // Data
+    private List<ImageModel>? images;
     private string? error;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        await LoadImages();
+        // Resolve entity type from route
+        if (EntityTypeInt is not null)
+        {
+            ResolvedType = (ImageEntityType)EntityTypeInt.Value;
+        }
+        else if (NavigationManager.Uri.Contains("/vehicle/", StringComparison.OrdinalIgnoreCase))
+        {
+            ResolvedType = ImageEntityType.Vehicle;
+        }
+        else if (NavigationManager.Uri.Contains("/service-record/", StringComparison.OrdinalIgnoreCase))
+        {
+            ResolvedType = ImageEntityType.ServiceRecord;
+        }
+        else
+        {
+            ResolvedType = null;
+        }
+
+        if (HasContext)
+        {
+            await LoadImages();
+        }
+        else
+        {
+            images = null;
+        }
     }
 
     private async Task OnInputFileChange(InputFileChangeEventArgs e)
     {
+        if (!HasContext) return;
+
         error = null;
         var file = e.File;
-        uploadedUrl = await imageUploadService.UploadImageAsync(file);
-        if (uploadedUrl == null)
+
+        var uploaded = await ImageUploadService.UploadImageAsync(ResolvedType!.Value, EntityId, file);
+        if (uploaded is null)
+        {
             error = "Upload failed.";
+        }
         else
+        {
             await LoadImages();
+        }
     }
 
     private async Task LoadImages()
     {
-        imageUrls  = await imageUploadService.GetImageUrlsAsync();
+        images = await ImageUploadService.GetImagesAsync(ResolvedType!.Value, EntityId);
     }
 }

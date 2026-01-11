@@ -40,10 +40,13 @@ jobs:
 
       - name: Show migrations
         working-directory: serviceApp.Server
-        run: dotnet ef migrations list --connection "${{ secrets.CONNECTIONSTRINGS__DEFAULTCONNECTION }}"
+        env:
+          ConnectionStrings__DefaultConnection: ${{ secrets.CONNECTIONSTRINGS__DEFAULTCONNECTION }}
+        run:  dotnet ef migrations list
 
       - name: Apply EF Core migrations
-        working-directory:  serviceApp.Server
+        working-directory:   serviceApp.Server
         env:
           DOTNET_CLI_TELEMETRY_OPTOUT: 1
-        run: dotnet ef database update --connection "${{ secrets.CONNECTIONSTRINGS__DEFAULTCONNECTION }}"
+          ConnectionStrings__DefaultConnection: ${{ secrets.CONNECTIONSTRINGS__DEFAULTCONNECTION }}
+        run: dotnet ef database update

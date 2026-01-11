@@ -27,6 +27,13 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Verify Azure context
+        uses: azure/CLI@v2
+        with:
+          inlineScript: |
+            az account show -o table
+            az account list -o table
+
       - name: Fetch SQL connection string from Key Vault
         uses: azure/CLI@v2
         with:
@@ -37,7 +44,10 @@ jobs:
               --query value -o tsv > conn.txt
 
       - name: Export connection
-        run: echo "SQL_CONN=$(cat conn.txt)" >> $GITHUB_ENV
+        run: |
+          CONN=$(cat conn.txt)
+          if [ -z "$CONN" ]; then echo "Empty SQL connection string"; exit 1; fi
+          echo "SQL_CONN=$CONN" >> $GITHUB_ENV
 
       - name: Restore and build
         run: |
@@ -45,12 +55,17 @@ jobs:
           dotnet build -c Release
 
       - name: Install dotnet-ef
-        run: dotnet tool install --global dotnet-ef
+        run: |
+          dotnet tool install --global dotnet-ef
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      - name: Show migrations
+        working-directory: serviceApp.Server
+        run: dotnet ef migrations list
 
       - name: Apply EF Core migrations
         working-directory: serviceApp.Server
         env:
           DOTNET_CLI_TELEMETRY_OPTOUT: 1
-        run: |
-          export PATH="$PATH:$HOME/.dotnet/tools"
-          dotnet ef database update --connection "$SQL_CONN"
+          SQL_CONN: ${{ env.SQL_CONN }}
+        run: dotnet ef database update --connection "$SQL_CONN"

@@ -39,7 +39,7 @@ jobs:
           echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
       - name: Show migrations
-        working-directory: serviceApp. Server
+        working-directory: serviceApp.Server
         run: dotnet ef migrations list
 
       - name: Apply EF Core migrations

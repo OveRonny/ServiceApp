@@ -17,8 +17,13 @@ public class GetPrimaryImageSas : IEndpointDefinition
 
             if (img is null) return Results.NoContent();
 
-            var blobName = new Uri(img.Url).Segments.Last();
-            var sasUrl = blobService.GetSasUrl(blobName, TimeSpan.FromMinutes(10));
+            // Parse blob path from full URL (supports nested folders)
+            var uri = new Uri(img.Url);
+            var path = uri.AbsolutePath.TrimStart('/');
+            var slash = path.IndexOf('/');
+            var blobName = slash >= 0 ? path[(slash + 1)..] : path;
+
+            var sasUrl = await blobService.GetSasUrlAsync(blobName, TimeSpan.FromMinutes(10), ct);
             return Results.Ok(new { img.Id, Url = sasUrl });
         })
         .WithName("GetPrimaryVehicleImageSas");

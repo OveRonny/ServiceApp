@@ -21,14 +21,14 @@ public class GetImagesForVehicleId : IEndpointDefinition
 
             var expiry = TimeSpan.FromMinutes(10);
 
-            var result = images.Select(img =>
+            var resultTasks = images.Select(async img =>
             {
                 var uri = new Uri(img.Url);
                 var path = uri.AbsolutePath.TrimStart('/');
                 var slash = path.IndexOf('/');
                 var blobPath = slash >= 0 ? path[(slash + 1)..] : path; // preserve folders
 
-                var sasUrl = blobService.GetSasUrl(blobPath, expiry);
+                var sasUrl = await blobService.GetSasUrlAsync(blobPath, expiry, ct);
 
                 return new ImageFile
                 {
@@ -39,9 +39,8 @@ public class GetImagesForVehicleId : IEndpointDefinition
                 };
             });
 
+            var result = await Task.WhenAll(resultTasks);
             return Results.Ok(result);
         });
-
-
     }
 }

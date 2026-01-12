@@ -63,7 +63,15 @@
 
     private async Task Load()
     {
-        Images = await ImageService.GetImagesAsync(ImageEntityType.Vehicle, VehicleId);
+        var newImages = await ImageService.GetImagesAsync(ImageEntityType.Vehicle, VehicleId);
+        if(newImages != null)
+        {
+            Images = newImages;
+        }
+        else
+        {
+            Images = new List<ImageModel>();
+        }
     }
 
     private async Task Upload(InputFileChangeEventArgs e)

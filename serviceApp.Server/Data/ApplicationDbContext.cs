@@ -82,6 +82,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         {
             b.HasQueryFilter(i => _familyId != null && i.FamilyId == _familyId);
             b.Property(i => i.AnnualPrice).HasPrecision(18, 2);
+            b.Property(p => p.TraficInsurancePrice).HasPrecision(18, 2);
+
         });
 
         modelBuilder.Entity<Parts>(b =>

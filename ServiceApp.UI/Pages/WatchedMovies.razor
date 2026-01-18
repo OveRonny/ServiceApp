@@ -1,0 +1,182 @@
+﻿@page "/watched-movies"
+@using ServiceApp.UI.Services.GenreServices
+@inject IMovieService MovieService
+@inject IGenreService GenreService
+
+<h3>Watched Movies</h3>
+
+<div class="filters">
+    <input type="text"
+           placeholder="Search..."
+           value="@searchQuery"
+           @oninput="OnSearchInput" />
+
+
+        <InputSelect @bind-Value="selectedGenre" @bind-Value:after="OnGenreChanged">
+        <option value="">All Genres</option>
+        @foreach (var g in AllGenres)  
+        {
+           <option value="@g">@g</option>
+        }
+        </InputSelect>
+
+
+    <button @onclick="ApplyFilters">Clear Filters</button>
+</div>
+
+@if (Movies == null)
+{
+    <p>Loading...</p>
+}
+else if (Movies.Count == 0)
+{
+    <p>No watched movies found.</p>
+}
+else
+{
+    <div class="watched-grid">
+        @foreach (var movie in Movies)
+        {
+            <div class="watched-card">
+                <NavLink href="@MovieDetailsUrl(movie)"
+                         aria-label="@movie.Title">
+                    
+                    <img src="@movie.PosterUrl" alt="@movie.Title" />
+
+                    <div class="card-info">
+                        <h4>@movie.Title</h4>
+
+                        @if (movie.WatchedDate != null)
+                        {
+                            <span class="watched-date">
+                                Watched @movie.WatchedDate.Value.ToString("MMM dd, yyyy")
+                            </span>
+                        }
+
+                        <p class="overview">@movie.Overview</p>
+                    </div>
+                </NavLink>
+            </div>
+        }
+    </div>
+
+    <div class="pagination">
+        <button @onclick="PreviousPage" disabled="@IsPreviousDisabled">Previous</button>
+        <span>Page @_currentPage</span>
+        <button @onclick="NextPage" disabled="@IsNextDisabled">Next</button>
+    </div>
+
+   
+}
+
+@code {
+    private List<MovieFullDtoModel> Movies { get; set; } = new();
+    private List<string> Genres { get; set; } = new();
+    private string searchQuery = "";
+    private List<string> AllGenres { get; set; } = new(); // full genre list
+    private string selectedGenre = "";
+  
+
+    private int _currentPage = 1;
+    private int _pageSize = 24;
+    private int _total = 0;
+
+    private CancellationTokenSource? _cts;
+
+    private bool IsPreviousDisabled => _currentPage == 1;
+    private bool IsNextDisabled => _currentPage * _pageSize >= _total;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAllGenres();
+        await LoadMovies();
+    }
+
+    private async Task LoadAllGenres()
+    {
+        var genre = await GenreService.GetAllGenresAsync();
+
+        // Hvis du bare trenger navnene til dropdown
+        AllGenres = genre
+            .Where(g => !string.IsNullOrEmpty(g.Name)) // fjern null/empty
+            .Select(g => g.Name!)                     // ! for å fjerne null-advarsel
+            .OrderBy(g => g)
+            .ToList();
+    }
+
+    private async Task LoadMovies()
+    {
+        var result = await MovieService.GetFilteredWatchedMoviesAsync(
+            _currentPage, _pageSize, searchQuery, selectedGenre);
+
+        Movies = result.Items.ToList();
+        _total = result.Total;
+
+        // Extract genres dynamically
+        Genres = Movies
+            .SelectMany(m => m.Genres ?? new List<string>())
+            .Distinct()
+            .OrderBy(g => g)
+            .ToList();
+    }
+
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        searchQuery = e.Value?.ToString() ?? "";
+
+        _cts?.Cancel();
+        _cts = new CancellationTokenSource();
+        var token = _cts.Token;
+
+        try
+        {
+            await Task.Delay(500, token); // debounce 500ms
+            _currentPage = 1;
+            await LoadMovies();
+            StateHasChanged();
+        }
+        catch (TaskCanceledException)
+        {
+            // Ignore
+        }
+    }
+
+    private async Task NextPage()
+    {
+        if (!IsNextDisabled)
+        {
+            _currentPage++;
+            await LoadMovies();
+        }
+    }
+
+    private async Task PreviousPage()
+    {
+        if (!IsPreviousDisabled)
+        {
+            _currentPage--;
+            await LoadMovies();
+        }
+    }
+
+    private async Task ApplyFilters()
+    {
+        searchQuery = "";
+        selectedGenre = "";
+        _currentPage = 1;
+        await LoadMovies();
+    }
+
+    private async Task OnGenreChanged()
+    {
+        
+        _currentPage = 1; // reset to first page
+        await LoadMovies();
+
+    }
+
+    private static string MovieDetailsUrl(MovieFullDtoModel movie) => $"/moviedetails/{movie.TmdbId}";
+}
+
+
+

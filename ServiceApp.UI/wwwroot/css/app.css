@@ -11,6 +11,11 @@
     --text-primary: #F3F4F6; /* near-white */
     --text-muted: #9CA3AF;
     --border-muted: rgba(255,255,255,0.08);
+    --bg-input: var(--gray-800);
+    --text: var(--text-primary);
+    --border: var(--border-muted);
+    --accent: var(--blue-500);
+    --accent-hover: var(--blue-600);
 }
 
 /* Base typography */
@@ -89,10 +94,6 @@ h1 { color: var(--text-primary); }
     font-weight: 600;
 }
 
-/* Vehicle card header actions (three-dot menu) */
-.card-service .card-header {
-    position: relative; /* anchor absolutely positioned actions */
-}
 
 .card-service .card-header-actions {
     position: absolute;
@@ -210,19 +211,19 @@ a:hover, .btn-link:hover { color: var(--blue-400); }
     margin: 20vh auto 1rem auto;
 }
 
-    .loading-progress circle {
-        fill: none;
-        stroke: #e0e0e0;
-        stroke-width: 0.6rem;
-        transform-origin: 50% 50%;
-        transform: rotate(-90deg);
-    }
+.loading-progress circle {
+    fill: none;
+    stroke: #e0e0e0;
+    stroke-width: 0.6rem;
+    transform-origin: 50% 50%;
+    transform: rotate(-90deg);
+}
 
-        .loading-progress circle:last-child {
-            stroke: #1b6ec2;
-            stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
-            transition: stroke-dasharray 0.05s ease-in-out;
-        }
+.loading-progress circle:last-child {
+    stroke: #1b6ec2;
+    stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
+    transition: stroke-dasharray 0.05s ease-in-out;
+}
 
 .loading-progress-text {
     position: absolute;
@@ -321,5 +322,172 @@ code {
 .card-header .btn-change-photo {
     color: #9CA3AF;
     padding-top: 0;
+}
+
+/* Filters */
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 16px;
+    padding: 12px;
+}
+
+.filters input[type="text"],
+.filters select {
+    appearance: none;
+    background: var(--bg-input);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    height: 36px;
+    min-width: 220px;
+    outline: none;
+}
+
+.filters input::placeholder {
+    color: #999;
+}
+
+.filters input[type="text"]:focus,
+.filters select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.filters button {
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 6px;
+    border: 1px solid color-mix(in srgb, var(--accent) 70%, black);
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    transition: background .15s ease, box-shadow .15s ease, transform .02s ease;
+}
+
+.filters button:hover {
+    background: var(--accent-hover);
+}
+
+.filters button:active {
+    transform: translateY(1px);
+}
+
+.filters button:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+    .filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filters input[type="text"], .filters select, .filters button {
+        width: 100%;
+    }
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin: 16px 0;
+}
+
+.pagination button {
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 6px;
+    border: 1px solid color-mix(in srgb, var(--accent) 70%, black);
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    transition: background .15s ease, box-shadow .15s ease, transform .02s ease;
+}
+
+.pagination button:hover:not(:disabled) {
+    background: var(--accent-hover);
+}
+
+.pagination button:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.pagination button:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.pagination button:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+.pagination span {
+    color: var(--text-muted);
+    font-size: .9rem;
+}
+
+.watched-date {
+    font-size: 0.75rem;
+    color: #aaa;
+}
+.watched-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+}
+
+.watched-card {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    background: #1e1e1e;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3);
+}
+
+.watched-card  a {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start; /* use center if you prefer vertical centering */
+    text-decoration: none;
+    color: inherit;
+}
+
+.watched-card img {
+    width: 70px;
+    height: 105px;
+    object-fit: cover;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.card-info h4 {
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.overview {
+    font-size: 0.75rem;
+    color: #ccc;
+    line-height: 1.3;
+    max-height: 3.9em;
+    overflow: hidden;
 }
 

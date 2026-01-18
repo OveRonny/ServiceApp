@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using serviceApp.Server.Data;
 
@@ -11,9 +12,11 @@ using serviceApp.Server.Data;
 namespace serviceApp.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260114221029_Init")]
+    partial class Init
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -402,6 +405,9 @@ namespace serviceApp.Server.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int?>("AverageEpisodeMinutes")
                         .HasColumnType("int");
 
@@ -414,14 +420,8 @@ namespace serviceApp.Server.Migrations
                     b.Property<string>("ImdbId")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Overview")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("PosterPath")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ReleaseDate")
-                        .HasColumnType("datetime2");
 
                     b.Property<int?>("Seasons")
                         .HasColumnType("int");
@@ -437,6 +437,8 @@ namespace serviceApp.Server.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("TmdbId", "Type")
                         .IsUnique();
@@ -913,34 +915,6 @@ namespace serviceApp.Server.Migrations
                     b.ToTable("WatchHistories");
                 });
 
-            modelBuilder.Entity("serviceApp.Server.Entities.WatchlistItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("AddedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("MediaItemId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MediaItemId");
-
-                    b.HasIndex("UserId", "MediaItemId")
-                        .IsUnique();
-
-                    b.ToTable("WatchlistItems");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -1031,6 +1005,13 @@ namespace serviceApp.Server.Migrations
                         .IsRequired();
 
                     b.Navigation("Vehicle");
+                });
+
+            modelBuilder.Entity("serviceApp.Server.Entities.MediaItem", b =>
+                {
+                    b.HasOne("serviceApp.Server.Data.ApplicationUser", null)
+                        .WithMany("MediaItems")
+                        .HasForeignKey("ApplicationUserId");
                 });
 
             modelBuilder.Entity("serviceApp.Server.Entities.MediaItemGenre", b =>
@@ -1187,15 +1168,9 @@ namespace serviceApp.Server.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("serviceApp.Server.Entities.WatchlistItem", b =>
+            modelBuilder.Entity("serviceApp.Server.Data.ApplicationUser", b =>
                 {
-                    b.HasOne("serviceApp.Server.Entities.MediaItem", "MediaItem")
-                        .WithMany()
-                        .HasForeignKey("MediaItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("MediaItem");
+                    b.Navigation("MediaItems");
                 });
 
             modelBuilder.Entity("serviceApp.Server.Entities.Genre", b =>

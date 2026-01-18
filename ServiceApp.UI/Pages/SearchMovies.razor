@@ -1,0 +1,49 @@
+﻿@page "/movie-search"
+@using ServiceApp.UI.Services.MovieServices
+@inject IMovieService MovieService
+@inject MovieSearchState State
+@attribute [Authorize]
+
+
+
+<input @bind="State.Query" placeholder="Search movies..." />
+<button @onclick="Search">Search</button>
+
+@if (State.Results.Any())
+{
+    <div class="movie-grid">
+        @foreach (var movie in State.Results)
+        {
+            <NavLink class="movie-card" href="@($"/moviedetails/{movie.TmdbId}")">
+                @if (!string.IsNullOrEmpty(movie.PosterUrl))
+                {
+                    <img src="@movie.PosterUrl" alt="@movie.Title" />
+                }
+                <p>@movie.Title (@movie.Year)</p>
+                <p>@movie.MediaType</p>
+            </NavLink>
+        }
+    </div>
+}
+
+@code {  
+
+    private async Task Search()
+    {
+        State.Results = await MovieService.SearchMoviesAsync(State.Query);
+    }
+
+
+    private async Task ImportMovie(int tmdbId)
+    {
+        var id = await MovieService.ImportMovieAsync(tmdbId);
+        if (id == null)
+        {
+            Console.WriteLine("Failed to import movie.");
+        }
+        else
+        {
+            Console.WriteLine($"Movie imported successfully (ID: {id})");
+        }
+    }
+}

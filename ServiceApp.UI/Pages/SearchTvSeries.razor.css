@@ -1,0 +1,62 @@
+﻿/* TV Search Grid */
+.tv-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+/* TV Card */
+.tv-card {
+    display: flex;
+    flex-direction: column;
+    background-color: #1e1e1e;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    color: #fff;
+    text-decoration: none;
+}
+
+    /* Hover effect */
+    .tv-card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Poster Image */
+    .tv-card img {
+        width: 100%;
+        height: 270px;
+        object-fit: cover;
+    }
+
+    /* TV Card Info */
+    .tv-card p {
+        margin: 0.3rem 0.5rem;
+        font-size: 0.9rem;
+        line-height: 1.2;
+    }
+
+        /* TV Title */
+        .tv-card p:first-of-type {
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+    /* Rating */
+    .tv-card .rating {
+        color: #fbc531;
+    }
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .tv-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+
+    .tv-card img {
+        height: 220px;
+    }
+}

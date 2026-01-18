@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using serviceApp.Server.Data;
 
@@ -11,9 +12,11 @@ using serviceApp.Server.Data;
 namespace serviceApp.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260115082604_UpdateTableMediaItem")]
+    partial class UpdateTableMediaItem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -402,6 +405,9 @@ namespace serviceApp.Server.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int?>("AverageEpisodeMinutes")
                         .HasColumnType("int");
 
@@ -420,9 +426,6 @@ namespace serviceApp.Server.Migrations
                     b.Property<string>("PosterPath")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("ReleaseDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<int?>("Seasons")
                         .HasColumnType("int");
 
@@ -437,6 +440,8 @@ namespace serviceApp.Server.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("TmdbId", "Type")
                         .IsUnique();
@@ -1033,6 +1038,13 @@ namespace serviceApp.Server.Migrations
                     b.Navigation("Vehicle");
                 });
 
+            modelBuilder.Entity("serviceApp.Server.Entities.MediaItem", b =>
+                {
+                    b.HasOne("serviceApp.Server.Data.ApplicationUser", null)
+                        .WithMany("MediaItems")
+                        .HasForeignKey("ApplicationUserId");
+                });
+
             modelBuilder.Entity("serviceApp.Server.Entities.MediaItemGenre", b =>
                 {
                     b.HasOne("serviceApp.Server.Entities.Genre", "Genre")
@@ -1196,6 +1208,11 @@ namespace serviceApp.Server.Migrations
                         .IsRequired();
 
                     b.Navigation("MediaItem");
+                });
+
+            modelBuilder.Entity("serviceApp.Server.Data.ApplicationUser", b =>
+                {
+                    b.Navigation("MediaItems");
                 });
 
             modelBuilder.Entity("serviceApp.Server.Entities.Genre", b =>

@@ -6,28 +6,44 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
 {
     public ApplicationDbContext CreateDbContext(string[] args)
     {
-        var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+        // Build configuration at design time (appsettings + user secrets + env vars)
+        var basePath = Directory.GetCurrentDirectory();
 
-        // Get connection string from command line args or environment variable
-        var connectionString = args.Length > 0
-            ? args[0]
-            : Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(basePath)
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+            .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: false)
+            .AddEnvironmentVariables()
+            .AddUserSecrets(typeof(ApplicationDbContextFactory).Assembly, optional: true)
+            .Build();
 
-        if (string.IsNullOrEmpty(connectionString))
+        // Allow overriding via CLI arg or env var; otherwise use configuration ConnectionStrings
+        var connectionString =
+            (args.Length > 0 ? args[0] : null)
+            ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+            ?? configuration.GetConnectionString("DefaultConnection")
+            ?? configuration["ConnectionStrings:DefaultConnection"];
+
+        if (string.IsNullOrWhiteSpace(connectionString))
         {
             throw new InvalidOperationException(
-                "Connection string not provided. Use --connection parameter or set ConnectionStrings__DefaultConnection environment variable.");
+                "Connection string 'DefaultConnection' not found. Ensure appsettings or user secrets have ConnectionStrings:DefaultConnection, or set ConnectionStrings__DefaultConnection.");
         }
 
-        optionsBuilder.UseSqlServer(connectionString);
+        var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseSqlServer(connectionString, sql =>
+            {
+                sql.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorNumbersToAdd: null);
+            });
 
-        // Create a minimal HttpContextAccessor for design-time
         var httpContextAccessor = new DesignTimeHttpContextAccessor();
-
         return new ApplicationDbContext(optionsBuilder.Options, httpContextAccessor);
     }
 
-    // Minimal implementation of IHttpContextAccessor for design-time use
+    // Minimal IHttpContextAccessor for design-time
     private class DesignTimeHttpContextAccessor : IHttpContextAccessor
     {
         public HttpContext? HttpContext { get; set; }

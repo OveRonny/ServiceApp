@@ -1,0 +1,266 @@
+﻿@page "/moviedetails/{TmdbId:int}"
+@using ServiceApp.UI.Services.MovieServices
+@inject IMovieService MovieService
+@inject NavigationManager Navigation
+
+@if (selectedMovie != null)
+{
+    <div class="movie-details card media-card">
+        <img class="poster" src="@selectedMovie.PosterUrl" alt="@selectedMovie.Title" />
+        <div class="details">
+            <h3 class="title">@selectedMovie.Title (@selectedMovie.ReleaseDate?.Substring(0, 4))</h3>
+
+            <div class="meta-row">
+                <div class="meta-group">
+                    <span class="meta-label">Genres:</span>
+                    @if (selectedMovie.Genres != null)
+                    {
+                        foreach (var g in selectedMovie.Genres)
+                        {
+                            <span class="badge">@g</span>
+                        }
+                    }
+                </div>
+                <div class="meta-group">
+                    <span class="meta-label">Runtime:</span>
+                    <span class="meta">@(selectedMovie.Runtime) mins</span>
+                </div>
+            </div>
+
+            <p class="overview">@selectedMovie.Overview</p>
+
+            <div class="actions">
+                <div class="toolbar">
+                    <div class="toolbar-left">
+                        <label for="watchDate" class="label">Dato</label>
+                        <input type="date" id="watchDate" class="input input-date" @bind="SelectedDate" />
+                        
+                        <button class="like-button" @onclick="@ToggleLike" disabled="@IsProcessing">
+                            @(selectedMovie?.WatchHistory?.FirstOrDefault()?.Liked == true ? "👍" : "👎")
+                        </button>
+                    </div>
+
+                    <div class"">
+                        <input class="input input-small" type="number" min="0" max="10" @bind="UserRating" placeholder="Rate 0-10" />
+                        <button class="btn btn-outline-success" @onclick="@RateMovie" disabled="@IsProcessing">Lagre rating</button>
+                    </div>
+                </div>
+
+                <div class="secondary-actions">
+                    <button class="btn btn-outline-info"
+                        @onclick="() => MarkAsWatched(selectedMovie.TmdbId)">                        
+                        @(selectedMovie.IsWatched ? "Se igjen" : "Marker som sett")
+                    </button>
+
+                    
+                    <button class="btn-secondary"
+                            disabled="@selectedMovie.IsImported"
+                            @onclick="() => ImportMovie(selectedMovie.TmdbId)">
+                        @(selectedMovie.IsImported ? "Importert ✓" : "Importer film")
+                    </button>
+                   
+                </div>
+                <div class="secondary-actions">
+                    <button class="btn btn-link" @onclick="GoBackToWatchedMovies">Sette filmer</button>
+                    <button class="btn btn-link" @onclick="GoBackToUnWatchedMovies">Usette filmer</button>
+                </div>
+            </div>
+
+         
+        </div>
+
+       
+    </div>
+
+    <div class="mt-3">
+
+       
+        @if (selectedMovie.WatchHistory != null && selectedMovie.WatchHistory.Any())
+        {
+            <div class="watch-history card">
+                <h4>Historie</h4>
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Liked</th>
+                            <th>Rating</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var watch in selectedMovie.WatchHistory)
+                        {
+                            <tr>
+                                <td>@watch.WatchDate.ToString("yyyy-MM-dd")</td>
+                                <td>@(watch.Liked == true ? "✔" : "✖")</td>
+                                <td>@(watch.Rating.HasValue? watch.Rating.ToString() : "-")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+}
+
+
+
+
+@code {
+    [Parameter]
+    public int TmdbId { get; set; }
+    private DateTime SelectedDate { get; set; } = DateTime.Today;
+
+    private string StatusMessage { get; set; } = string.Empty;
+    private bool _isImported = false;
+    private string? _importMessage;
+    private bool _isImporting = false;
+    private int? UserRating { get; set; }
+    private bool IsProcessing = false;
+
+
+    private MovieDetailsViewModel? selectedMovie { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ShowDetails(TmdbId);
+    }
+
+    private async Task ShowDetails(int tmdbId)
+    {
+        selectedMovie = await MovieService.GetMovieDetailsAsync(tmdbId);
+    }
+
+    private async Task ImportMovie(int tmdbId)
+    {
+        if (selectedMovie == null) return;
+
+        _isImporting = true;
+        _importMessage = null;
+
+        try
+        {
+            await MovieService.AddMovieToWatchList(tmdbId);
+
+            _importMessage = "Film er lagret i systemet.";
+            selectedMovie.IsImported = true; // update UI immediately
+        }
+        catch (Exception ex)
+        {
+            _importMessage = $"Import feilet: {ex.Message}";
+        }
+        finally
+        {
+            _isImporting = false; // always reset loading state
+        }
+    }
+
+    private async Task MarkAsWatched(int tmdbId)
+    {
+        if (selectedMovie == null) return;
+
+        IsProcessing = true;
+        StatusMessage = "Updating...";
+
+        try
+        {
+            var success = await MovieService.MarkMovieAsWatchedAsync(
+                tmdbId,
+                markAsWatched: true,
+                Date: SelectedDate
+            );
+
+            StatusMessage = success ? "Movie marked as watched!" : "Failed to mark as watched.";
+
+            // 🔄 Reload movie details so UI updates
+            await ShowDetails(tmdbId);
+        }
+        finally
+        {
+            IsProcessing = false;
+        }
+    }
+
+    private async Task ToggleLike()
+    {
+        if (selectedMovie == null) return;
+
+        IsProcessing = true;
+        StatusMessage = "Updating...";
+
+        try
+        {
+            bool newLikeValue = !(selectedMovie.WatchHistory?.FirstOrDefault()?.Liked ?? false);
+
+            var success = await MovieService.MarkMovieAsWatchedAsync(
+                selectedMovie.TmdbId,
+                markAsWatched: false,
+                Liked: newLikeValue
+            );
+
+            if (success)
+            {
+                StatusMessage = newLikeValue ? "Movie liked!" : "Movie unliked!";
+                await ShowDetails(selectedMovie.TmdbId); // 🔄 reload UI
+            }
+            else
+            {
+                StatusMessage = "Failed to update like.";
+            }
+        }
+        finally
+        {
+            IsProcessing = false;
+        }
+    }
+
+    private async Task RateMovie()
+    {
+        if (selectedMovie == null) return;
+
+        if (!UserRating.HasValue || UserRating < 0 || UserRating > 10)
+        {
+            StatusMessage = "Rating must be between 0 and 10.";
+            return;
+        }
+
+        IsProcessing = true;
+        StatusMessage = "Updating...";
+
+        var success = await MovieService.MarkMovieAsWatchedAsync(
+            selectedMovie.TmdbId,
+            markAsWatched: false,
+            Rating: UserRating
+        );
+
+        if (success)
+        {
+            StatusMessage = $"Rated {UserRating}/10!";
+            await ShowDetails(selectedMovie.TmdbId); // 🔄 reload UI
+        }
+        else
+        {
+            StatusMessage = "Failed to submit rating.";
+        }
+
+        IsProcessing = false;
+    }
+
+    private void GoBackToWatchedMovies()
+    {
+        Navigation.NavigateTo("/watched-movies");
+    }
+
+    private void GoBackToUnWatchedMovies()
+    {
+        Navigation.NavigateTo("/unwatched-movies");
+    }
+
+    // Strongly-typed command
+    public record MarkMovieCommand(int TmdbId, DateTime? Date = null, bool? Liked = null, int? Rating = null);
+
+    
+
+}
+
+

@@ -1,0 +1,60 @@
+﻿@page "/watched-movie-details/{mediaId:int}"
+@inject IMovieService MovieService
+
+
+@if (movieDetails == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="movie-details">
+        <img src="@movieDetails.PosterPath" alt="@movieDetails.Title" />
+        <h3>@movieDetails.Title</h3>
+        <p>@movieDetails.Overview</p>
+        <p>Runtime: @movieDetails.Runtime mins</p>
+        <p>Genres: @string.Join(", ", movieDetails.Genres)</p>
+
+        @if (movieDetails?.WatchHistory?.Any() == true)
+        {
+            <h4>Watch History</h4>
+            <ul>
+                @foreach (var history in movieDetails.WatchHistory)
+                {
+                    <li>
+                        @($"Watched: {history.WatchDate:MMM dd, yyyy} - Progress: {history.Progress}%")
+
+                        @if (history.Liked.HasValue)
+                        {
+                            <span> - Liked: @(history.Liked.Value ? "Yes" : "No")</span>
+                        }
+
+                        @if (history.Rating.HasValue)
+                        {
+                            <span> - Rating: @history.Rating/10</span>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+
+
+    </div>
+}
+
+
+
+@code {
+    [Parameter]
+    public int mediaId { get; set; }
+
+    private MovieDetailsViewModel? movieDetails;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (mediaId > 0) // or MediaId depending on naming
+        {
+            movieDetails = await MovieService.GetMovieDetailsAsync(mediaId);
+        }
+    }
+}

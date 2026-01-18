@@ -1,0 +1,90 @@
+﻿@page "/tv-serie-details/{TmdbId:int}"
+@using ServiceApp.UI.Services.TvServices
+@inject ITvservice Tvservice
+
+@if (TvSerieDetailsModel == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="tv-details-container">
+        <div class="poster-section">
+            <img src="@TvSerieDetailsModel.PosterUrl" alt="@TvSerieDetailsModel.Title" />
+        </div>
+
+        <div class="info-section">
+            <h1>@TvSerieDetailsModel.Title</h1>
+
+            @if (!string.IsNullOrWhiteSpace(TvSerieDetailsModel.Overview))
+            {
+                <p class="overview">@TvSerieDetailsModel.Overview</p>
+            }
+
+            <p><strong>First Air Date:</strong> @TvSerieDetailsModel.FirstAirDate?.ToString("MMMM dd, yyyy")</p>
+            <p><strong>Seasons:</strong> @TvSerieDetailsModel.NumberOfSeasons</p>
+            <p><strong>Episodes:</strong> @TvSerieDetailsModel.NumberOfEpisodes</p>
+
+            @if (TvSerieDetailsModel.Genres.Any())
+            {
+                <p>
+                    <strong>Genres:</strong>
+                    @foreach (var genre in TvSerieDetailsModel.Genres)
+                    {
+                        <span class="genre">@genre</span>
+                    }
+                </p>
+            }
+
+            @if (TvSerieDetailsModel.Rating > 0)
+            {
+                <p><strong>Rating:</strong> ⭐ @TvSerieDetailsModel.Rating</p>
+            }
+
+            <NavLink class="back-button" href="/search-tv-series">← Back to search</NavLink>
+        </div>
+    </div>
+
+    <div class="seasons-section">
+        <h2>Seasons</h2>
+        <div class="seasons-grid">
+            @foreach (var season in TvSerieDetailsModel.Seasons)
+            {
+                <div class="season-card">
+                    @if (!string.IsNullOrEmpty(season.PosterUrl))
+                    {
+                        <img src="@season.PosterUrl" alt="@season.Name" />
+                    }
+                    <h3>@season.Name </h3>
+                    @if (!string.IsNullOrWhiteSpace(season.Overview))
+                    {
+                        <p class="overview">@season.Overview</p>
+                    }
+                    <p><strong>Episodes:</strong> @season.EpisodeCount</p>
+                    @if (!string.IsNullOrEmpty(season.AirDate))
+                    {
+                        <p><strong>Air Date:</strong> @season.AirDateParsed?.ToString("MMMM dd, yyyy")</p>
+                    }
+                    @if (season.VoteAverage > 0)
+                    {
+                        <p><strong>Rating:</strong> ⭐ @season.VoteAverage</p>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+
+
+
+@code {
+    private TvDetailsViewModel? TvSerieDetailsModel = new();
+
+    [Parameter]
+    public int TmdbId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        TvSerieDetailsModel = await Tvservice.GetTvDetailsAsync(TmdbId);
+    }
+}

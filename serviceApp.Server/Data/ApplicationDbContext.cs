@@ -43,6 +43,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ServiceRecord> ServiceRecords { get; set; }
     public DbSet<ServiceCompany> ServiceCompanies { get; set; }
     public DbSet<ImageFile> ImageFiles { get; set; }
+    public DbSet<MediaItem> MediaItems { get; set; }
+    public DbSet<Genre> Genres { get; set; }
+    public DbSet<MediaItemGenre> MediaItemGenres { get; set; }
+    public DbSet<WatchHistory> WatchHistories { get; set; }
+    public DbSet<Episode> Episodes { get; set; }
+    public DbSet<Season> Seasons { get; set; }
+    public DbSet<WatchlistItem> WatchlistItems { get; set; }
+
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -101,7 +109,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
         modelBuilder.Entity<MileageHistory>()
             .HasQueryFilter(m => _familyId != null && m.FamilyId == _familyId);
-           
+
 
 
         // Optional: additional helpful indexes
@@ -109,6 +117,41 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         modelBuilder.Entity<ServiceCompany>().HasIndex(x => new { x.FamilyId });
         modelBuilder.Entity<Owner>().HasIndex(x => new { x.FamilyId });
         modelBuilder.Entity<Vehicle>().HasIndex(x => new { x.FamilyId });
+
+        modelBuilder.Entity<MediaItemGenre>()
+           .HasKey(x => new { x.MediaItemId, x.GenreId });
+
+        modelBuilder.Entity<MediaItemGenre>()
+            .HasOne(x => x.MediaItem)
+            .WithMany(x => x.MediaItemGenres)
+            .HasForeignKey(x => x.MediaItemId);
+
+        modelBuilder.Entity<MediaItemGenre>()
+            .HasOne(x => x.Genre)
+            .WithMany(x => x.MediaItemGenres)
+            .HasForeignKey(x => x.GenreId);
+
+        modelBuilder.Entity<Genre>()
+        .HasIndex(g => g.Name)
+        .IsUnique();
+
+        modelBuilder.Entity<WatchHistory>()
+        .HasIndex(x => new { x.UserId, x.MediaItemId, x.SeasonId, x.EpisodeId });
+
+
+
+        modelBuilder.Entity<Season>()
+        .HasIndex(x => new { x.MediaItemId, x.SeasonNumber })
+        .IsUnique();
+
+        modelBuilder.Entity<MediaItem>()
+        .HasIndex(x => new { x.TmdbId, x.Type })
+        .IsUnique();
+
+        modelBuilder.Entity<WatchlistItem>()
+        .HasIndex(x => new { x.UserId, x.MediaItemId })
+        .IsUnique();
+
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

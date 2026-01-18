@@ -1,0 +1,38 @@
+﻿@inject IAuthService AuthService
+
+<h3>Register</h3>
+
+<EditForm Model="@RegisterUser" OnValidSubmit="@OnSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <InputText id="email" class="form-control" @bind-Value="RegisterUser.Email" />
+    </div>
+
+    <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <InputText id="password" type="password" class="form-control" @bind-Value="RegisterUser.Password" />
+    </div>
+
+    <div class="mb-3">
+        <label for="confirm" class="form-label">Confirm password</label>
+        <InputText id="confirm" type="password" class="form-control" @bind-Value="RegisterUser.ConfirmPassword" />
+    </div>
+
+    <button class="btn btn-primary" type="submit" disabled="@IsSubmitting">
+        @(IsSubmitting ? "Registering..." : "Register")
+    </button>
+</EditForm>
+
+
+@code {
+    private RegisterUserModel RegisterUser = new();
+    private bool IsSubmitting;
+
+    private async Task OnSubmit()
+    {
+        // await AuthService.RegisterAsync(RegisterUser);
+    }
+}

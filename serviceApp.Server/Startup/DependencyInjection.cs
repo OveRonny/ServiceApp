@@ -2,6 +2,7 @@
 using serviceApp.Server.Features.Emails;
 using serviceApp.Server.Features.Images;
 using serviceApp.Server.Features.StatensVegvesen.Api;
+using serviceApp.Server.Features.Tmdb;
 
 namespace serviceApp.Server.Startup;
 
@@ -57,6 +58,11 @@ public static class DependencyInjection
             client.BaseAddress = new Uri("https://akfell-datautlevering.atlas.vegvesen.no/enkeltoppslag/kjoretoydata");
             string apiKey = config["ApiKey"] ?? throw new Exception("Finner ikke apiKey");
             client.DefaultRequestHeaders.Add("SVV-Authorization", "Apikey " + apiKey);
+        });
+
+        services.AddHttpClient<TmdbClient>(client =>
+        {
+            client.BaseAddress = new Uri(configuration["Tmdb:BaseUrl"]!);
         });
 
         return services;

@@ -2,6 +2,7 @@
 @inject IVehicleService vehicleService
 @inject IImageUploadService ImageService
 @inject IMileageHistoryService MileageService
+@inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager navigation
 @inject IJSRuntime JS
 
@@ -121,17 +122,23 @@
 
     protected override async Task OnInitializedAsync()
     {
-        vehicleModels = await vehicleService.GetAllVehiclesAsync();
+        var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = auth.User;
 
-        // Load SAS URL for each vehicle's primary image; fallback handled in UI
+        if (!user.Identity?.IsAuthenticated ?? true)
+        {
+            // Skip secure calls and show a hint/CTA
+            vehicleModels = new List<VehicleModel>();
+            return;
+        }
+
+        vehicleModels = await vehicleService.GetAllVehiclesAsync();
         foreach (var v in vehicleModels)
         {
             var img = await ImageService.GetPrimaryVehicleImageSasAsync(v.Id);
             if (img is not null && !string.IsNullOrWhiteSpace(img.Url))
                 vehiclePrimaryImages[v.Id] = img.Url;
-           
         }
-
         await LoadLastMileageAsync();
     }
 

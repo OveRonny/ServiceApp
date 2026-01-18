@@ -1,52 +1,65 @@
 name: Deploy EF Core migrations to Azure SQL
 
 on:    
-  workflow_dispatch:   
+  workflow_dispatch:    # Kan kjøre manuelt
 
 permissions:   
   id-token: write
-  contents:  read
+  contents: read
 
 jobs:
   migrate:        
     runs-on: ubuntu-latest
     environment: production
+
     steps:
-      - name:    Checkout
+      # 1️⃣ Checkout koden
+      - name: Checkout
         uses: actions/checkout@v4
 
+      # 2️⃣ Setup .NET 10
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:    
-          dotnet-version:    10.0.x
+          dotnet-version: 10.0.x
 
+      # 3️⃣ Clear NuGet cache (viktig for slettede prosjekter)
+      - name: Clear NuGet cache
+        run: dotnet nuget locals all --clear
+
+      # 4️⃣ Verify connection string secret exists
       - name: Verify connection string exists
         run: |
-          if [ -z "${{ secrets. CONNECTIONSTRINGS__DEFAULTCONNECTION }}" ]; then 
+          if [ -z "${{ secrets.CONNECTIONSTRINGS__DEFAULTCONNECTION }}" ]; then 
             echo "ERROR: CONNECTIONSTRINGS__DEFAULTCONNECTION secret is not set"
             exit 1
           fi
           echo "Connection string is set ✓"
 
-      - name:   Restore and build
-        run:  |
-          dotnet restore
-          dotnet build -c Release
+      # 5️⃣ Restore dependencies og bygg
+      - name: Restore and build
+        run: |
+          dotnet restore Progorb.ServiceApp.Wasm.sln
+          dotnet build Progorb.ServiceApp.Wasm.sln -c Release
 
+      # 6️⃣ Installer dotnet-ef
       - name: Install dotnet-ef
         run: |
           dotnet tool install --global dotnet-ef
           echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
+      # 7️⃣ List migrations (valgfritt, for kontroll)
       - name: Show migrations
         working-directory: serviceApp.Server
         env:
           ConnectionStrings__DefaultConnection: ${{ secrets.CONNECTIONSTRINGS__DEFAULTCONNECTION }}
-        run:  dotnet ef migrations list
+        run: dotnet ef migrations list
 
+      # 8️⃣ Apply EF Core migrations
       - name: Apply EF Core migrations
-        working-directory:   serviceApp.Server
+        working-directory: serviceApp.Server
         env:
           DOTNET_CLI_TELEMETRY_OPTOUT: 1
           ConnectionStrings__DefaultConnection: ${{ secrets.CONNECTIONSTRINGS__DEFAULTCONNECTION }}
         run: dotnet ef database update
+

@@ -906,9 +906,7 @@ namespace serviceApp.Server.Migrations
 
                     b.HasIndex("SeasonId");
 
-                    b.HasIndex("UserId", "MediaItemId", "SeasonId", "EpisodeId")
-                        .IsUnique()
-                        .HasFilter("[SeasonId] IS NOT NULL AND [EpisodeId] IS NOT NULL");
+                    b.HasIndex("UserId", "MediaItemId", "SeasonId", "EpisodeId");
 
                     b.ToTable("WatchHistories");
                 });
@@ -1190,7 +1188,7 @@ namespace serviceApp.Server.Migrations
             modelBuilder.Entity("serviceApp.Server.Entities.WatchlistItem", b =>
                 {
                     b.HasOne("serviceApp.Server.Entities.MediaItem", "MediaItem")
-                        .WithMany()
+                        .WithMany("WatchlistItems")
                         .HasForeignKey("MediaItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1210,6 +1208,8 @@ namespace serviceApp.Server.Migrations
                     b.Navigation("SeasonsNav");
 
                     b.Navigation("WatchHistories");
+
+                    b.Navigation("WatchlistItems");
                 });
 
             modelBuilder.Entity("serviceApp.Server.Entities.Owner", b =>

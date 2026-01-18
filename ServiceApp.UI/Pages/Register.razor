@@ -1,5 +1,4 @@
 ﻿@page "/register"
-
 @inject IAuthService AuthService
 
 <h3>Register</h3>
@@ -35,6 +34,6 @@
 
     private async Task OnSubmit()
     {
-        // await AuthService.RegisterAsync(RegisterUser);
+         await AuthService.RegisterAsync(RegisterUser.Email, RegisterUser.Password);
     }
 }

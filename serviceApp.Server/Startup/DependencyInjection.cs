@@ -18,6 +18,9 @@ public static class DependencyInjection
                  ?? Environment.GetEnvironmentVariable("SQLCONNSTR_DefaultConnection")
                  ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
+        Console.WriteLine($"Connection string length: {cs.Length}");
+        Console.WriteLine(cs.Substring(0, Math.Min(cs.Length, 100)) + "...");
+
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(cs, sql =>
             {

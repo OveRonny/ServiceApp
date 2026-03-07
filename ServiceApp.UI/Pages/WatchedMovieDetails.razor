@@ -19,10 +19,10 @@ else
         {
             <h4>Watch History</h4>
             <ul>
-                @foreach (var history in movieDetails.WatchHistory)
+                @foreach (var history in movieDetails.WatchHistory ?? [])
                 {
                     <li>
-                        @($"Watched: {history.WatchDate:MMM dd, yyyy} - Progress: {history.Progress}%")
+                        @($"Watched: {@history.WatchDate.ToString("MMM dd, yyyy")} - Progress: {history.Progress}%")
 
                         @if (history.Liked.HasValue)
                         {
@@ -52,7 +52,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        if (mediaId > 0) // or MediaId depending on naming
+        if (mediaId > 0) 
         {
             movieDetails = await MovieService.GetMovieDetailsAsync(mediaId);
         }

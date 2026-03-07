@@ -27,23 +27,47 @@
 }
 
 @code {  
+    private string? errorMessage;
 
     private async Task Search()
     {
-        State.Results = await MovieService.SearchMoviesAsync(State.Query);
+       
+        try
+        {
+            errorMessage = null; // clear previous errors
+            State.Results = await MovieService.SearchMoviesAsync(State.Query);
+        }
+        catch (HttpRequestException httpEx)
+        {
+            // Log full exception to browser console (visible in iPhone Safari DevTools or remote logging)
+            Console.Error.WriteLine(httpEx);
+            errorMessage = "Unable to fetch movies. Please try again later.";
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine(ex);
+            errorMessage = "An unexpected error occurred.";
+        }
     }
 
 
     private async Task ImportMovie(int tmdbId)
     {
-        var id = await MovieService.ImportMovieAsync(tmdbId);
-        if (id == null)
+        try
         {
-            Console.WriteLine("Failed to import movie.");
+            var id = await MovieService.ImportMovieAsync(tmdbId);
+            if (id == null)
+            {
+                Console.WriteLine("Failed to import movie.");
+            }
+            else
+            {
+                Console.WriteLine($"Movie imported successfully (ID: {id})");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            Console.WriteLine($"Movie imported successfully (ID: {id})");
+            Console.Error.WriteLine(ex);
         }
     }
 }

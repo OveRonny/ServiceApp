@@ -17,17 +17,22 @@ public class UserService(IHttpClientFactory clients) : IUserService
              ?? Array.Empty<string>();
     }
 
-    public async Task CreateUserAsync(CreateUserModel userModel)
+    public async Task<(bool ok, string? error)> CreateUserAsync(CreateUserModel userModel)
     {
         var http = ApiAuthed();
         var user = new
-        {            
+        {
             userModel.Email,
             userModel.Password,
             userModel.PhoneNumber,
             userModel.Roles,
             userModel.CreateNewFamily
         };
-        await http.PostAsJsonAsync("api/user", user);
+        var response = await http.PostAsJsonAsync("api/user", user);
+        if (response.IsSuccessStatusCode)
+            return (true, null);
+
+        var error = await response.Content.ReadAsStringAsync();
+        return (false, string.IsNullOrWhiteSpace(error) ? "Noe gikk galt." : error);
     }
 }

@@ -101,7 +101,7 @@ public static class GetDashboard
 
             var tvSeasonsWatched = await _db.WatchHistories
                 .AsNoTracking()
-                .Where(w => w.UserId == userId && w.SeasonId != null && w.EpisodeId == null)
+                .Where(w => w.UserId == userId && w.SeasonId != null)
                 .Select(w => w.SeasonId)
                 .Distinct()
                 .CountAsync(ct);

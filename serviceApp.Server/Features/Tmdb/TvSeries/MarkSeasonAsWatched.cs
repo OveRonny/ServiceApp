@@ -37,7 +37,7 @@ public static class MarkSeasonAsWatched
             if (request.Watched)
             {
                 var exists = await _db.WatchHistories.AnyAsync(
-                    w => w.UserId == userId && w.MediaItemId == media.Id && w.SeasonId == season.Id, ct);
+                    w => w.UserId == userId && w.MediaItemId == media.Id && w.SeasonId == season.Id && w.EpisodeId == null, ct);
 
                 if (!exists)
                 {
@@ -54,7 +54,7 @@ public static class MarkSeasonAsWatched
             else
             {
                 var entry = await _db.WatchHistories.FirstOrDefaultAsync(
-                    w => w.UserId == userId && w.MediaItemId == media.Id && w.SeasonId == season.Id, ct);
+                    w => w.UserId == userId && w.MediaItemId == media.Id && w.SeasonId == season.Id && w.EpisodeId == null, ct);
 
                 if (entry != null)
                     _db.WatchHistories.Remove(entry);

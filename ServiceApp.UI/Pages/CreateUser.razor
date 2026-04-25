@@ -2,49 +2,103 @@
 @attribute [Authorize(Roles = "OwnerAdmin")]
 @inject IUserService UserService
 
-<h3>CreateUser</h3>
+<div class="cu-page">
+    <div class="cu-card">
+        <h1 class="cu-title">➕ Legg til bruker</h1>
+        <p class="cu-subtitle">Ny bruker får samme familiedata med mindre du oppretter ny familie.</p>
 
+        <EditForm Model="model" OnValidSubmit="CreateAsync">
+            <DataAnnotationsValidator />
 
-<EditForm Model="model" OnValidSubmit="CreateAsync">
-    <DataAnnotationsValidator />
-    <div class="row g-2">
-      
-        <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="model.Email" placeholder="Email" autocomplete="off" name="new-user-email" />
-        </div>
-        <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="model.Password" type="password" placeholder="Password" autocomplete="new-password" name="new-user-password" />
-        </div>
-        <div class="col-md-4">
-            <InputText class="form-control" @bind-Value="model.PhoneNumber" placeholder="Phone" />
-        </div>
-        <div class="col-md-4">
-            <InputSelect class="form-select" @bind-Value="selectedRole">
-                <option value="">-- Velg role --</option>
-                @foreach (var r in roles)
+            <div class="cu-form">
+                <!-- E-post -->
+                <div class="cu-field">
+                    <label class="cu-label">E-post</label>
+                    <InputText class="cu-input" @bind-Value="model.Email"
+                               placeholder="bruker@eksempel.no"
+                               autocomplete="off" name="new-user-email" />
+                    <ValidationMessage For="() => model.Email" class="cu-validation" />
+                </div>
+
+                <!-- Passord -->
+                <div class="cu-field">
+                    <label class="cu-label">Passord</label>
+                    <InputText class="cu-input" @bind-Value="model.Password"
+                               type="password"
+                               placeholder="Minimum 6 tegn"
+                               autocomplete="new-password" name="new-user-password" />
+                    <ValidationMessage For="() => model.Password" class="cu-validation" />
+                </div>
+
+                <!-- Telefon -->
+                <div class="cu-field">
+                    <label class="cu-label">Telefon <span class="cu-optional">(valgfritt)</span></label>
+                    <InputText class="cu-input" @bind-Value="model.PhoneNumber"
+                               placeholder="+47 000 00 000" />
+                </div>
+
+                <!-- Rolle -->
+                <div class="cu-field">
+                    <label class="cu-label">Rolle</label>
+                    <InputSelect class="cu-input cu-select" @bind-Value="selectedRole">
+                        <option value="">-- Velg rolle --</option>
+                        @foreach (var r in roles)
+                        {
+                            <option value="@r">@r</option>
+                        }
+                    </InputSelect>
+                    @if (string.IsNullOrWhiteSpace(selectedRole) && _submitted)
+                    {
+                        <span class="cu-validation">Rolle er påkrevd.</span>
+                    }
+                </div>
+
+                <!-- Ny familie -->
+                <div class="cu-checkbox-row">
+                    <label class="cu-checkbox-label">
+                        <InputCheckbox @bind-Value="model.CreateNewFamily" class="cu-checkbox" />
+                        <span>
+                            Opprett ny familie for denne brukeren
+                            <span class="cu-hint">— brukeren får ikke tilgang til dine data</span>
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Tilbakemelding -->
+                @if (!string.IsNullOrEmpty(_successMsg))
                 {
-                    <option value="@r">@r</option>
+                    <div class="cu-alert cu-alert--success">✅ @_successMsg</div>
                 }
-            </InputSelect>
-        </div>
-        <div class="mb-3">
-            <label class="form-check-label">
-                <InputCheckbox class="form-check-input" @bind-Value="model.CreateNewFamily" />
-                Opprett ny familie for bruker
-            </label>
-        </div>
+                @if (!string.IsNullOrEmpty(_errorMsg))
+                {
+                    <div class="cu-alert cu-alert--error">⚠️ @_errorMsg</div>
+                }
 
-        <div class="col-md-4">
-            <button class="btn btn-primary w-100" type="submit" disabled="@string.IsNullOrWhiteSpace(selectedRole)">Lagre</button>
-        </div>
+                <!-- Knapp -->
+                <button class="cu-btn" type="submit"
+                        disabled="@(_loading || string.IsNullOrWhiteSpace(selectedRole))">
+                    @if (_loading)
+                    {
+                        <span>Oppretter...</span>
+                    }
+                    else
+                    {
+                        <span>Opprett bruker</span>
+                    }
+                </button>
+            </div>
+        </EditForm>
     </div>
-</EditForm>
-
+</div>
 
 @code {
     private IEnumerable<string> roles = [];
     private string selectedRole = "";
     private CreateUserModel model = new();
+    private bool _loading;
+    private bool _submitted;
+    private string? _successMsg;
+    private string? _errorMsg;
 
     protected override async Task OnInitializedAsync()
     {
@@ -53,7 +107,33 @@
 
     private async Task CreateAsync()
     {
-        model.Roles = string.IsNullOrWhiteSpace(selectedRole) ? Array.Empty<string>() : new[] { selectedRole };
-        await UserService.CreateUserAsync(model);
+        _submitted = true;
+        if (string.IsNullOrWhiteSpace(selectedRole)) return;
+
+        _loading = true;
+        _successMsg = null;
+        _errorMsg = null;
+
+        try
+        {
+            model.Roles = [selectedRole];
+            var (ok, error) = await UserService.CreateUserAsync(model);
+
+            if (ok)
+            {
+                _successMsg = $"Bruker \"{model.Email}\" er opprettet.";
+                model = new();
+                selectedRole = "";
+                _submitted = false;
+            }
+            else
+            {
+                _errorMsg = error ?? "Ukjent feil. Prøv igjen.";
+            }
+        }
+        finally
+        {
+            _loading = false;
+        }
     }
 }

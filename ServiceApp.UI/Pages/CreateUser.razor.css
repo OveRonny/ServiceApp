@@ -1,0 +1,158 @@
+.cu-page {
+    display: flex;
+    justify-content: center;
+    padding: 40px 16px;
+}
+
+.cu-card {
+    background-color: var(--gray-800);
+    border: 1px solid var(--border-muted);
+    border-radius: 16px;
+    padding: 32px 36px;
+    width: 100%;
+    max-width: 480px;
+}
+
+.cu-title {
+    font-size: 1.4em;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0 0 6px;
+}
+
+.cu-subtitle {
+    font-size: 0.88em;
+    color: var(--text-muted);
+    margin: 0 0 28px;
+}
+
+/* Form */
+.cu-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.cu-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cu-label {
+    font-size: 0.85em;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.cu-optional {
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+.cu-input {
+    background-color: var(--gray-900);
+    border: 1px solid var(--border-muted);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text-primary);
+    font-size: 0.95em;
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+    box-sizing: border-box;
+    color-scheme: dark;
+}
+
+.cu-input:focus {
+    border-color: var(--blue-500);
+}
+
+.cu-select {
+    cursor: pointer;
+}
+
+.cu-validation {
+    font-size: 0.82em;
+    color: #f87171;
+    margin-top: 2px;
+}
+
+/* Checkbox */
+.cu-checkbox-row {
+    background-color: var(--gray-900);
+    border: 1px solid var(--border-muted);
+    border-radius: 10px;
+    padding: 12px 14px;
+}
+
+.cu-checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 0.9em;
+    color: var(--text-primary);
+}
+
+.cu-checkbox {
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    accent-color: var(--blue-500);
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.cu-hint {
+    color: var(--text-muted);
+    font-size: 0.88em;
+}
+
+/* Alerts */
+.cu-alert {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.88em;
+    font-weight: 500;
+}
+
+.cu-alert--success {
+    background-color: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #4ade80;
+}
+
+.cu-alert--error {
+    background-color: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #f87171;
+}
+
+/* Submit button */
+.cu-btn {
+    background: linear-gradient(135deg, #6366f1, #3b82f6);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 0.95em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    margin-top: 4px;
+}
+
+.cu-btn:hover:not(:disabled) {
+    opacity: 0.85;
+}
+
+.cu-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}

@@ -77,39 +77,60 @@ else
                 <h2 class="panel-title">🚗 Kjøretøy</h2>
                 @if (_data.Vehicles.Summaries.Any())
                 {
-                    <div class="vehicle-list">
+                    <div class="vcard-grid">
                         @foreach (var v in _data.Vehicles.Summaries)
                         {
-                            <div class="vehicle-row">
-                                <div class="vehicle-name">
-                                    <span class="vehicle-make-model">@v.Year @v.Make @v.Model</span>
-                                    <span class="vehicle-plate">@v.LicensePlate</span>
+                            <div class="vcard">
+                                <!-- Header -->
+                                <div class="vcard-header">
+                                    <div class="vcard-title">
+                                        <span class="vcard-make-model">@v.Year @v.Make @v.Model</span>
+                                    </div>
+                                    <span class="vcard-plate">@v.LicensePlate</span>
                                 </div>
-                                <div class="vehicle-stats">
+
+                                <!-- Stats -->
+                                <div class="vcard-stats">
                                     @if (v.LatestMileage.HasValue)
                                     {
-                                        <span class="vehicle-stat">🛣 @v.LatestMileage.Value.ToString("N0") km</span>
+                                        <div class="vcard-stat-row">
+                                            <span class="vcard-stat-icon">🛣</span>
+                                            <span class="vcard-stat-label">Kilometerstand</span>
+                                            <span class="vcard-stat-value">@v.LatestMileage.Value.ToString("N0") km</span>
+                                        </div>
                                     }
                                     @if (v.LastFuelDate.HasValue)
                                     {
-                                        <span class="vehicle-stat">⛽ Siste tanking: @v.LastFuelLiters?.ToString("F1") L  (@v.LastFuelDate.Value.ToString("d. MMM yyyy"))</span>
+                                        <div class="vcard-stat-row">
+                                            <span class="vcard-stat-icon">⛽</span>
+                                            <span class="vcard-stat-label">Siste tanking</span>
+                                            <span class="vcard-stat-value">@v.LastFuelLiters?.ToString("F1") L &nbsp;<span class="vcard-stat-date">@v.LastFuelDate.Value.ToString("d. MMM yyyy")</span></span>
+                                        </div>
                                     }
                                     @if (v.LastServiceDate.HasValue)
                                     {
-                                        <span class="vehicle-stat">🔧 Siste service: @v.LastServiceDate.Value.ToString("d. MMM yyyy")</span>
-                                        @if (!string.IsNullOrEmpty(v.LastServiceType))
-                                        {
-                                            <span class="vehicle-stat vehicle-service-type">@v.LastServiceType</span>
-                                        }
-                                        @if (v.LastServiceMileage.HasValue)
-                                        {
-                                            <span class="vehicle-stat vehicle-service-km">ved @v.LastServiceMileage.Value.ToString("N0") km</span>
-                                        }
+                                        <div class="vcard-stat-row">
+                                            <span class="vcard-stat-icon">🔧</span>
+                                            <span class="vcard-stat-label">Siste service</span>
+                                            <span class="vcard-stat-value">
+                                                @if (!string.IsNullOrEmpty(v.LastServiceType))
+                                                {
+                                                    <span>@v.LastServiceType</span>
+                                                }
+                                                &nbsp;<span class="vcard-stat-date">@v.LastServiceDate.Value.ToString("d. MMM yyyy")</span>
+                                                @if (v.LastServiceMileage.HasValue)
+                                                {
+                                                    <span class="vcard-stat-date">&nbsp;· @v.LastServiceMileage.Value.ToString("N0") km</span>
+                                                }
+                                            </span>
+                                        </div>
                                     }
                                 </div>
-                                <div class="vehicle-links">
-                                    <NavLink class="vehicle-link" href="@($"consumptionrecords/{v.Id}")">⛽ Forbruk →</NavLink>
-                                    <NavLink class="vehicle-link" href="@($"vehicle/{v.Id}")">🔧 Detaljer →</NavLink>
+
+                                <!-- Actions -->
+                                <div class="vcard-actions">
+                                    <NavLink class="vcard-btn vcard-btn--fuel" href="@($"consumptionrecords/{v.Id}")">⛽ Forbruk</NavLink>
+                                    <NavLink class="vcard-btn vcard-btn--service" href="@($"servicerecords/{v.Id}")">🔧 Service</NavLink>
                                 </div>
                             </div>
                         }

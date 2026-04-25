@@ -4,53 +4,64 @@
 @inject NavigationManager navigationManager
 @attribute [Authorize]
 
-<h3>Supplier</h3>
+<div class="slr-page">
 
-<EditForm Model="supplier" OnValidSubmit="HandleValidSubmit">
-    <DataAnnotationsValidator />
-
-    <div class="mb-3">
-        <label for="name" class="form-label">Name</label>
-        <InputText id="name" class="form-control" @bind-Value="supplier.Name" />
-        <ValidationMessage For="@(() => supplier.Name)" />
-    </div>
-    <div class="mb-3">
-        <label for="contactEmail" class="form-label">Epost</label>
-        <InputText id="contactEmail" class="form-control" @bind-Value="supplier.ContactEmail" />
-        <ValidationMessage For="@(() => supplier.ContactEmail)" />
-    </div>
-    <div class="mb-3">
-        <label for="city" class="form-label">Sted</label>
-        <InputText id="city" class="form-control" @bind-Value="supplier.City" />
-        <ValidationMessage For="@(() => supplier.City)" />
-    </div>
-    <div class="mb-3">
-        <label for="contactPhone" class="form-label">Telefon</label>
-        <InputText id="contactPhone" class="form-control" @bind-Value="supplier.ContactPhone" />
-        <ValidationMessage For="@(() => supplier.ContactPhone)" />
-    </div>
-    <div class="mb-3">
-        <label for="address" class="form-label">Adresse</label>
-        <InputText id="address" class="form-control" @bind-Value="supplier.Address" />
-        <ValidationMessage For="@(() => supplier.Address)" />
-    </div>
-    <div class="mb-3">
-        <label for="postalCode" class="form-label">Postnummer</label>
-        <InputText id="postalCode" class="form-control" @bind-Value="supplier.PostalCode" />
-        <ValidationMessage For="@(() => supplier.PostalCode)" />
+    <div class="slr-header">
+        <h1 class="slr-title">@(Id > 0 ? "✏️ Rediger leverandør" : "➕ Ny leverandør")</h1>
     </div>
 
-    <button type="submit" class="btn btn-primary">Lagre</button>
-    <button type="button" class="btn btn-secondary" @onclick="NavigateToSuppliers">Avbryt</button>
-    @if (Id > 0)
-    {
-        <button type="button" class="btn btn-danger" @onclick="DeleteSupplier">Slett</button>
-    }
+    <div class="slr-form-card">
+        <EditForm Model="supplier" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
 
-</EditForm>
+            <div class="slr-grid">
+                <div class="slr-field">
+                    <label class="slr-label" for="name">Navn</label>
+                    <InputText id="name" class="slr-input" @bind-Value="supplier.Name" placeholder="Firmanavn..." />
+                    <ValidationMessage For="@(() => supplier.Name)" />
+                </div>
+                <div class="slr-field">
+                    <label class="slr-label" for="contactEmail">E-post</label>
+                    <InputText id="contactEmail" class="slr-input" @bind-Value="supplier.ContactEmail" placeholder="kontakt@firma.no" />
+                    <ValidationMessage For="@(() => supplier.ContactEmail)" />
+                </div>
+                <div class="slr-field">
+                    <label class="slr-label" for="contactPhone">Telefon</label>
+                    <InputText id="contactPhone" class="slr-input" @bind-Value="supplier.ContactPhone" placeholder="000 00 000" />
+                    <ValidationMessage For="@(() => supplier.ContactPhone)" />
+                </div>
+                <div class="slr-field">
+                    <label class="slr-label" for="address">Adresse</label>
+                    <InputText id="address" class="slr-input" @bind-Value="supplier.Address" placeholder="Gateadresse..." />
+                    <ValidationMessage For="@(() => supplier.Address)" />
+                </div>
+                <div class="slr-field">
+                    <label class="slr-label" for="postalCode">Postnummer</label>
+                    <InputText id="postalCode" class="slr-input" @bind-Value="supplier.PostalCode" placeholder="0000" />
+                    <ValidationMessage For="@(() => supplier.PostalCode)" />
+                </div>
+                <div class="slr-field">
+                    <label class="slr-label" for="city">Sted</label>
+                    <InputText id="city" class="slr-input" @bind-Value="supplier.City" placeholder="By..." />
+                    <ValidationMessage For="@(() => supplier.City)" />
+                </div>
+            </div>
+
+            <div class="slr-actions">
+                <button type="submit" class="slr-btn slr-btn-save">💾 Lagre</button>
+                <button type="button" class="slr-btn slr-btn-cancel" @onclick="NavigateToSuppliers">Avbryt</button>
+                @if (Id > 0)
+                {
+                    <button type="button" class="slr-btn slr-btn-delete" @onclick="DeleteSupplier">🗑 Slett</button>
+                }
+            </div>
+        </EditForm>
+    </div>
+
+</div>
 
 @code {
-    private SupplierModel supplier = new SupplierModel();
+    private SupplierModel supplier = new();
 
     [Parameter]
     public int Id { get; set; }
@@ -60,14 +71,7 @@
         if (Id > 0)
         {
             var result = await supplierService.GetSupplierByIdAsync(Id);
-            if (result != null)
-            {
-                supplier = result;
-            }
-            else
-            {                
-                supplier = new SupplierModel();
-            }
+            supplier = result ?? new SupplierModel();
         }
         else
         {
@@ -78,13 +82,10 @@
     private async Task HandleValidSubmit()
     {
         if (Id > 0)
-        {
             await supplierService.UpdateSupplierAsync(supplier);
-        }
         else
-        {
             await supplierService.CreateSupplierAsync(supplier);
-        }
+
         NavigateToSuppliers();
     }
 

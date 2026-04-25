@@ -3,74 +3,64 @@
 @inject NavigationManager navigationManager
 @attribute [Authorize]
 
-<h3>Eiere</h3>
+<div class="own-page">
 
-<button type="button" class="btn btn-primary mb-2" @onclick="NavigateToOwner">Ny Eier</button>
+    <div class="own-header">
+        <div>
+            <h1 class="own-title">👤 Eiere</h1>
+            <p class="own-subtitle">@ownerModels.Count registrerte eiere</p>
+        </div>
+        <button class="own-btn-add" @onclick="NavigateToOwner">+ Ny eier</button>
+    </div>
 
-<div class="page-section mt-3">
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
-        @if (ownerModels != null && ownerModels.Count > 0)
-        {
+    @if (ownerModels.Count == 0)
+    {
+        <div class="own-empty">
+            <div class="own-empty-icon">👤</div>
+            <p>Ingen eiere registrert enda.</p>
+            <button class="own-btn-add" @onclick="NavigateToOwner">+ Legg til første eier</button>
+        </div>
+    }
+    else
+    {
+        <div class="own-grid">
             @foreach (var owner in ownerModels)
             {
-                <div class="col">
-                    <div class="card card-service h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center gap-2">
-                                <span class="date-pill">
-                                    @(string.IsNullOrWhiteSpace(owner.City) ? "Eier" : owner.City)
-                                </span>
-                                @if (!string.IsNullOrWhiteSpace(owner.Email))
-                                {
-                                    <span class="badge badge-service rounded-pill badge-clip text-truncate" title="@owner.Email">
-                                        @owner.Email
-                                    </span>
-                                }
-                            </div>
-
-                            <h5 class="card-title mt-2 mb-1">
-                                <a class="text-decoration-none" href="owner/@owner.Id">@owner.FirstName @owner.LastName</a>
-                            </h5>
-
+                <div class="own-card">
+                    <div class="own-card-header">
+                        <span class="own-icon">👤</span>
+                        <span class="own-badge">@(string.IsNullOrWhiteSpace(owner.City) ? "Eier" : owner.City)</span>
+                    </div>
+                    <div class="own-card-body">
+                        <h2 class="own-name">@owner.FirstName @owner.LastName</h2>
+                        <div class="own-meta">
                             @if (!string.IsNullOrWhiteSpace(owner.Address))
                             {
-                                <p class="card-text text-muted mb-2">
-                                    @owner.Address
-                                    @if (!string.IsNullOrWhiteSpace(owner.PostalCode) || !string.IsNullOrWhiteSpace(owner.City))
-                                    {
-                                        <span>, @owner.PostalCode @owner.City</span>
-                                    }
-                                </p>
+                                <span class="own-meta-item">📍 @owner.Address@(string.IsNullOrWhiteSpace(owner.PostalCode) ? "" : $", {owner.PostalCode}") @owner.City</span>
                             }
-
-                            <div class="d-flex flex-wrap gap-3 text-muted small">
-                                @if (!string.IsNullOrWhiteSpace(owner.PhoneNumber))
-                                {
-                                    <span>Tlf: <strong>@owner.PhoneNumber</strong></span>
-                                }
-                            </div>
+                            @if (!string.IsNullOrWhiteSpace(owner.PhoneNumber))
+                            {
+                                <span class="own-meta-item">📞 @owner.PhoneNumber</span>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(owner.Email))
+                            {
+                                <span class="own-meta-item">✉️ @owner.Email</span>
+                            }
                         </div>
-                        <div class="card-footer bg-transparent d-flex gap-2">
-                            <button type="button" class="btn btn-primary btn-sm"
-                                    @onclick="@(() => navigationManager.NavigateTo($"/owner/{owner.Id}"))">
-                                Rediger
-                            </button>
-                            <button type="button" class="btn btn-outline-primary btn-sm"
-                                    @onclick="@(() => NavigateToOwnerVehicles(owner.Id))">
-                                Se kjøretøy
-                            </button>
-                        </div>
+                    </div>
+                    <div class="own-card-footer">
+                        <button class="own-btn-action own-btn-edit" @onclick="@(() => navigationManager.NavigateTo($"/owner/{owner.Id}"))">
+                            ✏️ Rediger
+                        </button>
+                        <button class="own-btn-action own-btn-vehicles" @onclick="@(() => NavigateToOwnerVehicles(owner.Id))">
+                            🚗 Kjøretøy
+                        </button>
                     </div>
                 </div>
             }
-        }
-        else
-        {
-            <div class="col">
-                <div class="alert alert-info mb-0">Ingen eiere</div>
-            </div>
-        }
-    </div>
+        </div>
+    }
+
 </div>
 
 @code {

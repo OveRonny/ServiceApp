@@ -4,70 +4,87 @@
 @inject MovieSearchState State
 @attribute [Authorize]
 
+<div class="smv-page">
 
-
-<input @bind="State.Query" placeholder="Search movies..." />
-<button @onclick="Search">Search</button>
-
-@if (State.Results.Any())
-{
-    <div class="movie-grid">
-        @foreach (var movie in State.Results)
-        {
-            <NavLink class="movie-card" href="@($"/moviedetails/{movie.TmdbId}")">
-                @if (!string.IsNullOrEmpty(movie.PosterUrl))
-                {
-                    <img src="@movie.PosterUrl" alt="@movie.Title" />
-                }
-                <p>@movie.Title (@movie.Year)</p>
-                <p>@movie.MediaType</p>
-            </NavLink>
-        }
+    <div class="smv-header">
+        <h1 class="smv-title">🔍 Søk filmer</h1>
     </div>
-}
 
-@code {  
-    private string? errorMessage;
+    <div class="smv-search-bar">
+        <input class="smv-input"
+               @bind="State.Query"
+               @bind:event="oninput"
+               @onkeyup="OnKeyUp"
+               placeholder="Søk etter film..." />
+        <button class="smv-btn" @onclick="Search" disabled="@_loading">
+            @(_loading ? "Søker..." : "Søk")
+        </button>
+    </div>
+
+    @if (_loading)
+    {
+        <div class="smv-loading">⏳ Søker...</div>
+    }
+    else if (State.Results.Any())
+    {
+        <p class="smv-count">@State.Results.Count treff</p>
+        <div class="smv-grid">
+            @foreach (var movie in State.Results)
+            {
+                <NavLink class="smv-card" href="@($"/moviedetails/{movie.TmdbId}")">
+                    @if (!string.IsNullOrEmpty(movie.PosterUrl))
+                    {
+                        <img src="@movie.PosterUrl" alt="@movie.Title" class="smv-poster" />
+                    }
+                    else
+                    {
+                        <div class="smv-no-poster">🎬</div>
+                    }
+                    <div class="smv-card-info">
+                        <span class="smv-name">@movie.Title</span>
+                        @if (movie.Year.HasValue)
+                        {
+                            <span class="smv-year">@movie.Year</span>
+                        }
+                    </div>
+                </NavLink>
+            }
+        </div>
+    }
+    else if (_searched)
+    {
+        <p class="smv-empty">Ingen treff for «@State.Query».</p>
+    }
+
+</div>
+
+@code {
+    private bool _loading;
+    private bool _searched;
+
+    protected override void OnInitialized()
+    {
+        if (State.Results.Any()) _searched = true;
+    }
 
     private async Task Search()
     {
-       
+        if (string.IsNullOrWhiteSpace(State.Query)) return;
+        _loading = true;
         try
         {
-            errorMessage = null; // clear previous errors
             State.Results = await MovieService.SearchMoviesAsync(State.Query);
-        }
-        catch (HttpRequestException httpEx)
-        {
-            // Log full exception to browser console (visible in iPhone Safari DevTools or remote logging)
-            Console.Error.WriteLine(httpEx);
-            errorMessage = "Unable to fetch movies. Please try again later.";
+            _searched = true;
         }
         catch (Exception ex)
         {
             Console.Error.WriteLine(ex);
-            errorMessage = "An unexpected error occurred.";
         }
+        _loading = false;
     }
 
-
-    private async Task ImportMovie(int tmdbId)
+    private async Task OnKeyUp(KeyboardEventArgs e)
     {
-        try
-        {
-            var id = await MovieService.ImportMovieAsync(tmdbId);
-            if (id == null)
-            {
-                Console.WriteLine("Failed to import movie.");
-            }
-            else
-            {
-                Console.WriteLine($"Movie imported successfully (ID: {id})");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine(ex);
-        }
+        if (e.Key == "Enter") await Search();
     }
 }

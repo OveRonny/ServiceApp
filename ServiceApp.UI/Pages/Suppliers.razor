@@ -2,70 +2,63 @@
 @inject ISupplierService supplierService
 @attribute [Authorize]
 
-<h3>Leverandører</h3>
+<div class="sup-page">
 
-<NavLink class="btn btn-primary mb-3" href="@("/supplier")">
-    <i class="bi bi-plus-lg me-2"></i> Ny leverandør
-</NavLink>
+    <div class="sup-header">
+        <div>
+            <h1 class="sup-title">🏢 Leverandører</h1>
+            <p class="sup-subtitle">@suppliers.Count registrerte leverandører</p>
+        </div>
+        <NavLink class="sup-btn-add" href="/supplier">+ Ny leverandør</NavLink>
+    </div>
 
-<div class="page-section mt-3">
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
-        @if (suppliers != null && suppliers.Count > 0)
-        {
-            @foreach (var supplier in suppliers)
+    @if (suppliers.Count == 0)
+    {
+        <div class="sup-empty">
+            <div class="sup-empty-icon">🏢</div>
+            <p>Ingen leverandører registrert enda.</p>
+            <NavLink class="sup-btn-add" href="/supplier">+ Legg til første leverandør</NavLink>
+        </div>
+    }
+    else
+    {
+        <div class="sup-grid">
+            @foreach (var s in suppliers)
             {
-                <div class="col">
-                    <div class="card card-service h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center gap-2">
-                                <span class="date-pill">
-                                    @(string.IsNullOrWhiteSpace(supplier.City) ? "Leverandør" : supplier.City)
-                                </span>
-                                @if (!string.IsNullOrWhiteSpace(supplier.ContactEmail))
-                                {
-                                    <span class="badge badge-service rounded-pill badge-clip text-truncate" title="@supplier.ContactEmail">
-                                        @supplier.ContactEmail
-                                    </span>
-                                }
-                            </div>
-
-                            <h5 class="card-title mt-2 mb-1">
-                                <a class="text-decoration-none" href="supplier/@supplier.Id">@supplier.Name</a>
-                            </h5>
-
-                            @if (!string.IsNullOrWhiteSpace(supplier.Address))
+                <div class="sup-card">
+                    <div class="sup-card-header">
+                        <span class="sup-icon">🏢</span>
+                        <span class="sup-badge">@(string.IsNullOrWhiteSpace(s.City) ? "Leverandør" : s.City)</span>
+                    </div>
+                    <div class="sup-card-body">
+                        <h2 class="sup-name">@s.Name</h2>
+                        <div class="sup-meta">
+                            @if (!string.IsNullOrWhiteSpace(s.Address))
                             {
-                                <p class="card-text text-muted mb-2">
-                                    @supplier.Address
-                                    @if (!string.IsNullOrWhiteSpace(supplier.PostalCode) || !string.IsNullOrWhiteSpace(supplier.City))
-                                    {
-                                        <span>, @supplier.PostalCode @supplier.City</span>
-                                    }
-                                </p>
+                                <span class="sup-meta-item">📍 @s.Address@(string.IsNullOrWhiteSpace(s.PostalCode) ? "" : $", {s.PostalCode}") @s.City</span>
                             }
-
-                            <div class="d-flex flex-wrap gap-3 text-muted small">
-                                @if (!string.IsNullOrWhiteSpace(supplier.ContactPhone))
-                                {
-                                    <span>Tlf: <strong>@supplier.ContactPhone</strong></span>
-                                }
-                            </div>
+                            @if (!string.IsNullOrWhiteSpace(s.ContactPhone))
+                            {
+                                <span class="sup-meta-item">📞 @s.ContactPhone</span>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(s.ContactEmail))
+                            {
+                                <span class="sup-meta-item">✉️ @s.ContactEmail</span>
+                            }
                         </div>
+                    </div>
+                    <div class="sup-card-footer">
+                        <NavLink class="sup-btn-edit" href="@($"/supplier/{s.Id}")">✏️ Rediger</NavLink>
                     </div>
                 </div>
             }
-        }
-        else
-        {
-            <div class="col">
-                <div class="alert alert-info mb-0">Ingen leverandører</div>
-            </div>
-        }
-    </div>
+        </div>
+    }
+
 </div>
 
 @code {
-    private List<SupplierModel> suppliers = new List<SupplierModel>();
+    private List<SupplierModel> suppliers = new();
 
     protected override async Task OnInitializedAsync()
     {

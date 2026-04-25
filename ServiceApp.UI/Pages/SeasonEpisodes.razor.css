@@ -1,53 +1,166 @@
 .season-episodes-container {
     max-width: 860px;
     margin: 0 auto;
-    padding: 16px;
+    padding: 16px 0 48px;
 }
 
 .season-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
     margin-bottom: 24px;
+}
+
+.season-header h1 {
+    font-size: 1.4em;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.back-button {
+    display: inline-block;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 0.88em;
+    border: 1px solid var(--border-muted);
+    padding: 5px 14px;
+    border-radius: 8px;
+    transition: color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+}
+
+.back-button:hover {
+    color: var(--text-primary);
+    border-color: var(--text-muted);
+    text-decoration: none;
 }
 
 .not-imported-notice {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 16px;
+    padding: 12px 16px;
     margin-bottom: 20px;
-    background-color: #fff8e1;
-    border: 1px solid #ffe082;
-    border-radius: 8px;
-    font-size: 0.9em;
-    color: #555;
+    background-color: rgba(99, 102, 241, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 10px;
+    font-size: 0.88em;
+    color: var(--text-muted);
 }
 
 .notice-link {
-    color: #0d6efd;
+    color: var(--blue-400);
     text-decoration: none;
     white-space: nowrap;
+    font-weight: 600;
 }
 
 .notice-link:hover {
     text-decoration: underline;
 }
 
-.season-header h1 {
-    margin: 8px 0 0;
-    font-size: 1.6em;
-}
-
-.back-button {
-    display: inline-block;
-    text-decoration: none;
-    color: #0d6efd;
-    font-size: 0.95em;
-}
-
-.back-button:hover {
-    text-decoration: underline;
-}
-
+/* Episode list */
 .episode-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.episode-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 16px;
+    border: 1px solid var(--border-muted);
+    border-radius: 12px;
+    background-color: var(--gray-800);
+    transition: border-color 0.2s;
+}
+
+.episode-item.ep-watched {
+    border-color: rgba(34, 197, 94, 0.35);
+    background-color: rgba(34, 197, 94, 0.05);
+}
+
+.ep-meta {
+    flex: 1;
+}
+
+.ep-number {
+    font-size: 0.75em;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.ep-name {
+    margin: 4px 0 6px;
+    font-size: 1em;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.ep-overview {
+    margin: 0 0 6px;
+    font-size: 0.85em;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.ep-rating {
+    font-size: 0.82em;
+    color: var(--text-muted);
+}
+
+.ep-watched-date {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.8em;
+    color: #4ade80;
+    font-weight: 500;
+}
+
+.ep-actions {
+    flex-shrink: 0;
+    padding-top: 2px;
+}
+
+.btn-ep-watched {
+    padding: 7px 14px;
+    border: 1px solid var(--border-muted);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85em;
+    font-weight: 600;
+    background-color: var(--gray-900);
+    color: var(--text-muted);
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+    white-space: nowrap;
+}
+
+.btn-ep-watched.watched {
+    background-color: rgba(34, 197, 94, 0.15);
+    border-color: rgba(34, 197, 94, 0.4);
+    color: #4ade80;
+}
+
+.btn-ep-watched:hover:not(:disabled) {
+    filter: brightness(1.15);
+}
+
+.btn-ep-watched:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
     list-style: none;
     padding: 0;
     margin: 0;

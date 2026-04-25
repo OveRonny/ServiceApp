@@ -1,33 +1,136 @@
-﻿/* TV Search Grid */
-.tv-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 1rem;
-    margin-top: 1rem;
+﻿.stv-page {
+    padding: 8px 0 48px;
 }
 
-/* TV Card */
-.tv-card {
+.stv-header {
+    margin-bottom: 24px;
+}
+
+.stv-title {
+    font-size: 1.6em;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* Search bar */
+.stv-search-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+    max-width: 560px;
+}
+
+.stv-input {
+    flex: 1;
+    background-color: var(--gray-800);
+    border: 1px solid var(--border-muted);
+    border-radius: 10px;
+    padding: 10px 16px;
+    color: var(--text-primary);
+    font-size: 0.95em;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.stv-input:focus {
+    border-color: var(--blue-500);
+}
+
+.stv-btn {
+    background: linear-gradient(135deg, #6366f1, #3b82f6);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 22px;
+    font-size: 0.9em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+}
+
+.stv-btn:hover:not(:disabled) { opacity: 0.85; }
+.stv-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.stv-loading,
+.stv-empty {
+    color: var(--text-muted);
+    font-size: 0.9em;
+    padding: 12px 0;
+}
+
+.stv-count {
+    font-size: 0.82em;
+    color: var(--text-muted);
+    margin: 0 0 16px;
+}
+
+/* Poster grid — same as WatchedMovies */
+.stv-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+}
+
+.stv-card {
     display: flex;
     flex-direction: column;
-    background-color: #1e1e1e;
-    border-radius: 12px;
+    background-color: var(--gray-800);
+    border: 1px solid var(--border-muted);
+    border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    color: #fff;
+    text-decoration: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.stv-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
     text-decoration: none;
 }
 
-    /* Hover effect */
-    .tv-card:hover {
-        transform: scale(1.05);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
-    }
+.stv-poster {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    display: block;
+}
 
-    /* Poster Image */
-    .tv-card img {
-        width: 100%;
+.stv-no-poster {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5em;
+    background-color: var(--gray-900);
+    color: var(--text-muted);
+}
+
+.stv-card-info {
+    padding: 6px 8px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.stv-name {
+    font-size: 0.78em;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.stv-rating {
+    font-size: 0.72em;
+    color: var(--text-muted);
+}
+
         height: 270px;
         object-fit: cover;
     }

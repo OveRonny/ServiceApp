@@ -4,64 +4,61 @@
 @inject NavigationManager NavigationManager
 @attribute [Authorize]
 
-<h3>ServiceType</h3>
+<div class="sty-page">
 
-<EditForm Model="serviceType" OnValidSubmit="HandleValidSubmit">
-    <DataAnnotationsValidator />
-
-    <div class="mb-3">
-        <label for="Name" class="form-label">Service Type</label>
-        <InputText id="Name" class="form-control" @bind-Value="serviceType.Name" />
-        <ValidationMessage For="@(() => serviceType.Name)" />
+    <div class="sty-header">
+        <h1 class="sty-title">@(Id > 0 ? "✏️ Rediger servicetype" : "➕ Ny servicetype")</h1>
     </div>
 
-    <button type="submit" class="btn btn-primary">Lagre</button>
-    <button type="button" class="btn btn-secondary mx-2" @onclick="NavigateToServiceTypes">Avbryt</button>
-    @if (Id > 0)
-    {
-        <button type="button" class="btn btn-danger mx-2" @onclick="DeleteServiceType">Slett</button>
-    }
+    <div class="sty-form-card">
+        <EditForm Model="serviceType" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
 
-</EditForm>
+            <div class="sty-field">
+                <label class="sty-label" for="Name">Navn</label>
+                <InputText id="Name" class="sty-input" @bind-Value="serviceType.Name" placeholder="Skriv inn servicetype..." />
+                <ValidationMessage For="@(() => serviceType.Name)" />
+            </div>
 
+            <div class="sty-actions">
+                <button type="submit" class="sty-btn sty-btn-save">💾 Lagre</button>
+                <button type="button" class="sty-btn sty-btn-cancel" @onclick="NavigateToServiceTypes">Avbryt</button>
+                @if (Id > 0)
+                {
+                    <button type="button" class="sty-btn sty-btn-delete" @onclick="DeleteServiceType">🗑 Slett</button>
+                }
+            </div>
+        </EditForm>
+    </div>
+
+</div>
 
 @code {
     [Parameter]
     public int Id { get; set; }
 
-    private ServiceTypeModel serviceType = new ServiceTypeModel();
+    private ServiceTypeModel serviceType = new();
 
     protected override async Task OnParametersSetAsync()
     {
-        if(Id > 0)
+        if (Id > 0)
         {
             var result = await ServiceTypeService.GetServiceTypeByIdAsync(Id);
-            if (result != null)
-            {
-                serviceType = result;
-            }
-            else
-            {
-                serviceType = new ServiceTypeModel();
-            }
+            serviceType = result ?? new ServiceTypeModel();
         }
         else
         {
             serviceType = new ServiceTypeModel();
         }
-        
     }
 
     private async Task HandleValidSubmit()
     {
         if (Id > 0)
-        {
             await ServiceTypeService.UpdateServiceTypeAsync(serviceType);
-        }
         else
-        {
             await ServiceTypeService.CreateServiceTypeAsync(serviceType);
-        }
+
         NavigateToServiceTypes();
     }
 
@@ -76,6 +73,7 @@
 
     private void NavigateToServiceTypes()
     {
-        NavigationManager.NavigateTo("/ServiceTypes");
+        NavigationManager.NavigateTo("/servicetypes");
     }
+}
 }

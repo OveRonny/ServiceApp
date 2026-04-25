@@ -3,38 +3,81 @@
 @inject ITvservice TvService
 @inject TvSearchState State
 
-<h3>SearchTvSeries</h3>
+<div class="stv-page">
 
-<input @bind="State.Query" placeholder="Search TV series..." />
-<button @onclick="Search">Search</button>
-
-
-@if (State.Results.Any())
-{
-    <div class="tv-grid">
-        @foreach (var tv in State.Results)
-        {
-            <NavLink class="tv-card" href="@($"/tv-serie-details/{tv.TmdbId}")">
-                <img src="@tv.PosterUrl" alt="@tv.Name" />
-                <p>@tv.Overview</p>
-                <p class="rating">⭐ @tv.Rating</p>
-                
-            </NavLink>
-        }
+    <div class="stv-header">
+        <h1 class="stv-title">🔍 Søk TV-serier</h1>
     </div>
-}
 
+    <div class="stv-search-bar">
+        <input class="stv-input"
+               @bind="State.Query"
+               @bind:event="oninput"
+               @onkeyup="OnKeyUp"
+               placeholder="Søk etter TV-serie..." />
+        <button class="stv-btn" @onclick="Search" disabled="@_loading">
+            @(_loading ? "Søker..." : "Søk")
+        </button>
+    </div>
 
+    @if (_loading)
+    {
+        <div class="stv-loading">⏳ Søker...</div>
+    }
+    else if (State.Results.Any())
+    {
+        <p class="stv-count">@State.Results.Count treff</p>
+        <div class="stv-grid">
+            @foreach (var tv in State.Results)
+            {
+                <NavLink class="stv-card" href="@($"/tv-serie-details/{tv.TmdbId}")">
+                    @if (!string.IsNullOrEmpty(tv.PosterUrl))
+                    {
+                        <img src="@tv.PosterUrl" alt="@tv.Name" class="stv-poster" />
+                    }
+                    else
+                    {
+                        <div class="stv-no-poster">📺</div>
+                    }
+                    <div class="stv-card-info">
+                        <span class="stv-name">@tv.Name</span>
+                        @if (tv.Rating > 0)
+                        {
+                            <span class="stv-rating">⭐ @tv.Rating.Value.ToString("F1")</span>
+                        }
+                    </div>
+                </NavLink>
+            }
+        </div>
+    }
+    else if (_searched)
+    {
+        <p class="stv-empty">Ingen treff for «@State.Query».</p>
+    }
+
+</div>
 
 @code {
-    private async Task Search()
+    private bool _loading;
+    private bool _searched;
+
+    protected override async Task OnInitializedAsync()
     {
-        State.Results = await TvService.SearchTvAsync(State.Query);
+        if (State.Results.Any()) _searched = true;
     }
 
-    private async Task ImportTvSeries(int tmdbId)
+    private async Task Search()
     {
-        var (success, _) = await TvService.ImportTvAsync(tmdbId);
-        Console.WriteLine(success ? $"TV series imported." : "Failed to import TV series.");
+        if (string.IsNullOrWhiteSpace(State.Query)) return;
+        _loading = true;
+        State.Results = await TvService.SearchTvAsync(State.Query);
+        _searched = true;
+        _loading = false;
+    }
+
+    private async Task OnKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await Search();
     }
 }
+

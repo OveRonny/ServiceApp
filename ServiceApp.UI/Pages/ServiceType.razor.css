@@ -1,0 +1,101 @@
+.sty-page {
+    padding: 8px 0 48px;
+    max-width: 560px;
+}
+
+/* Header */
+.sty-header {
+    margin-bottom: 28px;
+}
+
+.sty-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* Form card */
+.sty-form-card {
+    background-color: var(--gray-800);
+    border: 1px solid var(--border-muted);
+    border-radius: 16px;
+    padding: 28px 24px;
+}
+
+/* Field */
+.sty-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 24px;
+}
+
+.sty-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.sty-input {
+    background-color: var(--gray-900);
+    border: 1px solid var(--border-muted);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.sty-input:focus {
+    border-color: var(--blue-500);
+}
+
+/* Actions */
+.sty-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.sty-btn {
+    border: none;
+    border-radius: 10px;
+    padding: 9px 20px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.15s;
+}
+
+.sty-btn:hover {
+    opacity: 0.85;
+    transform: translateY(-1px);
+}
+
+.sty-btn-save {
+    background: linear-gradient(135deg, #6366f1, #3b82f6);
+    color: #fff;
+}
+
+.sty-btn-cancel {
+    background: var(--gray-700, #374151);
+    color: var(--text-muted);
+    border: 1px solid var(--border-muted);
+}
+
+.sty-btn-delete {
+    background: rgba(239, 68, 68, 0.12);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    margin-left: auto;
+}
+
+.sty-btn-delete:hover {
+    background: rgba(239, 68, 68, 0.22);
+}

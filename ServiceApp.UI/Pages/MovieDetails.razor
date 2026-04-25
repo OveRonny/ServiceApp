@@ -3,104 +3,104 @@
 @inject IMovieService MovieService
 @inject NavigationManager Navigation
 
-@if (selectedMovie != null)
+@if (selectedMovie == null)
 {
-    <div class="movie-details card media-card">
-        <img class="poster" src="@selectedMovie.PosterUrl" alt="@selectedMovie.Title" />
-        <div class="details">
-            <h3 class="title">@selectedMovie.Title (@selectedMovie.ReleaseDate?.Substring(0, 4))</h3>
+    <div style="color: var(--text-muted); padding: 40px 0;">⏳ Laster filmdetaljer...</div>
+}
+else
+{
+    <div class="movie-details-page">
 
-            <div class="meta-row">
-                <div class="meta-group">
-                    <span class="meta-label">Genres:</span>
+        <!-- ── Hero ── -->
+        <div class="md-hero">
+            @if (!string.IsNullOrEmpty(selectedMovie.PosterUrl))
+            {
+                <img class="md-poster" src="@selectedMovie.PosterUrl" alt="@selectedMovie.Title" />
+            }
+            <div class="md-hero-info">
+                <h1 class="md-title">@selectedMovie.Title @(selectedMovie.ReleaseDate?.Length >= 4 ? $"({selectedMovie.ReleaseDate[..4]})" : "")</h1>
+
+                <div class="md-badges">
+                    @if (selectedMovie.Runtime > 0)
+                    {
+                        <span class="md-badge">🕐 @selectedMovie.Runtime min</span>
+                    }
                     @if (selectedMovie.Genres != null)
                     {
-                        foreach (var g in selectedMovie.Genres)
+                        @foreach (var g in selectedMovie.Genres)
                         {
-                            <span class="badge">@g</span>
+                            <span class="md-badge">@g</span>
                         }
                     }
                 </div>
-                <div class="meta-group">
-                    <span class="meta-label">Runtime:</span>
-                    <span class="meta">@(selectedMovie.Runtime) mins</span>
-                </div>
-            </div>
 
-            <p class="overview">@selectedMovie.Overview</p>
-
-            <div class="actions">
-                @if (!selectedMovie.IsInMyWatchlist && !selectedMovie.IsWatched)
+                @if (!string.IsNullOrEmpty(selectedMovie.Overview))
                 {
-                    <div class="watchlist-section">
-                        <button class="btn-add-watchlist"
-                                disabled="@_isImporting"
-                                @onclick="() => AddToWatchlist(selectedMovie.TmdbId)">
-                            @if (_isImporting)
-                            {
-                                <span>⏳ Legger til...</span>
-                            }
-                            else
-                            {
-                                <span>➕ Legg til i min liste</span>
-                            }
-                        </button>
-                        @if (!string.IsNullOrWhiteSpace(_importMessage))
-                        {
-                            <div class="message">@_importMessage</div>
-                        }
-                    </div>
+                    <p class="md-overview">@selectedMovie.Overview</p>
                 }
-                else
-                {
-                    <!-- Movie is in watchlist - show interaction controls -->
-                    <div class="toolbar">
-                        <div class="toolbar-left">
-                            <label for="watchDate" class="label">Dato</label>
-                            <input type="date" id="watchDate" class="input input-date" @bind="SelectedDate" />
-
-                            <button class="like-button" @onclick="@ToggleLike" disabled="@IsProcessing">
-                                @(selectedMovie?.WatchHistory?.FirstOrDefault()?.Liked == true ? "👍" : "👎")
-                            </button>
-                        </div>
-
-                        <div class="toolbar-right">
-                            <input class="input input-small" type="number" min="0" max="10" @bind="UserRating" placeholder="Rate 0-10" />
-                            <button class="btn btn-outline-success" @onclick="@RateMovie" disabled="@IsProcessing">Lagre rating</button>
-                        </div>
-                    </div>
-
-                    <div class="secondary-actions">
-                        <button class="btn btn-outline-info"
-                                @onclick="() => MarkAsWatched(selectedMovie!.TmdbId)">
-                            @(selectedMovie!.IsWatched ? "Se igjen" : "Marker som sett")
-                        </button>
-                    </div>
-                }
-                <div class="secondary-actions">
-                    <button class="btn btn-link" @onclick="GoBackToWatchedMovies">Sette filmer</button>
-                    <button class="btn btn-link" @onclick="GoBackToUnWatchedMovies">Usette filmer</button>
-                </div>
             </div>
-
-         
         </div>
 
-       
-    </div>
+        <!-- ── Handlinger ── -->
+        <div class="md-section">
+            <h2 class="md-section-title">🎬 Handlinger</h2>
 
-    <div class="mt-3">
+            @if (!selectedMovie.IsInMyWatchlist && !selectedMovie.IsWatched)
+            {
+                <div class="md-notice">
+                    <span class="md-notice-text">Filmen er ikke i din liste ennå.</span>
+                    <button class="md-btn md-btn--add"
+                            disabled="@_isImporting"
+                            @onclick="() => AddToWatchlist(selectedMovie.TmdbId)">
+                        @(_isImporting ? "⏳ Legger til..." : "➕ Legg til i min liste")
+                    </button>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(_importMessage))
+                {
+                    <p class="md-msg">@_importMessage</p>
+                }
+            }
+            else
+            {
+                <div class="md-toolbar">
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                        <span class="md-label">Dato</span>
+                        <input type="date" class="md-input" @bind="SelectedDate" />
+                        <button class="like-button" @onclick="ToggleLike" disabled="@IsProcessing">
+                            @(selectedMovie.WatchHistory?.FirstOrDefault()?.Liked == true ? "👍" : "👎")
+                        </button>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-left:auto;">
+                        <input class="md-input md-input-small" type="number" min="0" max="10"
+                               @bind="UserRating" placeholder="0–10" />
+                        <button class="md-btn md-btn--primary" @onclick="RateMovie" disabled="@IsProcessing">
+                            Lagre rating
+                        </button>
+                    </div>
+                </div>
 
-       
+                <div class="md-secondary-row">
+                    <button class="md-btn md-btn--watch"
+                            @onclick="() => MarkAsWatched(selectedMovie.TmdbId)"
+                            disabled="@IsProcessing">
+                        @(selectedMovie.IsWatched ? "🔄 Se igjen" : "✅ Marker som sett")
+                    </button>
+                    <button class="md-btn md-btn--ghost" @onclick="GoBackToWatchedMovies">Sette filmer</button>
+                    <button class="md-btn md-btn--ghost" @onclick="GoBackToUnWatchedMovies">Usette filmer</button>
+                </div>
+            }
+        </div>
+
+        <!-- ── Historikk ── -->
         @if (selectedMovie.WatchHistory != null && selectedMovie.WatchHistory.Any())
         {
-            <div class="watch-history card">
-                <h4>Historie</h4>
-                <table class="history-table">
+            <div class="md-section">
+                <h2 class="md-section-title">📋 Seehistorikk</h2>
+                <table class="md-history-table">
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Liked</th>
+                            <th>Dato</th>
+                            <th>Likt</th>
                             <th>Rating</th>
                         </tr>
                     </thead>
@@ -108,15 +108,16 @@
                         @foreach (var watch in selectedMovie.WatchHistory)
                         {
                             <tr>
-                                <td>@watch.WatchDate.ToString("yyyy-MM-dd")</td>
-                                <td>@(watch.Liked == true ? "✔" : "✖")</td>
-                                <td>@(watch.Rating.HasValue? watch.Rating.ToString() : "-")</td>
+                                <td>@watch.WatchDate.ToString("d. MMM yyyy")</td>
+                                <td>@(watch.Liked == true ? "👍" : "👎")</td>
+                                <td>@(watch.Rating.HasValue ? $"{watch.Rating}/10" : "—")</td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
         }
+
     </div>
 }
 

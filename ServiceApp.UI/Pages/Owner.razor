@@ -4,104 +4,99 @@
 @inject NavigationManager navigationManager
 @attribute [Authorize]
 
+<div class="onr-page">
 
-<div class="container-xxl">
-    <h3>Eiere</h3>
+    <div class="onr-header">
+        <h1 class="onr-title">@(Id > 0 ? "✏️ Rediger eier" : "➕ Ny eier")</h1>
+    </div>
 
-    <div class="col-12 col-md-6">
-
-        <EditForm Model="ownerModel" OnValidSubmit="HandleValidSubmit">  
+    <div class="onr-form-card">
+        <EditForm Model="ownerModel" OnValidSubmit="HandleValidSubmit">
             <DataAnnotationsValidator />
 
-            <div class="mb-3">
-                <label for="firstName" class="form-label">First Name</label>
-                <InputText id="firstName" class="form-control" @bind-Value="ownerModel.FirstName" />
-                <ValidationMessage For="@(() => ownerModel.FirstName)" />
+            <div class="onr-grid">
+                <div class="onr-field">
+                    <label class="onr-label" for="firstName">Fornavn</label>
+                    <InputText id="firstName" class="onr-input" @bind-Value="ownerModel.FirstName" placeholder="Fornavn..." />
+                    <ValidationMessage For="@(() => ownerModel.FirstName)" />
+                </div>
+                <div class="onr-field">
+                    <label class="onr-label" for="lastName">Etternavn</label>
+                    <InputText id="lastName" class="onr-input" @bind-Value="ownerModel.LastName" placeholder="Etternavn..." />
+                    <ValidationMessage For="@(() => ownerModel.LastName)" />
+                </div>
+                <div class="onr-field">
+                    <label class="onr-label" for="email">E-post</label>
+                    <InputText id="email" class="onr-input" @bind-Value="ownerModel.Email" placeholder="navn@epost.no" />
+                    <ValidationMessage For="@(() => ownerModel.Email)" />
+                </div>
+                <div class="onr-field">
+                    <label class="onr-label" for="phoneNumber">Telefon</label>
+                    <InputText id="phoneNumber" class="onr-input" @bind-Value="ownerModel.PhoneNumber" placeholder="000 00 000" />
+                    <ValidationMessage For="@(() => ownerModel.PhoneNumber)" />
+                </div>
+                <div class="onr-field">
+                    <label class="onr-label" for="address">Adresse</label>
+                    <InputText id="address" class="onr-input" @bind-Value="ownerModel.Address" placeholder="Gateadresse..." />
+                    <ValidationMessage For="@(() => ownerModel.Address)" />
+                </div>
+                <div class="onr-field">
+                    <label class="onr-label" for="postalCode">Postnummer</label>
+                    <InputText id="postalCode" class="onr-input" @bind-Value="ownerModel.PostalCode" placeholder="0000" />
+                    <ValidationMessage For="@(() => ownerModel.PostalCode)" />
+                </div>
+                <div class="onr-field onr-field-full">
+                    <label class="onr-label" for="city">Sted</label>
+                    <InputText id="city" class="onr-input" @bind-Value="ownerModel.City" placeholder="By..." />
+                    <ValidationMessage For="@(() => ownerModel.City)" />
+                </div>
+            </div>
 
-            </div>
-            <div class="mb-3">
-                <label for="lastName" class="form-label">Last Name</label>
-                <InputText id="lastName" class="form-control" @bind-Value="ownerModel.LastName" />
-                <ValidationMessage For="@(() => ownerModel.LastName)" />
-            </div>
-            <div class="mb-3">
-                <label for="address" class="form-label">Address</label>
-                <InputText id="address" class="form-control" @bind-Value="ownerModel.Address" />
-                <ValidationMessage For="@(() => ownerModel.Address)" />
-            </div>
-
-            <div class="mb-3">
-                <label for="phoneNumber" class="form-label">Phone Number</label>
-                <InputText id="phoneNumber" class="form-control" @bind-Value="ownerModel.PhoneNumber" />
-                <ValidationMessage For="@(() => ownerModel.PhoneNumber)" />
-            </div>
-            <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <InputText id="email" class="form-control" @bind-Value="ownerModel.Email" />
-                <ValidationMessage For="@(() => ownerModel.Email)" />
-            </div>
-            <div class="mb-3">
-                <label for="PostalCode" class="form-label">PostalCode</label>
-                <InputText id="PostalCode" class="form-control" @bind-Value="ownerModel.PostalCode" />
-                <ValidationMessage For="@(() => ownerModel.PostalCode)" />
-            </div>
-            <div class="mb-3">
-                <label for="City" class="form-label">City</label>
-                <InputText id="City" class="form-control" @bind-Value="ownerModel.City" />
-                <ValidationMessage For="@(() => ownerModel.City)" />
-            </div>
-
-            <AuthorizeView Policy="Admin" Context="authState">
-
-                <button type="submit" class="btn btn-primary">Save</button>
-                <button type="button" class="btn btn-secondary" @onclick=(NavigateToOwners)>Cancel</button>
-                <button type="button" class="btn btn-danger" @onclick=(DeleteOwner)>Slett</button>
+            <AuthorizeView Policy="Admin" Context="authCtx">
+                <div class="onr-actions">
+                    <button type="submit" class="onr-btn onr-btn-save">💾 Lagre</button>
+                    <button type="button" class="onr-btn onr-btn-cancel" @onclick="NavigateToOwners">Avbryt</button>
+                    @if (Id > 0)
+                    {
+                        <button type="button" class="onr-btn onr-btn-delete" @onclick="DeleteOwner">🗑 Slett</button>
+                    }
+                </div>
             </AuthorizeView>
         </EditForm>
     </div>
+
 </div>
 
 @code {
-    private OwnerModel ownerModel = new OwnerModel();
+    private OwnerModel ownerModel = new();
 
     [Parameter]
     public int Id { get; set; }
 
     protected override async Task OnParametersSetAsync()
-    {        
-        if(Id > 0)
+    {
+        if (Id > 0)
         {
             var result = await ownerService.GetOwnerByIdAsync(Id);
-            if (result != null)
-            {
-                ownerModel = result;
-            }         
+            ownerModel = result ?? new OwnerModel();
         }
         else
         {
             ownerModel = new OwnerModel();
-        }      
-        
+        }
     }
 
     private async Task HandleValidSubmit()
     {
         if (Id > 0)
-        {
             await ownerService.UpdateOwnerAsync(ownerModel);
-        }
         else
-        {
             await ownerService.AddOwnerAsync(ownerModel);
-        }
-        
+
         NavigateToOwners();
     }
 
-    private void NavigateToOwners()
-    {
-        navigationManager.NavigateTo("/owners");
-    }
+    private void NavigateToOwners() => navigationManager.NavigateTo("/owners");
 
     private async Task DeleteOwner()
     {
@@ -111,7 +106,4 @@
             NavigateToOwners();
         }
     }
-
-   
-   
 }

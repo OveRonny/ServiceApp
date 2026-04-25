@@ -1,48 +1,69 @@
 ﻿@page "/watched-movie-details/{mediaId:int}"
 @inject IMovieService MovieService
 
-
 @if (movieDetails == null)
 {
-    <p>Loading...</p>
+    <div class="wmd-loading">⏳ Laster filmdetaljer...</div>
 }
 else
 {
-    <div class="movie-details">
-        <img src="@movieDetails.PosterPath" alt="@movieDetails.Title" />
-        <h3>@movieDetails.Title</h3>
-        <p>@movieDetails.Overview</p>
-        <p>Runtime: @movieDetails.Runtime mins</p>
-        <p>Genres: @string.Join(", ", movieDetails.Genres)</p>
+    <div class="wmd-page">
 
-        @if (movieDetails?.WatchHistory?.Any() == true)
-        {
-            <h4>Watch History</h4>
-            <ul>
-                @foreach (var history in movieDetails.WatchHistory ?? [])
+        <!-- Hero -->
+        <div class="wmd-hero">
+            @if (!string.IsNullOrEmpty(movieDetails.PosterPath))
+            {
+                <img src="@movieDetails.PosterPath" alt="@movieDetails.Title" class="wmd-poster" />
+            }
+            <div class="wmd-hero-info">
+                <h1 class="wmd-title">@movieDetails.Title</h1>
+                <div class="wmd-badges">
+                    @if (movieDetails.Runtime > 0)
+                    {
+                        <span class="wmd-badge">🕐 @movieDetails.Runtime min</span>
+                    }
+                    @foreach (var g in movieDetails.Genres)
+                    {
+                        <span class="wmd-badge">@g</span>
+                    }
+                </div>
+                @if (!string.IsNullOrEmpty(movieDetails.Overview))
                 {
-                    <li>
-                        @($"Watched: {@history.WatchDate.ToString("MMM dd, yyyy")} - Progress: {history.Progress}%")
-
-                        @if (history.Liked.HasValue)
-                        {
-                            <span> - Liked: @(history.Liked.Value ? "Yes" : "No")</span>
-                        }
-
-                        @if (history.Rating.HasValue)
-                        {
-                            <span> - Rating: @history.Rating/10</span>
-                        }
-                    </li>
+                    <p class="wmd-overview">@movieDetails.Overview</p>
                 }
-            </ul>
-        }
+            </div>
+        </div>
 
+        <!-- Watch history -->
+        @if (movieDetails.WatchHistory?.Any() == true)
+        {
+            <div class="wmd-section">
+                <h2 class="wmd-section-title">📋 Seehistorikk</h2>
+                <div class="wmd-history-list">
+                    @foreach (var h in movieDetails.WatchHistory)
+                    {
+                        <div class="wmd-history-row">
+                            <span class="wmd-history-date">📅 @h.WatchDate.ToString("d. MMM yyyy")</span>
+                            <div class="wmd-history-meta">
+                                @if (h.Liked.HasValue)
+                                {
+                                    <span class="wmd-badge @(h.Liked.Value ? "badge--green" : "badge--red")">
+                                        @(h.Liked.Value ? "👍 Likt" : "👎 Ikke likt")
+                                    </span>
+                                }
+                                @if (h.Rating.HasValue)
+                                {
+                                    <span class="wmd-badge badge--yellow">⭐ @h.Rating/10</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
 
     </div>
 }
-
-
 
 @code {
     [Parameter]
@@ -52,9 +73,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        if (mediaId > 0) 
-        {
+        if (mediaId > 0)
             movieDetails = await MovieService.GetMovieDetailsAsync(mediaId);
-        }
     }
 }
+

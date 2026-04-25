@@ -6,158 +6,181 @@
 @inject NavigationManager NavigationManager
 @attribute [Authorize]
 
-<h3>Forbruk</h3>
+<div class="cr-page">
+	<div class="cr-card">
 
-<EditForm Model="consumptionRecord" OnValidSubmit="HandleValidSubmit">
-    <DataAnnotationsValidator />
+		<div class="cr-header">
+			<h1 class="cr-title">@(Id > 0 ? "✏️ Rediger tanking" : "⛽ Registrer tanking")</h1>
+			<button class="cr-back-btn" type="button" @onclick="Cancel">← Tilbake</button>
+		</div>
 
-    <div class="mb-3">
-        <VehicleDropdown @bind-SelectedVehicleId="consumptionRecord.VehicleId" />
-    </div>
+		<EditForm Model="consumptionRecord" OnValidSubmit="HandleValidSubmit">
+			<DataAnnotationsValidator />
 
-    <div class="mb-3">
-        <label for="date" class="form-label" >Dato</label>
-        <InputDate id="date" class="form-control" @bind-Value="consumptionRecord.Date" />
-        <ValidationMessage For="@(() => consumptionRecord.Date)" />
-    </div>
-    <div class="mb-3">
-        <label for="dieselAdded" class="form-label">Antall liter</label>
-        <InputText id="dieselAdded" class="form-control" @bind-Value="dieselAddedInput" />
-        @if (!string.IsNullOrEmpty(dieselAddedError))
-        {
-            <div class="text-danger">@dieselAddedError</div>
-        }
-        <ValidationMessage For="@(() => consumptionRecord.DieselAdded)" />
-    </div>
+			<div class="cr-form">
 
-    <div class="mb-3">
-        <label for="DieselPricePerLiter" class="form-label">Pris</label>
-        <InputText id="DieselPricePerLiter" class="form-control" @bind-Value="priceInput" />
-        @if (!string.IsNullOrEmpty(priceError))
-        {
-            <div class="text-danger">@priceError</div>
-        }
-        <ValidationMessage For="@(() => consumptionRecord.DieselPricePerLiter)" />
-    </div>
-    <div class="mb-3">
-        <label for="Mileage" class="form-label">Kilometer</label>
-        <InputNumber id="Mileage" class="form-control" @bind-Value="consumptionRecord.Mileage" />
-        <ValidationMessage For="@(() => consumptionRecord.Mileage)" />
-    </div>
+				<!-- Kjøretøy -->
+				<div class="cr-field">
+					<label class="cr-label">Kjøretøy</label>
+					<VehicleDropdown @bind-SelectedVehicleId="consumptionRecord.VehicleId" />
+				</div>
 
-    <button type="submit" class="btn btn-primary">Lagre</button>
-    <button type="button" class="btn btn-secondary" @onclick="Cancel">Avbryt</button>
-    @if (Id > 0)
-    {
-        <button type="button" class="btn btn-danger" @onclick="DeleteConsumption">Slett</button>
-    }  
+				<!-- Dato -->
+				<div class="cr-field">
+					<label class="cr-label">Dato</label>
+					<InputDate class="cr-input" @bind-Value="consumptionRecord.Date" />
+					<ValidationMessage For="@(() => consumptionRecord.Date)" class="cr-validation" />
+				</div>
 
-</EditForm>
+				<!-- Liter + Pris side om side -->
+				<div class="cr-row">
+					<div class="cr-field">
+						<label class="cr-label">Antall liter</label>
+						<InputText class="cr-input" @bind-Value="dieselAddedInput" placeholder="f.eks. 45,5" />
+						@if (!string.IsNullOrEmpty(dieselAddedError))
+						{
+							<span class="cr-validation">@dieselAddedError</span>
+						}
+						<ValidationMessage For="@(() => consumptionRecord.DieselAdded)" class="cr-validation" />
+					</div>
+					<div class="cr-field">
+						<label class="cr-label">Pris per liter</label>
+						<InputText class="cr-input" @bind-Value="priceInput" placeholder="f.eks. 19,90" />
+						@if (!string.IsNullOrEmpty(priceError))
+						{
+							<span class="cr-validation">@priceError</span>
+						}
+						<ValidationMessage For="@(() => consumptionRecord.DieselPricePerLiter)" class="cr-validation" />
+					</div>
+				</div>
+
+				<!-- Totalpris beregnet -->
+				@if (consumptionRecord.DieselAdded > 0 && consumptionRecord.DieselPricePerLiter > 0)
+				{
+					<div class="cr-calc">
+						<span class="cr-calc-label">Totalkostnad</span>
+						<span class="cr-calc-value">@((consumptionRecord.DieselAdded * consumptionRecord.DieselPricePerLiter).ToString("N2")) kr</span>
+					</div>
+				}
+
+				<!-- Kilometer -->
+				<div class="cr-field">
+					<label class="cr-label">Kilometerstand</label>
+					<InputNumber class="cr-input" @bind-Value="consumptionRecord.Mileage" placeholder="f.eks. 85000" />
+					<ValidationMessage For="@(() => consumptionRecord.Mileage)" class="cr-validation" />
+				</div>
+
+				<!-- Knapper -->
+				<div class="cr-actions">
+					<button type="submit" class="cr-btn cr-btn--primary">
+						@(Id > 0 ? "Lagre endringer" : "Lagre tanking")
+					</button>
+					<button type="button" class="cr-btn cr-btn--secondary" @onclick="Cancel">Avbryt</button>
+					@if (Id > 0)
+					{
+						<button type="button" class="cr-btn cr-btn--danger" @onclick="DeleteConsumption">Slett</button>
+					}
+				</div>
+
+			</div>
+		</EditForm>
+
+	</div>
+</div>
 
 @code {
-    [Parameter]
-    public int Id { get; set; }
+	[Parameter]
+	public int Id { get; set; }
 
-    [Parameter]
-    public int VehicleId { get; set; }
+	[Parameter]
+	public int VehicleId { get; set; }
 
-    private ConsumptionRecordModel consumptionRecord = new ConsumptionRecordModel();
+	private ConsumptionRecordModel consumptionRecord = new ConsumptionRecordModel();
 
-    private string? dieselAddedError;
-    private string? priceError;
+	private string? dieselAddedError;
+	private string? priceError;
 
-    private static string FormatDecimal(decimal v) =>
-        v == 0 ? string.Empty : v.ToString("G", System.Globalization.CultureInfo.CurrentCulture);
+	private static string FormatDecimal(decimal v) =>
+		v == 0 ? string.Empty : v.ToString("G", System.Globalization.CultureInfo.CurrentCulture);
 
-    private string dieselAddedInput
-    {
-        get => FormatDecimal(consumptionRecord.DieselAdded);
-        set
-        {
-            if (NumberParsing.TryParseDecimal(value, out var parsed, out var err))
-            {
-                dieselAddedError = null;
-                consumptionRecord.DieselAdded = parsed;
-            }
-            else
-            {
-                dieselAddedError = err;
-            }
-        }
-    }
-
-    private string priceInput
-    {
-        get => FormatDecimal(consumptionRecord.DieselPricePerLiter);
-        set
-        {
-            if (NumberParsing.TryParseDecimal(value, out var parsed, out var err))
-            {
-                priceError = null;
-                consumptionRecord.DieselPricePerLiter = parsed;
-            }
-            else
-            {
-                priceError = err;
-            }
-        }
-    }
-
-
-    protected override async Task OnInitializedAsync()
-    {
-        if (Id > 0)
-        {            
-            var result  = await ConsumptionRecordService.GetConsumptionRecordByIdAsync(Id);
-            if (result != null)
-            {
-                consumptionRecord = result;
+	private string dieselAddedInput
+	{
+		get => FormatDecimal(consumptionRecord.DieselAdded);
+		set
+		{
+			if (NumberParsing.TryParseDecimal(value, out var parsed, out var err))
+			{
+				dieselAddedError = null;
+				consumptionRecord.DieselAdded = parsed;
 			}
-        }
-        else if (VehicleId > 0)
-        {            
-            consumptionRecord.VehicleId = VehicleId;
-        }
-        else
-        {            
-            consumptionRecord = new ConsumptionRecordModel();
-        }
-    }
+			else
+			{
+				dieselAddedError = err;
+			}
+		}
+	}
 
-    private async Task HandleValidSubmit()
-    {
-        if (!string.IsNullOrEmpty(dieselAddedError))
-            return;
-        if (Id > 0)
-        {
-            await ConsumptionRecordService.UpdateConsumptionRecordAsync(consumptionRecord);
-        }
-        else
-        {
-            await ConsumptionRecordService.CreateConsumptionRecordAsync(consumptionRecord);
-        }
-       
-        NavigatToConsumptionRecords();
-    }
+	private string priceInput
+	{
+		get => FormatDecimal(consumptionRecord.DieselPricePerLiter);
+		set
+		{
+			if (NumberParsing.TryParseDecimal(value, out var parsed, out var err))
+			{
+				priceError = null;
+				consumptionRecord.DieselPricePerLiter = parsed;
+			}
+			else
+			{
+				priceError = err;
+			}
+		}
+	}
 
-    private async Task DeleteConsumption()
-    {
-        if (Id > 0)
-        {
-            await ConsumptionRecordService.DeleteConsumptionRecordAsync(Id);
-            NavigatToConsumptionRecords();
-        }
-    }
+	protected override async Task OnInitializedAsync()
+	{
+		if (Id > 0)
+		{
+			var result = await ConsumptionRecordService.GetConsumptionRecordByIdAsync(Id);
+			if (result != null)
+				consumptionRecord = result;
+		}
+		else if (VehicleId > 0)
+		{
+			consumptionRecord.VehicleId = VehicleId;
+		}
+		else
+		{
+			consumptionRecord = new ConsumptionRecordModel();
+		}
+	}
 
-    private void Cancel()
-    {
-        NavigatToConsumptionRecords();
-    }
+	private async Task HandleValidSubmit()
+	{
+		if (!string.IsNullOrEmpty(dieselAddedError))
+			return;
+		if (Id > 0)
+			await ConsumptionRecordService.UpdateConsumptionRecordAsync(consumptionRecord);
+		else
+			await ConsumptionRecordService.CreateConsumptionRecordAsync(consumptionRecord);
 
-    private void NavigatToConsumptionRecords()
-    {
-        VehicleId = consumptionRecord.VehicleId;
-        NavigationManager.NavigateTo($"/consumptionrecords/{VehicleId}");
-    }
+		NavigatToConsumptionRecords();
+	}
 
+	private async Task DeleteConsumption()
+	{
+		if (Id > 0)
+		{
+			await ConsumptionRecordService.DeleteConsumptionRecordAsync(Id);
+			NavigatToConsumptionRecords();
+		}
+	}
+
+	private void Cancel() => NavigatToConsumptionRecords();
+
+	private void NavigatToConsumptionRecords()
+	{
+		VehicleId = consumptionRecord.VehicleId;
+		NavigationManager.NavigateTo($"/consumptionrecords/{VehicleId}");
+	}
 }

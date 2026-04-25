@@ -1,0 +1,101 @@
+.scy-page {
+    padding: 8px 0 48px;
+    max-width: 560px;
+}
+
+/* Header */
+.scy-header {
+    margin-bottom: 28px;
+}
+
+.scy-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* Form card */
+.scy-form-card {
+    background-color: var(--gray-800);
+    border: 1px solid var(--border-muted);
+    border-radius: 16px;
+    padding: 28px 24px;
+}
+
+/* Field */
+.scy-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 24px;
+}
+
+.scy-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.scy-input {
+    background-color: var(--gray-900);
+    border: 1px solid var(--border-muted);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.scy-input:focus {
+    border-color: var(--blue-500);
+}
+
+/* Actions */
+.scy-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.scy-btn {
+    border: none;
+    border-radius: 10px;
+    padding: 9px 20px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.15s;
+}
+
+.scy-btn:hover {
+    opacity: 0.85;
+    transform: translateY(-1px);
+}
+
+.scy-btn-save {
+    background: linear-gradient(135deg, #6366f1, #3b82f6);
+    color: #fff;
+}
+
+.scy-btn-cancel {
+    background: var(--gray-700, #374151);
+    color: var(--text-muted);
+    border: 1px solid var(--border-muted);
+}
+
+.scy-btn-delete {
+    background: rgba(239, 68, 68, 0.12);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    margin-left: auto;
+}
+
+.scy-btn-delete:hover {
+    background: rgba(239, 68, 68, 0.22);
+}

@@ -1,15 +1,132 @@
-﻿.movie-grid {
+﻿.smv-page {
+    padding: 8px 0 48px;
+}
+
+.smv-header {
+    margin-bottom: 24px;
+}
+
+.smv-title {
+    font-size: 1.6em;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* Search bar */
+.smv-search-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+    max-width: 560px;
+}
+
+.smv-input {
+    flex: 1;
+    background-color: var(--gray-800);
+    border: 1px solid var(--border-muted);
+    border-radius: 10px;
+    padding: 10px 16px;
+    color: var(--text-primary);
+    font-size: 0.95em;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.smv-input:focus {
+    border-color: var(--blue-500);
+}
+
+.smv-btn {
+    background: linear-gradient(135deg, #6366f1, #3b82f6);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 22px;
+    font-size: 0.9em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+}
+
+.smv-btn:hover:not(:disabled) { opacity: 0.85; }
+.smv-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.smv-loading,
+.smv-empty {
+    color: var(--text-muted);
+    font-size: 0.9em;
+    padding: 12px 0;
+}
+
+.smv-count {
+    font-size: 0.82em;
+    color: var(--text-muted);
+    margin: 0 0 16px;
+}
+
+/* Poster grid */
+.smv-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
 }
 
-.movie-card img {
+.smv-card {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--gray-800);
+    border: 1px solid var(--border-muted);
+    border-radius: 10px;
+    overflow: hidden;
+    text-decoration: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.smv-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    text-decoration: none;
+}
+
+.smv-poster {
     width: 100%;
-    height: auto;
-    border-radius: 8px;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    display: block;
 }
 
-.movie-card {
-    text-align: center;
+.smv-no-poster {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5em;
+    background-color: var(--gray-900);
+    color: var(--text-muted);
+}
+
+.smv-card-info {
+    padding: 6px 8px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.smv-name {
+    font-size: 0.78em;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.smv-year {
+    font-size: 0.72em;
+    color: var(--text-muted);
 }

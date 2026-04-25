@@ -4,45 +4,47 @@
 @inject NavigationManager NavigationManager
 @attribute [Authorize]
 
-<h3>ServiceCompany</h3>
+<div class="scy-page">
 
-<EditForm Model="serviceCompany" OnValidSubmit="HandleValidSubmit">
-    <DataAnnotationsValidator />
-
-    <div class="mb-3">
-        <label for="name" class="form-label">Name</label>
-        <InputText id="name" class="form-control" @bind-Value="serviceCompany.Name" />
-        <ValidationMessage For="@(() => serviceCompany.Name)" />
+    <div class="scy-header">
+        <h1 class="scy-title">@(Id > 0 ? "✏️ Rediger firma" : "➕ Nytt firma")</h1>
     </div>
 
-    <button type="submit" class="btn btn-primary">Lagre</button>
-    <button type="button" class="btn btn-secondary" @onclick="NavigateToServiceCompanies">Avbryt</button>
-    @if (Id > 0)
-    {
-        <button type="button" class="btn btn-danger" @onclick="DeleteServiceCompany">Slett</button>
-    }
+    <div class="scy-form-card">
+        <EditForm Model="serviceCompany" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
 
-</EditForm>
+            <div class="scy-field">
+                <label class="scy-label" for="name">Navn</label>
+                <InputText id="name" class="scy-input" @bind-Value="serviceCompany.Name" placeholder="Firmanavn..." />
+                <ValidationMessage For="@(() => serviceCompany.Name)" />
+            </div>
+
+            <div class="scy-actions">
+                <button type="submit" class="scy-btn scy-btn-save">💾 Lagre</button>
+                <button type="button" class="scy-btn scy-btn-cancel" @onclick="NavigateToServiceCompanies">Avbryt</button>
+                @if (Id > 0)
+                {
+                    <button type="button" class="scy-btn scy-btn-delete" @onclick="DeleteServiceCompany">🗑 Slett</button>
+                }
+            </div>
+        </EditForm>
+    </div>
+
+</div>
 
 @code {
-    private ServiceCompanyModel serviceCompany = new ServiceCompanyModel();
+    private ServiceCompanyModel serviceCompany = new();
 
     [Parameter]
     public int Id { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
-        if(Id > 0)
+        if (Id > 0)
         {
             var company = await ServiceCompanyService.GetServiceCompanyByIdAsync(Id);
-            if (company != null)
-            {
-                serviceCompany = company;
-            }
-            else
-            {
-                serviceCompany = new ServiceCompanyModel();
-            }
+            serviceCompany = company ?? new ServiceCompanyModel();
         }
         else
         {
@@ -53,13 +55,10 @@
     private async Task HandleValidSubmit()
     {
         if (Id > 0)
-        {
             await ServiceCompanyService.UpdateServiceCompanyAsync(serviceCompany);
-        }
         else
-        {
             await ServiceCompanyService.AddServiceCompanyAsync(serviceCompany);
-        }
+
         NavigateToServiceCompanies();
     }
 

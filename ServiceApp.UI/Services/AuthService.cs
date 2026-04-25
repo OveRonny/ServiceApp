@@ -63,4 +63,10 @@ public class AuthService(IHttpClientFactory httpFactory, IJSRuntime js, IToastSe
         var tokens = System.Text.Json.JsonSerializer.Deserialize<TokenResponse>(json);
         return tokens?.AccessToken;
     }
+    public async Task<bool> ResendConfirmationEmailAsync(string email, CancellationToken ct = default)
+    {
+        var http = httpFactory.CreateClient("Api");
+        var resp = await http.PostAsJsonAsync("/api/auth/resend-confirmation", new { email }, ct);
+        return resp.IsSuccessStatusCode;
+    }
 }

@@ -1,11 +1,41 @@
-.card-body {
-    color: black;
+/* ── Summary strip ───────────────────────────────────────────────── */
+.cs-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
 }
 
-.card-body .small {
-    font-size: 0.95rem;
+.cs-stat {
+    background: var(--gray-800);
+    border: 1px solid var(--border-muted);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: transform 0.12s;
 }
 
-.card-body strong {
+.cs-stat:hover {
+    transform: translateY(-2px);
+}
+
+.cs-stat-icon {
+    font-size: 1.3rem;
+    line-height: 1;
+}
+
+.cs-stat-label {
+    font-size: 0.72rem;
     font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.cs-stat-value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
 }

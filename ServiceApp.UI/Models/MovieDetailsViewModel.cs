@@ -18,6 +18,7 @@ public class MovieDetailsViewModel
     public List<WatchHistoryModel> WatchHistory { get; set; } = new();
 
     public bool IsImported { get; set; }
+    public bool InWatchlist { get; set; }
     public DateTime? LastWatchedDate { get; set; }
 
     public double? LastProgress { get; set; }
@@ -26,6 +27,8 @@ public class MovieDetailsViewModel
         LastProgress >= 100 || LastWatchedDate != null;
 
     public bool MarkAsWatched { get; set; } = false;
+
+    public bool IsInMyWatchlist => InWatchlist;
 }
 
 

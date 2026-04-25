@@ -5,14 +5,11 @@ namespace serviceApp.Server.Features.Tmdb.Movies;
 
 public static class ImportMovie
 {
-    // Command – input for importing
     public record Command(int TmdbId, DateTime Date) : ICommand<Response>;
 
-    // Result – output after import
     public record Response(int MediaItemId);
 
-    // Handler
-    public class Handler : ICommandHandler<Command, ImportMovie.Response>
+    public class Handler : ICommandHandler<Command, Response>
     {
         private readonly TmdbClient _tmdb;
         private readonly ApplicationDbContext _db;
@@ -27,13 +24,11 @@ public static class ImportMovie
 
         public async Task<Result<Response>> Handle(Command request, CancellationToken cancellationToken)
         {
-            var userId = _httpContext.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var userId = _httpContext.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            // Check if already exists
             if (await _db.MediaItems.AnyAsync(x => x.TmdbId == request.TmdbId, cancellationToken))
                 return Result.Fail<Response>("Movie already imported");
 
-            // Get details from TMDb
             var movie = await _tmdb.GetMovieAsync(request.TmdbId);
             if (movie == null)
                 return Result.Fail<Response>("Can't get the movie");
@@ -72,7 +67,7 @@ public static class ImportMovie
 
     }
 
-    // Endpoint
+
     public class EndPoint : IEndpointDefinition
     {
         public void MapEndpoints(WebApplication app)

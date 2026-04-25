@@ -1,0 +1,140 @@
+.season-episodes-container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 16px;
+}
+
+.season-header {
+    margin-bottom: 24px;
+}
+
+.not-imported-notice {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    margin-bottom: 20px;
+    background-color: #fff8e1;
+    border: 1px solid #ffe082;
+    border-radius: 8px;
+    font-size: 0.9em;
+    color: #555;
+}
+
+.notice-link {
+    color: #0d6efd;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.notice-link:hover {
+    text-decoration: underline;
+}
+
+.season-header h1 {
+    margin: 8px 0 0;
+    font-size: 1.6em;
+}
+
+.back-button {
+    display: inline-block;
+    text-decoration: none;
+    color: #0d6efd;
+    font-size: 0.95em;
+}
+
+.back-button:hover {
+    text-decoration: underline;
+}
+
+.episode-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.episode-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 16px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    transition: background-color 0.2s;
+}
+
+.episode-item.ep-watched {
+    background-color: #f0fff4;
+    border-color: #b7e4c7;
+}
+
+.ep-meta {
+    flex: 1;
+}
+
+.ep-number {
+    font-size: 0.78em;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.ep-name {
+    margin: 4px 0 6px;
+    font-size: 1.05em;
+}
+
+.ep-overview {
+    margin: 0 0 6px;
+    font-size: 0.87em;
+    color: #555;
+    line-height: 1.45;
+}
+
+.ep-rating {
+    font-size: 0.85em;
+    color: #777;
+}
+
+.ep-watched-date {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.8em;
+    color: #198754;
+}
+
+.ep-actions {
+    flex-shrink: 0;
+    padding-top: 4px;
+}
+
+.btn-ep-watched {
+    padding: 7px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.88em;
+    background-color: #6c757d;
+    color: white;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+}
+
+.btn-ep-watched.watched {
+    background-color: #198754;
+}
+
+.btn-ep-watched:hover:not(:disabled) {
+    filter: brightness(1.1);
+}
+
+.btn-ep-watched:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

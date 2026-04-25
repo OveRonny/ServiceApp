@@ -1,0 +1,182 @@
+@page "/dashboard"
+@using ServiceApp.UI.Services
+@inject IHttpClientFactory HttpFactory
+
+@if (_loading)
+{
+    <div class="dashboard-loading">
+        <p>⏳ Laster dashbord...</p>
+    </div>
+}
+else if (_data == null)
+{
+    <div class="text-danger p-4">⚠️ Kunne ikke laste dashbord. (@_errorStatus)</div>
+}
+else
+{
+    <div class="dashboard-page">
+        <h1 class="dashboard-title">Dashbord</h1>
+
+        <!-- ── STAT CARDS ──────────────────────────────────────────── -->
+        <div class="stat-grid">
+
+            <!-- Filmer -->
+            <div class="stat-section">
+                <div class="stat-section-header">🎬 Filmer</div>
+                <div class="stat-cards">
+                    <div class="stat-card">
+                        <span class="stat-value">@_data.Movies.TotalWatched</span>
+                        <span class="stat-label">Sett</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">@_data.Movies.TotalInWatchlist</span>
+                        <span class="stat-label">I liste</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">@_data.Movies.TotalHoursWatched</span>
+                        <span class="stat-label">Timer sett</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TV-serier -->
+            <div class="stat-section">
+                <div class="stat-section-header">📺 TV-serier</div>
+                <div class="stat-cards">
+                    <div class="stat-card">
+                        <span class="stat-value">@_data.TvSeries.TotalInWatchlist</span>
+                        <span class="stat-label">I liste</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">@_data.TvSeries.TotalSeasonsWatched</span>
+                        <span class="stat-label">Sesonger sett</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">@_data.TvSeries.TotalEpisodesWatched</span>
+                        <span class="stat-label">Episoder sett</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kjøretøy -->
+            <div class="stat-section">
+                <div class="stat-section-header">🚗 Kjøretøy</div>
+                <div class="stat-cards">
+                    <div class="stat-card stat-card--wide">
+                        <span class="stat-value">@_data.Vehicles.TotalVehicles</span>
+                        <span class="stat-label">Registrerte kjøretøy</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-lower">
+
+            <!-- ── KJØRETØY OVERSIKT ──────────────────────────────── -->
+            <div class="dashboard-panel">
+                <h2 class="panel-title">🚗 Kjøretøy</h2>
+                @if (_data.Vehicles.Summaries.Any())
+                {
+                    <div class="vehicle-list">
+                        @foreach (var v in _data.Vehicles.Summaries)
+                        {
+                            <div class="vehicle-row">
+                                <div class="vehicle-name">
+                                    <span class="vehicle-make-model">@v.Year @v.Make @v.Model</span>
+                                    <span class="vehicle-plate">@v.LicensePlate</span>
+                                </div>
+                                <div class="vehicle-stats">
+                                    @if (v.LatestMileage.HasValue)
+                                    {
+                                        <span class="vehicle-stat">🛣 @v.LatestMileage.Value.ToString("N0") km</span>
+                                    }
+                                    @if (v.LastFuelDate.HasValue)
+                                    {
+                                        <span class="vehicle-stat">⛽ Siste tanking: @v.LastFuelLiters?.ToString("F1") L  (@v.LastFuelDate.Value.ToString("d. MMM yyyy"))</span>
+                                    }
+                                    @if (v.LastServiceDate.HasValue)
+                                    {
+                                        <span class="vehicle-stat">🔧 Siste service: @v.LastServiceDate.Value.ToString("d. MMM yyyy")</span>
+                                        @if (!string.IsNullOrEmpty(v.LastServiceType))
+                                        {
+                                            <span class="vehicle-stat vehicle-service-type">@v.LastServiceType</span>
+                                        }
+                                        @if (v.LastServiceMileage.HasValue)
+                                        {
+                                            <span class="vehicle-stat vehicle-service-km">ved @v.LastServiceMileage.Value.ToString("N0") km</span>
+                                        }
+                                    }
+                                </div>
+                                <div class="vehicle-links">
+                                    <NavLink class="vehicle-link" href="@($"consumptionrecords/{v.Id}")">⛽ Forbruk →</NavLink>
+                                    <NavLink class="vehicle-link" href="@($"vehicle/{v.Id}")">🔧 Detaljer →</NavLink>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="empty-panel-msg">Ingen kjøretøy registrert enda.</p>
+                }
+            </div>
+
+            <!-- ── NYLIG SETT ─────────────────────────────────────── -->
+            @if (_data.RecentWatches.Any())
+            {
+                <div class="dashboard-panel">
+                    <h2 class="panel-title">🕐 Nylig sett</h2>
+                    <div class="recent-grid">
+                        @foreach (var item in _data.RecentWatches)
+                        {
+                            var href = item.Type == "Movie"
+                                ? $"movie-details/{item.TmdbId}"
+                                : $"tv-serie-details/{item.TmdbId}";
+
+                            <NavLink class="recent-card" href="@href">
+                                @if (!string.IsNullOrEmpty(item.PosterUrl))
+                                {
+                                    <img src="@item.PosterUrl" alt="@item.Title" />
+                                }
+                                else
+                                {
+                                    <div class="recent-card-no-poster">🎬</div>
+                                }
+                                <div class="recent-card-info">
+                                    <span class="recent-title">@item.Title</span>
+                                    <span class="recent-type @(item.Type == "Movie" ? "badge-movie" : "badge-tv")">
+                                        @(item.Type == "Movie" ? "Film" : "Serie")
+                                    </span>
+                                    @if (item.WatchDate.HasValue)
+                                    {
+                                        <span class="recent-date">@item.WatchDate.Value.ToString("d. MMM")</span>
+                                    }
+                                </div>
+                            </NavLink>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private DashboardViewModel? _data;
+    private bool _loading = true;
+    private string _errorStatus = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var http = HttpFactory.CreateClient("ApiAuthed");
+        var response = await http.GetAsync("api/dashboard");
+        if (response.IsSuccessStatusCode)
+            _data = await response.Content.ReadFromJsonAsync<DashboardViewModel>();
+        else
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            _errorStatus = $"HTTP {(int)response.StatusCode}: {body}";
+        }
+        _loading = false;
+    }
+}

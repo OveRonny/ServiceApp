@@ -1,0 +1,28 @@
+@page "/"
+@layout LandingLayout
+@using Microsoft.AspNetCore.Components.Authorization
+@using ServiceApp.UI.Layout
+@inject NavigationManager Nav
+
+<AuthorizeView>
+    <Authorized>
+        @{ Nav.NavigateTo("/dashboard", replace: true); }
+    </Authorized>
+    <NotAuthorized>
+        <div class="landing-card">
+            <div class="landing-logo">
+                <img src="images/progorb-mark.svg" alt="Progorb" height="56" />
+            </div>
+
+            <h1 class="landing-title">
+                <span class="brand-gradient">Progorb</span>
+            </h1>
+            <p class="landing-subtitle">Din oversikt over kjøretøy, filmer og TV-serier.</p>
+
+            <div class="landing-actions">
+                <a class="btn-landing-primary" href="/login">Logg inn</a>
+                <a class="btn-landing-secondary" href="/register">Opprett konto</a>
+            </div>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>

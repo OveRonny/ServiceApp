@@ -1,0 +1,124 @@
+@page "/unwatched-tv-series"
+@using ServiceApp.UI.Services.TvServices
+@inject ITvservice TvService
+@attribute [Authorize]
+
+<div class="movies-page">
+
+    <div class="movies-header">
+        <div>
+            <h1 class="movies-title">📋 Ikke sette serier</h1>
+            <p class="movies-subtitle">@_total serie@(_total == 1 ? "" : "r") i watchlisten</p>
+        </div>
+    </div>
+
+    <div class="movies-filter-bar">
+        <div class="movies-search-wrap">
+            <span class="movies-search-icon">🔍</span>
+            <input class="movies-search-input"
+                   type="text"
+                   placeholder="Søk etter serie..."
+                   value="@_search"
+                   @oninput="OnSearchInput" />
+        </div>
+        <button class="movies-clear-btn" @onclick="ClearFilters">✕ Nullstill</button>
+    </div>
+
+    @if (_series is null)
+    {
+        <div class="movies-loading">Laster serier…</div>
+    }
+    else if (_series.Count == 0)
+    {
+        <div class="movies-empty">
+            Ingen serier i listen. Gå til <a href="/search-tv-series">søk</a> for å legge til serier.
+        </div>
+    }
+    else
+    {
+        <div class="movies-grid">
+            @foreach (var serie in _series)
+            {
+                <NavLink class="movie-card" href="@($"/tv-serie-details/{serie.TmdbId}")" aria-label="@serie.Title">
+                    <div class="movie-poster-wrap">
+                        <img class="movie-poster" src="@serie.PosterUrl" alt="@serie.Title" />
+                        <div class="movie-poster-overlay">
+                            @if (serie.TotalSeasons.HasValue)
+                            {
+                                <p class="movie-overview">@serie.TotalSeasons sesonger</p>
+                            }
+                        </div>
+                        <span class="movie-unwatched-badge">👁 Ikke sett</span>
+                    </div>
+                    <div class="movie-info">
+                        <h4 class="movie-title">@serie.Title</h4>
+                        @if (serie.AddedToWatchlistAt.HasValue)
+                        {
+                            <span class="movie-genre-tag">Lagt til @serie.AddedToWatchlistAt.Value.ToString("dd.MM.yyyy")</span>
+                        }
+                    </div>
+                </NavLink>
+            }
+        </div>
+
+        <div class="movies-pagination">
+            <button class="movies-page-btn" @onclick="PreviousPage" disabled="@IsPreviousDisabled">← Forrige</button>
+            <span class="movies-page-info">Side @_page av @TotalPages</span>
+            <button class="movies-page-btn" @onclick="NextPage" disabled="@IsNextDisabled">Neste →</button>
+        </div>
+    }
+
+</div>
+
+@code {
+    private List<TvSeriesListViewModel>? _series;
+    private string _search = "";
+    private int _page = 1;
+    private const int PageSize = 24;
+    private int _total = 0;
+    private CancellationTokenSource? _cts;
+
+    private bool IsPreviousDisabled => _page == 1;
+    private bool IsNextDisabled => _page * PageSize >= _total;
+    private int TotalPages => (int)Math.Ceiling(_total / (double)PageSize);
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    private async Task Load()
+    {
+        var result = await TvService.GetUnwatchedTvSeriesAsync(_page, PageSize, _search);
+        _series = result.Items.ToList();
+        _total = result.Total;
+    }
+
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        _search = e.Value?.ToString() ?? "";
+        _cts?.Cancel();
+        _cts = new CancellationTokenSource();
+        try
+        {
+            await Task.Delay(400, _cts.Token);
+            _page = 1;
+            await Load();
+        }
+        catch (TaskCanceledException) { }
+    }
+
+    private async Task NextPage()
+    {
+        if (!IsNextDisabled) { _page++; await Load(); }
+    }
+
+    private async Task PreviousPage()
+    {
+        if (!IsPreviousDisabled) { _page--; await Load(); }
+    }
+
+    private async Task ClearFilters()
+    {
+        _search = "";
+        _page = 1;
+        await Load();
+    }
+}

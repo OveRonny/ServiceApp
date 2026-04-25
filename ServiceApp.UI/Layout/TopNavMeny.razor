@@ -2,52 +2,86 @@
 @using System.Security.Claims
 @inject ServiceApp.UI.Services.IAuthService Auth
 @inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
 
-<nav class="navbar navbar-expand-lg navbar-glass" data-bs-theme="dark">
-    <div class="container-fluid">
-        <a class="navbar-brand d-flex align-items-center" href="/">
-            <img src="images/progorb-mark.svg" alt="" height="28" class="me-2" />
-            <span class="brand-gradient">Progorb</span>
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+<nav class="navbar navbar-expand-lg progorb-navbar" data-bs-theme="dark">
+	<div class="container-fluid px-4">
 
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a class="nav-link" href="/owners">Eiere</a></li>
-                <li class="nav-item"><a class="nav-link" href="/vehicles">Kjøretøyer</a></li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="setupDropdown" role="button"
-                       data-bs-toggle="dropdown" aria-expanded="false">Oppsett</a>
-                    <ul class="dropdown-menu" aria-labelledby="setupDropdown">
-                        <li><a class="dropdown-item" href="/servicetypes">Service typer</a></li>
-                        <li><a class="dropdown-item" href="/suppliers">Leverandører</a></li>
-                        <li><a class="dropdown-item" href="/servicecompanies">Firma</a></li>
+		<!-- Brand -->
+		<a class="navbar-brand d-flex align-items-center gap-2" href="/dashboard">
+			<img src="images/progorb-mark.svg" alt="" height="26" />
+			<span class="brand-name">Progorb</span>
+		</a>
+
+		<button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+				aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+
+		<div class="collapse navbar-collapse" id="navbarNav">
+			<ul class="navbar-nav me-auto align-items-lg-center gap-lg-1">
+
+				<!-- Dashbord -->
+				<li class="nav-item">
+					<a class="nav-link nav-pill" href="/dashboard">🏠 Dashbord</a>
+				</li>
+
+				<!-- Kjøretøy -->
+				<li class="nav-item dropdown">
+					<a class="nav-link nav-pill dropdown-toggle" href="#" id="vehicleDropdown" role="button"
+					   data-bs-toggle="dropdown" aria-expanded="false">🚗 Kjøretøy</a>
+					<ul class="dropdown-menu progorb-dropdown" aria-labelledby="vehicleDropdown">
+						<li><a class="dropdown-item" href="/vehicles">Kjøretøyer</a></li>
+						<li><a class="dropdown-item" href="/owners">Eiere</a></li>
+						<li><hr class="dropdown-divider" /></li>
+						<li class="dropdown-header">Oppsett</li>
+						<li><a class="dropdown-item" href="/servicetypes">Service typer</a></li>
+						<li><a class="dropdown-item" href="/suppliers">Leverandører</a></li>
+						<li><a class="dropdown-item" href="/servicecompanies">Firma</a></li>
 						<li><a class="dropdown-item" href="/createuser">Ny bruker</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item"><a class="nav-link" href="/watched-movies">Sett filmer</a></li>
-                <li class="nav-item"><a class="nav-link" href="/movie-search">Søk film</a></li>
-                <li class="nav-item"><a class="nav-link" href="/unwatched-movies">Usette filmer</a></li>
-            </ul>
+					</ul>
+				</li>
 
-            <AuthorizeView>
-                <Authorized>
-                    <form class="d-flex" onsubmit="return false;">
-                        <span class="nav-link text-secondary me-2">@GetDisplayName(context.User)</span>
-                        <button type="button" class="btn btn-outline-light btn-sm" @onclick="Logout">Logg ut</button>
-                    </form>
-                </Authorized>
-                <NotAuthorized>
-                    <div class="d-flex gap-2">                        
-                        <a class="btn btn-primary btn-sm" href="/login">Logg inn</a>
-                    </div>
-                </NotAuthorized>
-            </AuthorizeView>
-        </div>
-    </div>
+				<!-- Filmer -->
+				<li class="nav-item dropdown">
+					<a class="nav-link nav-pill dropdown-toggle" href="#" id="movieDropdown" role="button"
+					   data-bs-toggle="dropdown" aria-expanded="false">🎬 Filmer</a>
+					<ul class="dropdown-menu progorb-dropdown" aria-labelledby="movieDropdown">
+						<li><a class="dropdown-item" href="/movie-search">🔍 Søk film</a></li>
+						<li><hr class="dropdown-divider" /></li>
+						<li><a class="dropdown-item" href="/watched-movies">✅ Sett filmer</a></li>
+						<li><a class="dropdown-item" href="/unwatched-movies">📋 Usette filmer</a></li>
+					</ul>
+				</li>
+
+				<!-- TV-serier -->
+				<li class="nav-item dropdown">
+					<a class="nav-link nav-pill dropdown-toggle" href="#" id="tvDropdown" role="button"
+					   data-bs-toggle="dropdown" aria-expanded="false">📺 TV-serier</a>
+					<ul class="dropdown-menu progorb-dropdown" aria-labelledby="tvDropdown">
+						<li><a class="dropdown-item" href="/search-tv-series">🔍 Søk TV-serier</a></li>
+						<li><hr class="dropdown-divider" /></li>
+						<li><a class="dropdown-item" href="/watched-tv-series">✅ Sett serier</a></li>
+						<li><a class="dropdown-item" href="/unwatched-tv-series">📋 Min serie-liste</a></li>
+					</ul>
+				</li>
+
+			</ul>
+
+			<!-- Bruker / Logg ut -->
+			<AuthorizeView>
+				<Authorized>
+					<div class="d-flex align-items-center gap-3">
+						<span class="navbar-user">👤 @GetDisplayName(context.User)</span>
+						<button type="button" class="btn btn-logout" @onclick="Logout">Logg ut</button>
+					</div>
+				</Authorized>
+				<NotAuthorized>
+					<a class="btn btn-nav-login" href="/login">Logg inn</a>
+				</NotAuthorized>
+			</AuthorizeView>
+		</div>
+	</div>
 </nav>
 
 @code {
@@ -56,6 +90,7 @@
         await Auth.LogoutAsync();
         if (AuthStateProvider is ServiceApp.UI.Services.JwtAuthenticationStateProvider jwt)
             jwt.NotifyUserLogout();
+        Nav.NavigateTo("/", forceLoad: false);
     }
 
     private static string GetDisplayName(ClaimsPrincipal user)

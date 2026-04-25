@@ -56,7 +56,7 @@ public class TvDetailsApiDto
     [JsonPropertyName("tmdbId")]
     public int TmdbId { get; set; }
 
-    [JsonPropertyName("title")]
+    [JsonPropertyName("name")]
     public string Title { get; set; } = "";
 
     [JsonPropertyName("overview")]
@@ -71,7 +71,7 @@ public class TvDetailsApiDto
     [JsonPropertyName("numberOfEpisodes")]
     public int NumberOfEpisodes { get; set; }
 
-    [JsonPropertyName("rating")]
+    [JsonPropertyName("voteAverage")]
     public double Rating { get; set; }
 
     [JsonPropertyName("posterPath")]

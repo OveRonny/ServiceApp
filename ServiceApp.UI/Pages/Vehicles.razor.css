@@ -1,0 +1,197 @@
+/* ── Page layout ────────────────────────────────────────────────── */
+.vehicles-page {
+    padding: 8px 0 48px;
+}
+
+.vehicles-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.vehicles-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0 0 4px;
+}
+
+.vehicles-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* ── Add button ─────────────────────────────────────────────────── */
+.btn-add-vehicle {
+    background: linear-gradient(135deg, #6366f1, #3b82f6);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 0.5rem 1.2rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.15s;
+}
+
+.btn-add-vehicle:hover {
+    opacity: 0.88;
+    transform: translateY(-1px);
+}
+
+/* ── Grid ───────────────────────────────────────────────────────── */
+.vehicle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+}
+
+/* ── Card ───────────────────────────────────────────────────────── */
+.vehicle-card {
+    background-color: var(--gray-800);
+    border: 1px solid var(--border-muted);
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.vehicle-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+/* ── Card header ────────────────────────────────────────────────── */
+.vehicle-card-header {
+    background: linear-gradient(135deg, #1e1b4b, #1e3a5f);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px 14px;
+}
+
+.vehicle-icon {
+    font-size: 2.2rem;
+    line-height: 1;
+}
+
+.vehicle-plate-badge {
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: #f1f5f9;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+    padding: 4px 12px;
+}
+
+/* ── Card body ──────────────────────────────────────────────────── */
+.vehicle-card-body {
+    padding: 16px 20px 12px;
+}
+
+.vehicle-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 8px;
+}
+
+.vehicle-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.vehicle-meta-item {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    background-color: var(--gray-900);
+    border-radius: 20px;
+    padding: 3px 10px;
+    border: 1px solid var(--border-muted);
+}
+
+/* ── Actions ────────────────────────────────────────────────────── */
+.vehicle-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background-color: var(--border-muted);
+    border-top: 1px solid var(--border-muted);
+    border-bottom: 1px solid var(--border-muted);
+    margin-top: auto;
+}
+
+.v-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 6px;
+    background-color: var(--gray-800);
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 500;
+    transition: background 0.12s, color 0.12s;
+}
+
+.v-action:hover {
+    background-color: rgba(99, 102, 241, 0.12);
+    color: #a5b4fc;
+}
+
+.v-action-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+/* ── Card footer ────────────────────────────────────────────────── */
+.vehicle-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    gap: 8px;
+}
+
+.vehicle-detail-link {
+    font-size: 0.82rem;
+    color: #818cf8;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.vehicle-detail-link:hover {
+    color: #a5b4fc;
+    text-decoration: underline;
+}
+
+.vehicle-added {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* ── Empty state ────────────────────────────────────────────────── */
+.vehicles-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+}
+
+.vehicles-empty-icon {
+    font-size: 3.5rem;
+    margin-bottom: 16px;
+}
+
+.vehicles-empty p {
+    margin-bottom: 20px;
+    font-size: 1rem;
+}

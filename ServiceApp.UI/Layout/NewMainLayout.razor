@@ -3,10 +3,13 @@
 <BlazoredToasts Timeout="10"
                 ShowProgressBar="true"
                 PauseProgressOnHover="true"/>
-                
-           
+
 <div class="page-shell d-flex flex-column min-vh-100">
-    <TopNavMeny />
+    <AuthorizeView>
+        <Authorized>
+            <TopNavMeny />
+        </Authorized>
+    </AuthorizeView>
 
     <main class="container mt-4 flex-grow-1">
         @Body

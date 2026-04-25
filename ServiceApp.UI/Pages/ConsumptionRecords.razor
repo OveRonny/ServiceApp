@@ -3,125 +3,125 @@
 @inject NavigationManager NavigationManager
 @attribute [Authorize]
 
+<div class="cr-page">
 
-<div class="container-xxl">
-    <h3>Forbruk</h3>
-
-    @* Show the vehicle once (if we have records) so it doesn't repeat in the grid *@
-    @if (consumptionRecords?.Count > 0)
-    {
-        <div class="mb-2">
-            <strong>Kjøretøy:</strong> @consumptionRecords.First().Make @consumptionRecords.First().Model
-        </div>
-    }
-
-    <button class="btn btn-primary mb-3" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/create/vehicle/{VehicleId}"))">Legg til</button>
-    <div class="col-6">
-        <div class="row">
-            <div class="mb-3">
-                <label class="form-label" for="startDate">Startdato:</label>
-                <InputDate class="form-control bg-white text-dark" id="startDate" @bind-Value="startDate" @bind-Value:after="GetFilteredRecords" />
-            </div>
-            <div class="mb-3">
-                <label class="form-label" for="endDate">Sluttdato:</label>
-                <InputDate class="form-control bg-white text-dark" id="endDate" @bind-Value="endDate" @bind-Value:after="GetFilteredRecords" />
-            </div>
-        </div>
-    </div>
-
-    <!-- Mobile cards (xs-sm) -->
-    <div class="d-md-none">
-        @if (consumptionRecords is not null && consumptionRecords.Count == 0)
-        {
-            <div class="alert alert-info">Ingen forbruksdata funnet for det valgte tidsrommet.</div>
-        }
-        else if (consumptionRecords is not null)
-        {
-            @foreach (var record in consumptionRecords)
+    <!-- Header -->
+    <div class="cr-header">
+        <div>
+            <h1 class="cr-title">⛽ Forbrukslogg</h1>
+            @if (consumptionRecords?.Count > 0)
             {
-                <div class="card mb-2">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between text-dark">
-                            <strong>@($"{record?.Make ?? string.Empty} {record?.Model ?? string.Empty}")</strong>
-                            <span>@(record?.Date.ToShortDateString() ?? "-")</span>
-                        </div>
-                        <div class="mt-2">
-                            <div class="small text-dark">Kilometer: <strong>@(record?.Mileage ?? 0)</strong></div>
-                            <div class="small text-dark">kjørte km <strong>@(record?.DrivenKm ?? 0)</strong></div>
-                            <div class="small text-dark">Antall liter: <strong>@(record?.DieselAdded ?? 0)</strong></div>
-                            <div class="small text-dark">Pris/l: <strong>@(record?.DieselPricePerLiter ?? 0)</strong></div>
-                            <div class="small text-dark">Forbruk: <strong>@(record?.DieselConsumption is not null ? record.DieselConsumption.Value.ToString("F2") : "-")</strong></div>
-                            <div class="small text-dark">Sum: <strong>@CurrencyFormatter.FormatKr(record?.TotalCost ?? 0)</strong></div>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex gap-2">
-                        <button class="btn btn-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/{record?.Id ?? 0}"))">Rediger</button>
-                        <button class="btn btn-danger btn-sm" @onclick="@(() => DeleteConsumption(record?.Id ?? 0))">Slett</button>
-                    </div>
-                </div>
+                <p class="cr-subtitle">@consumptionRecords.First().Make @consumptionRecords.First().Model</p>
             }
-        }        
-
+        </div>
+        <button class="btn-add-cr" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/create/vehicle/{VehicleId}"))">
+            + Legg til
+        </button>
     </div>
 
-    <!-- Desktop table (md and up) -->
-    <div class="table-responsive d-none d-md-block">
-        <table class="table table-striped align-middle">
-            <thead>
-                <tr>
-                    <th class="d-none d-lg-table-cell">Id</th>
-                    <th>Dato</th>
-                    <th class="d-none d-sm-table-cell">Kilometer</th>
-                    <th class="text-end">Kjørte kilometer</th>
-                    <th>Antall liter</th>
-                    <th class="d-none d-lg-table-cell">Pris</th>
-                    <th class="d-none d-lg-table-cell">Forbruk</th>
-                    <th>Sum</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if(consumptionRecords is not null && consumptionRecords.Count == 0)
-                {
-                    <tr>
-                        <td colspan="9">
-                            <div class="alert alert-info mb-0">Ingen forbruksdata funnet for det valgte tidsrommet.</div>
-                        </td>
-                    </tr>
-                }
-                else if (consumptionRecords is not null)
-                {
-                    @foreach (var record in consumptionRecords)
-                    {
-                        <tr>
-                            <td class="d-none d-lg-table-cell">@record.Id</td>
-                            <td>@record.Date.ToShortDateString()</td>
-                            <td class="d-none d-sm-table-cell">@record.Mileage</td>
-                            <td class="text-end">@record.DrivenKm</td>
-                            <td>@record.DieselAdded</td>
-                            <td class="d-none d-lg-table-cell">@record.DieselPricePerLiter</td>
-                            <td class="d-none d-lg-table-cell">@(record.DieselConsumption?.ToString("F2") ?? "-")</td>
-                            <td>@CurrencyFormatter.FormatKr(record.TotalCost)</td>
-                            <td class="text-nowrap">
-                                <button class="btn btn-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/{record.Id}"))">Rediger</button>
-                                <button class="btn btn-danger btn-sm" @onclick="@(() => DeleteConsumption(record.Id))">Slett</button>
-                            </td>
-                        </tr>
-                    }
-                }
-                
-         
-            </tbody>
-        </table>
-    </div>
-
-    <!-- One shared summary used for all screen sizes -->
+    <!-- Summary cards -->
     <ConsumptionSummary
         TotalMilage="summary.TotalDriven"
         TotalDieselAdded="summary.TotalDieselAdded"
         TotalCost="summary.TotalCost"
         AveragePricePerLiter="summary.AveragePrice"
         AverageDieselConsumption="summary.AvgConsumption" />
+
+    <!-- Date filter -->
+    <div class="cr-filter-bar">
+        <div class="cr-filter-group">
+            <label class="cr-filter-label" for="startDate">Fra dato</label>
+            <InputDate class="cr-filter-input" id="startDate" @bind-Value="startDate" @bind-Value:after="GetFilteredRecords" />
+        </div>
+        <div class="cr-filter-group">
+            <label class="cr-filter-label" for="endDate">Til dato</label>
+            <InputDate class="cr-filter-input" id="endDate" @bind-Value="endDate" @bind-Value:after="GetFilteredRecords" />
+        </div>
+    </div>
+
+    <!-- Empty state -->
+    @if (consumptionRecords is not null && consumptionRecords.Count == 0)
+    {
+        <div class="cr-empty">Ingen forbruksdata funnet for det valgte tidsrommet.</div>
+    }
+
+    <!-- Mobile cards -->
+    @if (consumptionRecords is not null && consumptionRecords.Count > 0)
+    {
+        <div class="d-md-none cr-card-list">
+            @foreach (var record in consumptionRecords)
+            {
+                <div class="cr-card">
+                    <div class="cr-card-top">
+                        <span class="cr-card-date">📅 @record.Date.ToShortDateString()</span>
+                        <span class="cr-card-cost">@CurrencyFormatter.FormatKr(record.TotalCost)</span>
+                    </div>
+                    <div class="cr-card-stats">
+                        <div class="cr-stat">
+                            <span class="cr-stat-label">Km-stand</span>
+                            <span class="cr-stat-value">@record.Mileage</span>
+                        </div>
+                        <div class="cr-stat">
+                            <span class="cr-stat-label">Kjørte km</span>
+                            <span class="cr-stat-value">@record.DrivenKm</span>
+                        </div>
+                        <div class="cr-stat">
+                            <span class="cr-stat-label">Liter</span>
+                            <span class="cr-stat-value">@record.DieselAdded</span>
+                        </div>
+                        <div class="cr-stat">
+                            <span class="cr-stat-label">Pris/l</span>
+                            <span class="cr-stat-value">@record.DieselPricePerLiter</span>
+                        </div>
+                        <div class="cr-stat">
+                            <span class="cr-stat-label">Forbruk</span>
+                            <span class="cr-stat-value">@(record.DieselConsumption is not null ? record.DieselConsumption.Value.ToString("F2") : "-")</span>
+                        </div>
+                    </div>
+                    <div class="cr-card-actions">
+                        <button class="cr-btn-edit" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/{record.Id}"))">✏️ Rediger</button>
+                        <button class="cr-btn-delete" @onclick="@(() => DeleteConsumption(record.Id))">🗑 Slett</button>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Desktop table -->
+        <div class="d-none d-md-block cr-table-wrap">
+            <table class="cr-table">
+                <thead>
+                    <tr>
+                        <th>Dato</th>
+                        <th class="text-end">Km-stand</th>
+                        <th class="text-end">Kjørte km</th>
+                        <th class="text-end">Liter</th>
+                        <th class="text-end d-none d-lg-table-cell">Pris/l</th>
+                        <th class="text-end d-none d-lg-table-cell">Forbruk</th>
+                        <th class="text-end">Sum</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var record in consumptionRecords)
+                    {
+                        <tr>
+                            <td>@record.Date.ToShortDateString()</td>
+                            <td class="text-end">@record.Mileage</td>
+                            <td class="text-end">@record.DrivenKm</td>
+                            <td class="text-end">@record.DieselAdded</td>
+                            <td class="text-end d-none d-lg-table-cell">@record.DieselPricePerLiter</td>
+                            <td class="text-end d-none d-lg-table-cell">@(record.DieselConsumption?.ToString("F2") ?? "-")</td>
+                            <td class="text-end">@CurrencyFormatter.FormatKr(record.TotalCost)</td>
+                            <td class="text-nowrap text-end">
+                                <button class="cr-btn-edit cr-btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/{record.Id}"))">✏️ Rediger</button>
+                                <button class="cr-btn-delete cr-btn-sm" @onclick="@(() => DeleteConsumption(record.Id))">🗑 Slett</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 
 </div>
 

@@ -1,0 +1,250 @@
+/* ── Page layout ─────────────────────────────────────────────────── */
+.cr-page {
+    padding: 8px 0 48px;
+}
+
+/* ── Header ──────────────────────────────────────────────────────── */
+.cr-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.cr-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0 0 4px;
+}
+
+.cr-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* ── Add button ───────────────────────────────────────────────────── */
+.btn-add-cr {
+    background: linear-gradient(135deg, #6366f1, #3b82f6);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 0.5rem 1.2rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.15s;
+    white-space: nowrap;
+}
+
+.btn-add-cr:hover {
+    opacity: 0.88;
+    transform: translateY(-1px);
+}
+
+/* ── Filter bar ───────────────────────────────────────────────────── */
+.cr-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+    background: var(--gray-800);
+    border: 1px solid var(--border-muted);
+    border-radius: 14px;
+    padding: 16px 20px;
+}
+
+.cr-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 160px;
+}
+
+.cr-filter-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.cr-filter-input {
+    background: var(--gray-900);
+    border: 1px solid var(--border-muted);
+    border-radius: 8px;
+    color: var(--text-primary);
+    padding: 6px 10px;
+    font-size: 0.9rem;
+    color-scheme: dark;
+}
+
+.cr-filter-input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+}
+
+/* ── Empty state ─────────────────────────────────────────────────── */
+.cr-empty {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    padding: 40px 20px;
+    border: 1px dashed var(--border-muted);
+    border-radius: 14px;
+    margin-top: 8px;
+}
+
+/* ── Mobile cards ────────────────────────────────────────────────── */
+.cr-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.cr-card {
+    background: var(--gray-800);
+    border: 1px solid var(--border-muted);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.cr-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px 8px;
+    border-bottom: 1px solid var(--border-muted);
+}
+
+.cr-card-date {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+}
+
+.cr-card-cost {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.cr-card-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 12px 16px;
+}
+
+.cr-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.cr-stat-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.cr-stat-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.cr-card-actions {
+    display: flex;
+    gap: 8px;
+    padding: 10px 16px;
+    border-top: 1px solid var(--border-muted);
+    background: var(--gray-900);
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────── */
+.cr-btn-edit,
+.cr-btn-delete {
+    border: none;
+    border-radius: 8px;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.12s;
+}
+
+.cr-btn-sm {
+    padding: 0.3rem 0.7rem;
+    font-size: 0.8rem;
+    margin-left: 4px;
+}
+
+.cr-btn-edit {
+    background: linear-gradient(135deg, #6366f1, #3b82f6);
+    color: #fff;
+}
+
+.cr-btn-delete {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.cr-btn-edit:hover,
+.cr-btn-delete:hover {
+    opacity: 0.85;
+    transform: translateY(-1px);
+}
+
+/* ── Desktop table ───────────────────────────────────────────────── */
+.cr-table-wrap {
+    border: 1px solid var(--border-muted);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.cr-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.cr-table thead tr {
+    background: var(--gray-900);
+}
+
+.cr-table th {
+    padding: 12px 16px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--border-muted);
+    white-space: nowrap;
+}
+
+.cr-table td {
+    padding: 12px 16px;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-muted);
+    vertical-align: middle;
+}
+
+.cr-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.cr-table tbody tr {
+    background: var(--gray-800);
+    transition: background 0.12s;
+}
+
+.cr-table tbody tr:hover {
+    background: var(--gray-700, #374151);
+}

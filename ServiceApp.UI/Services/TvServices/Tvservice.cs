@@ -38,26 +38,84 @@ public class TvService(IHttpClientFactory http) : ITvservice
     public async Task<TvDetailsViewModel?> GetTvDetailsAsync(int tmdbId)
     {
         var http = ApiAuthed();
-        var response = await http.GetFromJsonAsync<TvDetailsApiDto>(
-            $"api/tmdb/tv/{tmdbId}");
+        var response = await http.GetAsync($"api/tmdb/tv/{tmdbId}");
 
-        return response == null ? null : TestMapper.Map(response);
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        var dto = await response.Content.ReadFromJsonAsync<TvDetailsApiDto>();
+        return dto == null ? null : TestMapper.Map(dto);
     }
 
 
     // =========================
-    // Import TV
+    // Import TV (+ adds to watchlist)
     // =========================
-    public async Task<Guid?> ImportTvAsync(int tmdbId)
+    public async Task<(bool Success, bool AlreadyInWatchlist)> ImportTvAsync(int tmdbId)
     {
         var http = ApiAuthed();
-        var result = await http.PostAsJsonAsync("api/tmdb/import/tv", new { TmdbId = tmdbId });
+        var result = await http.PostAsJsonAsync("api/tmdb/import/tv", new { Tmdb = tmdbId });
 
         if (!result.IsSuccessStatusCode)
-            return null;
+            return (false, false);
 
         var response = await result.Content.ReadFromJsonAsync<ImportTvResponse>();
-        return response?.MediaItemId;
+        return response is null ? (false, false) : (true, response.AlreadyInWatchlist);
+    }
+
+    // =========================
+    // Watched TV Series
+    // =========================
+    public async Task<PagedResult<TvSeriesListViewModel>> GetWatchedTvSeriesAsync(int page = 1, int pageSize = 24, string? search = null)
+    {
+        var http = ApiAuthed();
+        var url = BuildPagedUrl("api/tmdb/tv/watched", page, pageSize, search);
+        var response = await http.GetAsync(url);
+        if (!response.IsSuccessStatusCode)
+            return EmptyPaged<TvSeriesListViewModel>(page, pageSize);
+
+        return await response.Content.ReadFromJsonAsync<PagedResult<TvSeriesListViewModel>>()
+               ?? EmptyPaged<TvSeriesListViewModel>(page, pageSize);
+    }
+
+    // =========================
+    // Unwatched TV Series (Watchlist)
+    // =========================
+    public async Task<PagedResult<TvSeriesListViewModel>> GetUnwatchedTvSeriesAsync(int page = 1, int pageSize = 24, string? search = null)
+    {
+        var http = ApiAuthed();
+        var url = BuildPagedUrl("api/tmdb/tv/unwatched", page, pageSize, search);
+        var response = await http.GetAsync(url);
+        if (!response.IsSuccessStatusCode)
+            return EmptyPaged<TvSeriesListViewModel>(page, pageSize);
+
+        return await response.Content.ReadFromJsonAsync<PagedResult<TvSeriesListViewModel>>()
+               ?? EmptyPaged<TvSeriesListViewModel>(page, pageSize);
+    }
+
+    // =========================
+    // Get TV Watch Status
+    // =========================
+    public async Task<TvWatchStatusViewModel> GetTvWatchStatusAsync(int tmdbId)
+    {
+        var http = ApiAuthed();
+        var response = await http.GetAsync($"api/tmdb/tv/{tmdbId}/watch-status");
+        if (!response.IsSuccessStatusCode)
+            return new TvWatchStatusViewModel();
+
+        return await response.Content.ReadFromJsonAsync<TvWatchStatusViewModel>()
+               ?? new TvWatchStatusViewModel();
+    }
+
+    // =========================
+    // Mark Season As Watched
+    // =========================
+    public async Task<bool> MarkSeasonAsWatchedAsync(int tmdbId, int seasonNumber, bool watched)
+    {
+        var http = ApiAuthed();
+        var result = await http.PostAsJsonAsync("api/tmdb/tv/mark-season",
+            new { TmdbId = tmdbId, SeasonNumber = seasonNumber, Watched = watched });
+        return result.IsSuccessStatusCode;
     }
 
     // =========================
@@ -95,10 +153,50 @@ public class TvService(IHttpClientFactory http) : ITvservice
         }
     }
 
+    // =========================
+    // Get Season Episodes
+    // =========================
+    public async Task<SeasonEpisodeViewModel?> GetSeasonEpisodesAsync(int tmdbId, int seasonNumber)
+    {
+        var http = ApiAuthed();
+        var response = await http.GetAsync($"api/tmdb/tv/{tmdbId}/season/{seasonNumber}/episodes");
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        return await response.Content.ReadFromJsonAsync<SeasonEpisodeViewModel>();
+    }
+
+    // =========================
+    // Mark Episode As Watched
+    // =========================
+    public async Task<bool> MarkEpisodeAsWatchedAsync(int episodeId, bool watched, int mediaItemId)
+    {
+        var http = ApiAuthed();
+        var result = await http.PostAsJsonAsync("api/tmdb/tv/mark-episode",
+            new { EpisodeId = episodeId, Watched = watched, MediaItemId = mediaItemId });
+        return result.IsSuccessStatusCode;
+    }
+
     // DTO for Import response
     private class ImportTvResponse
     {
-        public Guid MediaItemId { get; set; }
+        public int MediaItemId { get; set; }
+        public bool AlreadyExisted { get; set; }
+        public bool AlreadyInWatchlist { get; set; }
     }
+
+    // =========================
+    // Helpers
+    // =========================
+    private static string BuildPagedUrl(string baseUrl, int page, int pageSize, string? search)
+    {
+        var parts = new List<string> { $"page={page}", $"pageSize={pageSize}" };
+        if (!string.IsNullOrWhiteSpace(search))
+            parts.Add($"search={Uri.EscapeDataString(search)}");
+        return $"{baseUrl}?{string.Join("&", parts)}";
+    }
+
+    private static PagedResult<T> EmptyPaged<T>(int page, int pageSize) =>
+        new() { Items = [], Total = 0, Page = page, PageSize = pageSize };
 }
 

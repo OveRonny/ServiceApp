@@ -40,7 +40,7 @@ public static class GetFilterWatchedMovies
             // 1️⃣ Base query
             var query = _db.MediaItems
                 .AsNoTracking()
-                .Where(m => m.WatchHistories.Any(w => w.UserId == userId && w.Progress >= 100));
+                .Where(m => m.Type == MediaType.Movie && m.WatchHistories.Any(w => w.UserId == userId && w.Progress >= 100));
 
             if (!string.IsNullOrWhiteSpace(request.Search))
             {

@@ -1,9 +1,9 @@
-﻿/* ── Page ─────────────────────────────────────────────────────── */
+/* -- Page ------------------------------------------------------- */
 .movies-page {
     padding: 8px 0 48px;
 }
 
-/* ── Header ───────────────────────────────────────────────────── */
+/* -- Header ----------------------------------------------------- */
 .movies-header {
     margin-bottom: 24px;
 }
@@ -21,7 +21,7 @@
     margin: 0;
 }
 
-/* ── Filter bar ───────────────────────────────────────────────── */
+/* -- Filter bar ------------------------------------------------- */
 .movies-filter-bar {
     display: flex;
     flex-wrap: wrap;
@@ -92,14 +92,14 @@
     opacity: 0.8;
 }
 
-/* ── Grid ─────────────────────────────────────────────────────── */
+/* -- Grid ------------------------------------------------------- */
 .movies-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
     gap: 10px;
 }
 
-/* ── Movie card ───────────────────────────────────────────────── */
+/* -- Movie card ------------------------------------------------- */
 .movie-card {
     display: flex;
     flex-direction: column;
@@ -186,7 +186,7 @@
     backdrop-filter: blur(4px);
 }
 
-/* ── Card info ────────────────────────────────────────────────── */
+/* -- Card info -------------------------------------------------- */
 .movie-info {
     padding: 6px 8px 8px;
     display: flex;
@@ -216,7 +216,7 @@
     align-self: flex-start;
 }
 
-/* ── Pagination ───────────────────────────────────────────────── */
+/* -- Pagination ------------------------------------------------- */
 .movies-pagination {
     display: flex;
     align-items: center;
@@ -254,7 +254,7 @@
     text-align: center;
 }
 
-/* ── States ───────────────────────────────────────────────────── */
+/* -- States ----------------------------------------------------- */
 .movies-loading,
 .movies-empty {
     text-align: center;
@@ -264,3 +264,4 @@
     border: 1px dashed var(--border-muted);
     border-radius: 14px;
 }
+

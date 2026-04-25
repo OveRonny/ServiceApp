@@ -1,18 +1,31 @@
 @using Microsoft.AspNetCore.Components
 @using System.Globalization
 
-<div class="card mt-3">
-    <div class="card-body">
-        <div><strong>Totalt</strong></div>
-        <div class="small">Km: <strong>@TotalMilage</strong></div>
-        <div class="small">Antall liter: <strong>@TotalDieselAdded.ToString("F2")</strong></div>
-        <div class="small">Sum: <strong>@CurrencyFormatter.FormatKr(TotalCost)</strong></div>
-        <hr />
-        <div><strong>Gjennomsnitt</strong></div>
-        <div class="small">
-            Pris/l: <strong>@CurrencyFormatter.FormatKr(AveragePricePerLiter)</strong>     
-        </div>
-        <div class="small">Forbruk (liter/km): <strong>@AverageDieselConsumption?.ToString("F2")</strong></div>
+<div class="cs-summary">
+    <div class="cs-stat">
+        <span class="cs-stat-icon">🛣️</span>
+        <span class="cs-stat-label">Totale km</span>
+        <span class="cs-stat-value">@TotalMilage</span>
+    </div>
+    <div class="cs-stat">
+        <span class="cs-stat-icon">🪣</span>
+        <span class="cs-stat-label">Totalt liter</span>
+        <span class="cs-stat-value">@TotalDieselAdded.ToString("F2") L</span>
+    </div>
+    <div class="cs-stat">
+        <span class="cs-stat-icon">💰</span>
+        <span class="cs-stat-label">Total kostnad</span>
+        <span class="cs-stat-value">@CurrencyFormatter.FormatKr(TotalCost)</span>
+    </div>
+    <div class="cs-stat">
+        <span class="cs-stat-icon">🏷️</span>
+        <span class="cs-stat-label">Snitt pris/l</span>
+        <span class="cs-stat-value">@(AveragePricePerLiter.HasValue ? CurrencyFormatter.FormatKr(AveragePricePerLiter.Value) : "-")</span>
+    </div>
+    <div class="cs-stat">
+        <span class="cs-stat-icon">📊</span>
+        <span class="cs-stat-label">Snitt forbruk</span>
+        <span class="cs-stat-value">@(AverageDieselConsumption.HasValue ? $"{AverageDieselConsumption.Value:F2} L/km" : "-")</span>
     </div>
 </div>
 

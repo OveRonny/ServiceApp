@@ -4,65 +4,97 @@
 @inject NavigationManager NavigationManager
 @attribute [Authorize]
 
-<h3 class="page-title">Kjøretøy</h3>
+<div class="vehicles-page">
 
-<button type="button" class="btn btn-primary" @onclick="CreateVehicle">Nytt kjøretøy</button>
+    <div class="vehicles-header">
+        <div>
+            <h1 class="vehicles-title">Kjøretøy</h1>
+            <p class="vehicles-subtitle">@vehicleModels.Count registrerte kjøretøy</p>
+        </div>
+        <button class="btn-add-vehicle" @onclick="CreateVehicle">
+            + Nytt kjøretøy
+        </button>
+    </div>
 
-<div class="page-section mt-3">
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-2 g-3">
-        @if (vehicleModels != null && vehicleModels.Count > 0)
-        {
+    @if (vehicleModels.Count > 0)
+    {
+        <div class="vehicle-grid">
             @foreach (var vehicle in vehicleModels)
             {
-                <div class="col">
-                    <div class="card card-service h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="date-pill">@vehicle.DateCreated.ToShortDateString()</span>
-                                @if (!string.IsNullOrWhiteSpace(vehicle.LicensePlate))
-                                {
-                                    <span class="badge badge-service rounded-pill">@vehicle.LicensePlate</span>
-                                }
-                            </div>
+                <div class="vehicle-card">
 
-                            <h5 class="card-title mt-2 mb-1">
-                                <a class="text-decoration-none" href="vehicle/@vehicle.Id">@vehicle.Make @vehicle.Model</a>
-                            </h5>
+                    <!-- Card header -->
+                    <div class="vehicle-card-header">
+                        <div class="vehicle-icon">🚗</div>
+                        <span class="vehicle-plate-badge">@vehicle.LicensePlate</span>
+                    </div>
 
+                    <!-- Main info -->
+                    <div class="vehicle-card-body">
+                        <h2 class="vehicle-name">@vehicle.Year @vehicle.Make @vehicle.Model</h2>
+                        <div class="vehicle-meta">
+                            @if (!string.IsNullOrWhiteSpace(vehicle.Color))
+                            {
+                                <span class="vehicle-meta-item">🎨 @vehicle.Color</span>
+                            }
                             @if (!string.IsNullOrWhiteSpace(vehicle.FirstName))
                             {
-                                <div class="text-muted small mb-2">@vehicle.FirstName</div>
+                                <span class="vehicle-meta-item">👤 @vehicle.FirstName</span>
                             }
-
-                            <div class="d-flex flex-wrap gap-3 text-muted small">
-                                <span>Årsmodell: <strong>@vehicle.Year</strong></span>
-                                <span>Farge: <strong>@vehicle.Color</strong></span>
-                            </div>
-                        </div>
-                        <div class="row">                         
-                            <button type="button" class="btn btn-outline-primary btn-sm " @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecords/{vehicle.Id}"))">Se forbruk</button>                          
-                            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/consumptionrecord/create/vehicle/{vehicle.Id}"))">Legg til forbruk</button>
-                            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/vehicleinventories/{vehicle.Id}"))">Deler</button>
-                            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/servicerecord/create/{vehicle.Id}"))">Service</button>
-                            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/servicerecords/{vehicle.Id}"))">Alle Servicer</button>
-                            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="@(() => NavigationManager.NavigateTo($"/insurance/{vehicle.Id}"))">Forsikring</button>
-                           
                         </div>
                     </div>
+
+                    <!-- Quick action links -->
+                    <div class="vehicle-actions">
+                        <a class="v-action" href="consumptionrecords/@vehicle.Id">
+                            <span class="v-action-icon">⛽</span>
+                            <span>Forbruk</span>
+                        </a>
+                        <a class="v-action" href="consumptionrecord/create/vehicle/@vehicle.Id">
+                            <span class="v-action-icon">➕</span>
+                            <span>Tanke</span>
+                        </a>
+                        <a class="v-action" href="servicerecords/@vehicle.Id">
+                            <span class="v-action-icon">🔧</span>
+                            <span>Service</span>
+                        </a>
+                        <a class="v-action" href="servicerecord/create/@vehicle.Id">
+                            <span class="v-action-icon">📋</span>
+                            <span>Ny service</span>
+                        </a>
+                        <a class="v-action" href="insurance/@vehicle.Id">
+                            <span class="v-action-icon">🛡</span>
+                            <span>Forsikring</span>
+                        </a>
+                        <a class="v-action" href="vehicleinventories/@vehicle.Id">
+                            <span class="v-action-icon">🔩</span>
+                            <span>Deler</span>
+                        </a>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="vehicle-card-footer">
+                        <a class="vehicle-detail-link" href="vehicle/@vehicle.Id">Se alle detaljer →</a>
+                        <span class="vehicle-added">Lagt til @vehicle.DateCreated.ToString("d. MMM yyyy")</span>
+                    </div>
+
                 </div>
             }
-        }
-        else
-        {
-            <div class="col">
-                <div class="alert alert-info mb-0">No vehicles found.</div>
-            </div>
-        }
-    </div>
+        </div>
+    }
+    else
+    {
+        <div class="vehicles-empty">
+            <div class="vehicles-empty-icon">🚗</div>
+            <p>Ingen kjøretøy registrert enda.</p>
+            <button class="btn-add-vehicle" @onclick="CreateVehicle">+ Legg til første kjøretøy</button>
+        </div>
+    }
+
 </div>
 
 @code {
-    private List<VehicleModel> vehicleModels = new List<VehicleModel>();
+    private List<VehicleModel> vehicleModels = new();
 
     [Parameter] public int? OwnerId { get; set; }
 
@@ -73,8 +105,5 @@
             : await vehicleService.GetAllVehiclesAsync();
     }
 
-    private void CreateVehicle()
-    {
-        NavigationManager.NavigateTo("vehicle");
-    }
+    private void CreateVehicle() => NavigationManager.NavigateTo("vehicle");
 }

@@ -1,0 +1,112 @@
+@page "/tv-serie-details/{TmdbId:int}/season/{SeasonNumber:int}"
+@using ServiceApp.UI.Services.TvServices
+@inject ITvservice Tvservice
+
+@if (_loading)
+{
+    <p>⏳ Laster episoder...</p>
+}
+else if (_episodes == null)
+{
+    <p>⚠️ Kunne ikke laste episoder.</p>
+}
+else
+{
+    <div class="season-episodes-container">
+        <div class="season-header">
+            <NavLink class="back-button" href="@($"tv-serie-details/{TmdbId}")">← Tilbake til serien</NavLink>
+            <h1>@_seriesTitle — Sesong @SeasonNumber</h1>
+        </div>
+
+        @if (!_isImported)
+        {
+            <div class="not-imported-notice">
+                ℹ️ Legg serien til i din liste for å markere episoder som sett.
+                <NavLink href="@($"tv-serie-details/{TmdbId}")" class="notice-link">Gå til serien →</NavLink>
+            </div>
+        }
+
+        <ul class="episode-list">
+            @foreach (var ep in _episodes)
+            {
+                <li class="episode-item @(ep.IsWatched ? "ep-watched" : "")">
+                    <div class="ep-meta">
+                        <span class="ep-number">Episode @ep.EpisodeNumber</span>
+                        <h3 class="ep-name">@ep.Name</h3>
+                        @if (!string.IsNullOrWhiteSpace(ep.Overview))
+                        {
+                            <p class="ep-overview">@ep.Overview</p>
+                        }
+                        @if (ep.VoteAverage > 0)
+                        {
+                            <span class="ep-rating">⭐ @ep.VoteAverage?.ToString("F1")</span>
+                        }
+                        @if (ep.IsWatched && ep.WatchedDate.HasValue)
+                        {
+                            <span class="ep-watched-date">📅 Sett @ep.WatchedDate.Value.ToString("d. MMM yyyy")</span>
+                        }
+                    </div>
+                    <div class="ep-actions">
+                        @if (_isImported)
+                        {
+                            <button class="btn-ep-watched @(ep.IsWatched ? "watched" : "")"
+                                    disabled="@(_busyEpisodeId == ep.Id)"
+                                    @onclick="() => ToggleWatched(ep)">
+                                @if (_busyEpisodeId == ep.Id)
+                                {
+                                    <span>⏳</span>
+                                }
+                                else if (ep.IsWatched)
+                                {
+                                    <span>✅ Sett</span>
+                                }
+                                else
+                                {
+                                    <span>👁 Marker som sett</span>
+                                }
+                            </button>
+                        }
+                    </div>
+                </li>
+            }
+        </ul>
+    </div>
+}
+
+@code {
+    [Parameter] public int TmdbId { get; set; }
+    [Parameter] public int SeasonNumber { get; set; }
+
+    private List<EpisodeViewModel>? _episodes;
+    private TvWatchStatusViewModel? _watchStatus;
+    private string _seriesTitle = "";
+    private bool _loading = true;
+    private bool _isImported;
+    private int? _busyEpisodeId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var episodesTask = Tvservice.GetSeasonEpisodesAsync(TmdbId, SeasonNumber);
+        var statusTask   = Tvservice.GetTvWatchStatusAsync(TmdbId);
+        var detailsTask  = Tvservice.GetTvDetailsAsync(TmdbId);
+        await Task.WhenAll(episodesTask, statusTask, detailsTask);
+
+        var result = episodesTask.Result;
+        _episodes    = result?.Episodes;
+        _watchStatus = statusTask.Result;
+        _isImported  = _watchStatus?.IsInWatchlist == true || _watchStatus?.MediaItemId > 0;
+        _seriesTitle = detailsTask.Result?.Title ?? "";
+        _loading = false;
+    }
+
+    private async Task ToggleWatched(EpisodeViewModel ep)
+    {
+        if (_watchStatus == null) return;
+        _busyEpisodeId = ep.Id;
+        await Tvservice.MarkEpisodeAsWatchedAsync(ep.Id, !ep.IsWatched, _watchStatus.MediaItemId);
+        var result = await Tvservice.GetSeasonEpisodesAsync(TmdbId, SeasonNumber);
+        _episodes = result?.Episodes;
+        _watchStatus = await Tvservice.GetTvWatchStatusAsync(TmdbId);
+        _busyEpisodeId = null;
+    }
+}

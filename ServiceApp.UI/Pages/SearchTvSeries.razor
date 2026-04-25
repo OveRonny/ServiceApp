@@ -34,14 +34,7 @@
 
     private async Task ImportTvSeries(int tmdbId)
     {
-        var id = await TvService.ImportTvAsync(tmdbId);
-        if (id == null)
-        {
-            Console.WriteLine("Failed to import TV series.");
-        }
-        else
-        {
-            Console.WriteLine($"TV series imported successfully (ID: {id})");
-        }
+        var (success, _) = await TvService.ImportTvAsync(tmdbId);
+        Console.WriteLine(success ? $"TV series imported." : "Failed to import TV series.");
     }
 }

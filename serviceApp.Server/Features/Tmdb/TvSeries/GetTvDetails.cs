@@ -16,9 +16,9 @@ public static class GetTvDetails
       string? PosterPath,
       string? BackdropPath,
       List<TmdbSeasonDto> Seasons,
-      List<TmdbCreatorDto> CreatedBy
-
-
+      List<TmdbCreatorDto> CreatedBy,
+      List<string> Genres,
+      double VoteAverage
   );
 
     public class Handler : IQueryHandler<Query, TmdbTvDetailsDto>
@@ -65,7 +65,9 @@ public static class GetTvDetails
                  tvSeries.PosterPath,                       // PosterPath
                  tvSeries.BackdropPath,
                  Seasons,
-                 creator
+                 creator,
+                 tvSeries.Genres.Select(g => g.Name).ToList(),
+                 tvSeries.VoteAverage
             );
 
 

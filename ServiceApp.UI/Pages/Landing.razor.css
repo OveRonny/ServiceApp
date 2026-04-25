@@ -1,0 +1,69 @@
+.landing-card {
+    text-align: center;
+    padding: 48px 40px;
+    background-color: var(--gray-800);
+    border: 1px solid var(--border-muted);
+    border-radius: 20px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+    max-width: 420px;
+    width: 100%;
+}
+
+.landing-logo {
+    margin-bottom: 20px;
+}
+
+.landing-title {
+    font-size: 2em;
+    font-weight: 800;
+    margin: 0 0 8px;
+}
+
+.landing-subtitle {
+    color: var(--text-muted);
+    font-size: 0.97em;
+    margin-bottom: 36px;
+    line-height: 1.5;
+}
+
+.landing-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.btn-landing-primary {
+    display: block;
+    padding: 12px;
+    background-color: var(--blue-500);
+    color: #fff;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 1em;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.btn-landing-primary:hover {
+    background-color: var(--blue-600);
+    color: #fff;
+}
+
+.btn-landing-secondary {
+    display: block;
+    padding: 12px;
+    background-color: transparent;
+    color: var(--blue-400);
+    border: 1px solid var(--gray-700);
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 1em;
+    text-decoration: none;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.btn-landing-secondary:hover {
+    background-color: var(--gray-700);
+    border-color: var(--blue-500);
+    color: var(--blue-400);
+}

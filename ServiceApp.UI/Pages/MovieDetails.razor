@@ -30,36 +30,53 @@
             <p class="overview">@selectedMovie.Overview</p>
 
             <div class="actions">
-                <div class="toolbar">
-                    <div class="toolbar-left">
-                        <label for="watchDate" class="label">Dato</label>
-                        <input type="date" id="watchDate" class="input input-date" @bind="SelectedDate" />
-                        
-                        <button class="like-button" @onclick="@ToggleLike" disabled="@IsProcessing">
-                            @(selectedMovie?.WatchHistory?.FirstOrDefault()?.Liked == true ? "👍" : "👎")
+                @if (!selectedMovie.IsInMyWatchlist && !selectedMovie.IsWatched)
+                {
+                    <div class="watchlist-section">
+                        <button class="btn-add-watchlist"
+                                disabled="@_isImporting"
+                                @onclick="() => AddToWatchlist(selectedMovie.TmdbId)">
+                            @if (_isImporting)
+                            {
+                                <span>⏳ Legger til...</span>
+                            }
+                            else
+                            {
+                                <span>➕ Legg til i min liste</span>
+                            }
+                        </button>
+                        @if (!string.IsNullOrWhiteSpace(_importMessage))
+                        {
+                            <div class="message">@_importMessage</div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <!-- Movie is in watchlist - show interaction controls -->
+                    <div class="toolbar">
+                        <div class="toolbar-left">
+                            <label for="watchDate" class="label">Dato</label>
+                            <input type="date" id="watchDate" class="input input-date" @bind="SelectedDate" />
+
+                            <button class="like-button" @onclick="@ToggleLike" disabled="@IsProcessing">
+                                @(selectedMovie?.WatchHistory?.FirstOrDefault()?.Liked == true ? "👍" : "👎")
+                            </button>
+                        </div>
+
+                        <div class="toolbar-right">
+                            <input class="input input-small" type="number" min="0" max="10" @bind="UserRating" placeholder="Rate 0-10" />
+                            <button class="btn btn-outline-success" @onclick="@RateMovie" disabled="@IsProcessing">Lagre rating</button>
+                        </div>
+                    </div>
+
+                    <div class="secondary-actions">
+                        <button class="btn btn-outline-info"
+                                @onclick="() => MarkAsWatched(selectedMovie!.TmdbId)">
+                            @(selectedMovie!.IsWatched ? "Se igjen" : "Marker som sett")
                         </button>
                     </div>
-
-                    <div class="">
-                        <input class="input input-small" type="number" min="0" max="10" @bind="UserRating" placeholder="Rate 0-10" />
-                        <button class="btn btn-outline-success" @onclick="@RateMovie" disabled="@IsProcessing">Lagre rating</button>
-                    </div>
-                </div>
-
-                <div class="secondary-actions">
-                    <button class="btn btn-outline-info"
-                        @onclick="() => MarkAsWatched(selectedMovie.TmdbId)">                        
-                        @(selectedMovie.IsWatched ? "Se igjen" : "Marker som sett")
-                    </button>
-
-                    
-                    <button class="btn-secondary"
-                            disabled="@selectedMovie.IsImported"
-                            @onclick="() => ImportMovie(selectedMovie.TmdbId)">
-                        @(selectedMovie.IsImported ? "Importert ✓" : "Importer film")
-                    </button>
-                   
-                </div>
+                }
                 <div class="secondary-actions">
                     <button class="btn btn-link" @onclick="GoBackToWatchedMovies">Sette filmer</button>
                     <button class="btn btn-link" @onclick="GoBackToUnWatchedMovies">Usette filmer</button>
@@ -143,7 +160,7 @@
             await MovieService.AddMovieToWatchList(tmdbId);
 
             _importMessage = "Film er lagret i systemet.";
-            selectedMovie.IsImported = true; // update UI immediately
+            selectedMovie.IsImported = true; 
         }
         catch (Exception ex)
         {
@@ -151,7 +168,7 @@
         }
         finally
         {
-            _isImporting = false; // always reset loading state
+            _isImporting = false; 
         }
     }
 
@@ -211,6 +228,32 @@
         finally
         {
             IsProcessing = false;
+        }
+    }
+
+    private async Task AddToWatchlist(int tmdbId)
+    {
+        if (selectedMovie == null) return;
+
+        _isImporting = true;
+        _importMessage = null;
+
+        try
+        {
+            await MovieService.AddMovieToWatchList(tmdbId);
+
+            _importMessage = "✓ Lagt til i din liste!";
+
+            // Reload to get updated watchlist status
+            await ShowDetails(tmdbId);
+        }
+        catch (Exception ex)
+        {
+            _importMessage = $"❌ Kunne ikke legge til: {ex.Message}";
+        }
+        finally
+        {
+            _isImporting = false;
         }
     }
 

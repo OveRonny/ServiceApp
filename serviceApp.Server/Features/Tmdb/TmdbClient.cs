@@ -91,5 +91,22 @@ public class TmdbClient
 
         return await response.Content.ReadFromJsonAsync<TmdbTvDetailsDto>();
     }
+
+    // =========================
+    // SEASON EPISODES
+    // =========================
+    public async Task<TmdbSeasonApiDto?> GetSeasonAsync(int tvTmdbId, int seasonNumber)
+    {
+        var url = $"tv/{tvTmdbId}/season/{seasonNumber}?api_key={_apiKey}";
+        var response = await _http.GetAsync(url);
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+            return null;
+
+        if (!response.IsSuccessStatusCode)
+            throw new Exception($"TMDb error: {response.StatusCode}");
+
+        return await response.Content.ReadFromJsonAsync<TmdbSeasonApiDto>();
+    }
 }
 

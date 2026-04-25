@@ -172,6 +172,9 @@ public class TmdbTvDetailsDto
     [JsonPropertyName("seasons")]
     public List<TmdbSeasonDto> Seasons { get; set; } = new();
 
+    [JsonPropertyName("vote_average")]
+    public double VoteAverage { get; set; }
+
     [JsonPropertyName("external_ids")]
     public TmdbExternalIds? ExternalIds { get; set; }
 
@@ -270,6 +273,91 @@ public class TmdbGenreDto
 }
 
 
+
+#endregion
+#region TV Series List DTOs
+
+public class TvSeriesListDto
+{
+    public int MediaItemId { get; set; }
+    public int TmdbId { get; set; }
+    public string Title { get; set; } = "";
+    public string? PosterPath { get; set; }
+    public int? TotalSeasons { get; set; }
+    public int WatchedSeasons { get; set; }
+    public DateTime? LastWatchedDate { get; set; }
+    public DateTime? AddedToWatchlistAt { get; set; }
+
+    public string? PosterUrl =>
+        string.IsNullOrEmpty(PosterPath) ? null : $"https://image.tmdb.org/t/p/w500{PosterPath}";
+}
+
+public class TvWatchStatusDto
+{
+    public int MediaItemId { get; set; }
+    public bool IsInWatchlist { get; set; }
+    public List<int> WatchedSeasonNumbers { get; set; } = new();
+    public List<int> WatchedEpisodeIds { get; set; } = new();
+    /// <summary>SeasonNumber → antall sette episoder</summary>
+    public Dictionary<int, int> WatchedEpisodeCountBySeason { get; set; } = new();
+}
+
+#endregion
+#region TV Episode DTOs
+
+public class TmdbSeasonApiDto
+{
+    [JsonPropertyName("season_number")]
+    public int SeasonNumber { get; set; }
+
+    [JsonPropertyName("episodes")]
+    public List<TmdbEpisodeApiDto> Episodes { get; set; } = new();
+}
+
+public class TmdbEpisodeApiDto
+{
+    [JsonPropertyName("id")]
+    public int TmdbEpisodeId { get; set; }
+
+    [JsonPropertyName("episode_number")]
+    public int EpisodeNumber { get; set; }
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = "";
+
+    [JsonPropertyName("overview")]
+    public string? Overview { get; set; }
+
+    [JsonPropertyName("air_date")]
+    public string? AirDate { get; set; }
+
+    [JsonPropertyName("vote_average")]
+    public double? VoteAverage { get; set; }
+
+    [JsonPropertyName("still_path")]
+    public string? StillPath { get; set; }
+}
+
+public class SeasonEpisodesDto
+{
+    public int SeasonNumber { get; set; }
+    public List<EpisodeWithStatusDto> Episodes { get; set; } = new();
+}
+
+public class EpisodeWithStatusDto
+{
+    public int Id { get; set; }
+    public int EpisodeNumber { get; set; }
+    public string Name { get; set; } = "";
+    public string? Overview { get; set; }
+    public double? VoteAverage { get; set; }
+    public string? StillPath { get; set; }
+    public bool IsWatched { get; set; }
+    public DateTime? WatchedDate { get; set; }
+
+    public string? StillUrl =>
+        string.IsNullOrEmpty(StillPath) ? null : $"https://image.tmdb.org/t/p/w300{StillPath}";
+}
 
 #endregion
 #region Movie DTOs

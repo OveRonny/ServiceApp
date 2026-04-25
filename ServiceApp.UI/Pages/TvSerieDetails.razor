@@ -1,74 +1,153 @@
 ﻿@page "/tv-serie-details/{TmdbId:int}"
 @using ServiceApp.UI.Services.TvServices
 @inject ITvservice Tvservice
+@attribute [Authorize]
 
-@if (TvSerieDetailsModel == null)
+@if (TvSerieDetailsModel is null)
 {
-    <p>Loading...</p>
+    <div class="tvd-loading">Laster serie…</div>
 }
 else
 {
-    <div class="tv-details-container">
-        <div class="poster-section">
+    <!-- Hero -->
+    <div class="tvd-hero">
+        <div class="tvd-hero-poster">
             <img src="@TvSerieDetailsModel.PosterUrl" alt="@TvSerieDetailsModel.Title" />
         </div>
+        <div class="tvd-hero-info">
+            <h1 class="tvd-title">@TvSerieDetailsModel.Title</h1>
 
-        <div class="info-section">
-            <h1>@TvSerieDetailsModel.Title</h1>
+            <!-- Meta chips -->
+            <div class="tvd-meta">
+                @if (TvSerieDetailsModel.FirstAirDate.HasValue)
+                {
+                    <span class="tvd-chip">📅 @TvSerieDetailsModel.FirstAirDate.Value.ToString("yyyy")</span>
+                }
+                <span class="tvd-chip">🎬 @TvSerieDetailsModel.NumberOfSeasons sesong@(TvSerieDetailsModel.NumberOfSeasons == 1 ? "" : "er")</span>
+                <span class="tvd-chip">📺 @TvSerieDetailsModel.NumberOfEpisodes episoder</span>
+                @if (TvSerieDetailsModel.Rating > 0)
+                {
+                    <span class="tvd-chip tvd-chip-gold">⭐ @($"{TvSerieDetailsModel.Rating:F1}")</span>
+                }
+            </div>
 
-            @if (!string.IsNullOrWhiteSpace(TvSerieDetailsModel.Overview))
-            {
-                <p class="overview">@TvSerieDetailsModel.Overview</p>
-            }
-
-            <p><strong>First Air Date:</strong> @TvSerieDetailsModel.FirstAirDate?.ToString("MMMM dd, yyyy")</p>
-            <p><strong>Seasons:</strong> @TvSerieDetailsModel.NumberOfSeasons</p>
-            <p><strong>Episodes:</strong> @TvSerieDetailsModel.NumberOfEpisodes</p>
-
+            <!-- Genres -->
             @if (TvSerieDetailsModel.Genres.Any())
             {
-                <p>
-                    <strong>Genres:</strong>
+                <div class="tvd-genres">
                     @foreach (var genre in TvSerieDetailsModel.Genres)
                     {
-                        <span class="genre">@genre</span>
+                        <span class="tvd-genre-tag">@genre</span>
                     }
-                </p>
+                </div>
             }
 
-            @if (TvSerieDetailsModel.Rating > 0)
+            <!-- Overview -->
+            @if (!string.IsNullOrWhiteSpace(TvSerieDetailsModel.Overview))
             {
-                <p><strong>Rating:</strong> ⭐ @TvSerieDetailsModel.Rating</p>
+                <p class="tvd-overview">@TvSerieDetailsModel.Overview</p>
             }
 
-            <NavLink class="back-button" href="/search-tv-series">← Back to search</NavLink>
+            <!-- Actions -->
+            <div class="tvd-actions">
+                <button class="tvd-btn-import @(_watchStatus?.IsInWatchlist == true ? "tvd-btn-import--added" : "")"
+                        disabled="@(_isImporting || _watchStatus?.IsInWatchlist == true)"
+                        @onclick="ImportSerie">
+                    @if (_isImporting)
+                    {
+                        <span>⏳ Legger til…</span>
+                    }
+                    else if (_watchStatus?.IsInWatchlist == true)
+                    {
+                        <span>✅ I din liste</span>
+                    }
+                    else
+                    {
+                        <span>➕ Legg til i min liste</span>
+                    }
+                </button>
+                <NavLink class="tvd-btn-back" href="/search-tv-series">← Tilbake</NavLink>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_importMessage))
+            {
+                <div class="tvd-import-msg">@_importMessage</div>
+            }
         </div>
     </div>
 
-    <div class="seasons-section">
-        <h2>Seasons</h2>
-        <div class="seasons-grid">
+    <!-- Seasons -->
+    <div class="tvd-seasons">
+        <h2 class="tvd-seasons-title">Sesonger</h2>
+        <div class="tvd-seasons-grid">
             @foreach (var season in TvSerieDetailsModel.Seasons)
             {
-                <div class="season-card">
-                    @if (!string.IsNullOrEmpty(season.PosterUrl))
-                    {
-                        <img src="@season.PosterUrl" alt="@season.Name" />
-                    }
-                    <h3>@season.Name </h3>
-                    @if (!string.IsNullOrWhiteSpace(season.Overview))
-                    {
-                        <p class="overview">@season.Overview</p>
-                    }
-                    <p><strong>Episodes:</strong> @season.EpisodeCount</p>
-                    @if (!string.IsNullOrEmpty(season.AirDate))
-                    {
-                        <p><strong>Air Date:</strong> @season.AirDateParsed?.ToString("MMMM dd, yyyy")</p>
-                    }
-                    @if (season.VoteAverage > 0)
-                    {
-                        <p><strong>Rating:</strong> ⭐ @season.VoteAverage</p>
-                    }
+                var watchedEpCount = _watchStatus?.WatchedEpisodeCountBySeason.GetValueOrDefault(season.SeasonNumber, 0) ?? 0;
+                var totalEpCount = season.EpisodeCount;
+                var allEpisodesWatched = totalEpCount > 0 && watchedEpCount >= totalEpCount;
+                var isWatched = _watchStatus?.WatchedSeasonNumbers.Contains(season.SeasonNumber) == true || allEpisodesWatched;
+                var progress = totalEpCount > 0 ? (double)watchedEpCount / totalEpCount : 0;
+
+                <div class="tvd-season-card @(isWatched ? "tvd-season-card--watched" : "")">
+                    <div class="tvd-season-poster-wrap">
+                        @if (!string.IsNullOrEmpty(season.PosterUrl))
+                        {
+                            <img class="tvd-season-poster" src="@season.PosterUrl" alt="@season.Name" />
+                        }
+                        else
+                        {
+                            <div class="tvd-season-poster-placeholder">📺</div>
+                        }
+                        @if (isWatched)
+                        {
+                            <span class="tvd-season-done-badge">✔ Sett</span>
+                        }
+                    </div>
+                    <div class="tvd-season-body">
+                        <h3 class="tvd-season-name">@season.Name</h3>
+                        <div class="tvd-season-meta">
+                            @if (!string.IsNullOrEmpty(season.AirDate))
+                            {
+                                <span>📅 @season.AirDateParsed?.ToString("yyyy")</span>
+                            }
+                            @if (season.VoteAverage > 0)
+                            {
+                                <span>⭐ @($"{season.VoteAverage:F1}")</span>
+                            }
+                        </div>
+
+                        @if (totalEpCount > 0)
+                        {
+                            <div class="tvd-progress-bar-wrap">
+                                <div class="tvd-progress-bar" style="width: @((progress * 100).ToString("F0"))%"></div>
+                            </div>
+                            <p class="tvd-ep-progress @(watchedEpCount == totalEpCount ? "tvd-ep-progress--done" : "")">
+                                👁 @watchedEpCount / @totalEpCount episoder
+                            </p>
+                        }
+
+                        <div class="tvd-season-actions">
+                            <button class="tvd-btn-season @(isWatched ? "tvd-btn-season--watched" : "")"
+                                    disabled="@(_seasonBusy == season.SeasonNumber)"
+                                    @onclick="() => ToggleSeasonWatched(season.SeasonNumber, isWatched)">
+                                @if (_seasonBusy == season.SeasonNumber)
+                                {
+                                    <span>⏳</span>
+                                }
+                                else if (isWatched)
+                                {
+                                    <span>✅ Sett</span>
+                                }
+                                else
+                                {
+                                    <span>👁 Merk sett</span>
+                                }
+                            </button>
+                            <NavLink class="tvd-btn-episodes" href="@($"tv-serie-details/{TmdbId}/season/{season.SeasonNumber}")">
+                                📋 Episoder
+                            </NavLink>
+                        </div>
+                    </div>
                 </div>
             }
         </div>
@@ -79,12 +158,51 @@ else
 
 @code {
     private TvDetailsViewModel? TvSerieDetailsModel = new();
+    private TvWatchStatusViewModel? _watchStatus;
 
     [Parameter]
     public int TmdbId { get; set; }
 
+    private bool _isImporting = false;
+    private string _importMessage = string.Empty;
+    private int? _seasonBusy;
+
     protected override async Task OnInitializedAsync()
     {
-        TvSerieDetailsModel = await Tvservice.GetTvDetailsAsync(TmdbId);
+        var detailsTask = Tvservice.GetTvDetailsAsync(TmdbId);
+        var statusTask  = Tvservice.GetTvWatchStatusAsync(TmdbId);
+        await Task.WhenAll(detailsTask, statusTask);
+        TvSerieDetailsModel = detailsTask.Result;
+        _watchStatus        = statusTask.Result;
+    }
+
+    private async Task ImportSerie()
+    {
+        if (_watchStatus?.IsInWatchlist == true) return;
+
+        _isImporting = true;
+        _importMessage = string.Empty;
+
+        var (success, alreadyInWatchlist) = await Tvservice.ImportTvAsync(TmdbId);
+
+        _importMessage = (success, alreadyInWatchlist) switch
+        {
+            (true, true)  => "ℹ️ Serien er allerede i din liste.",
+            (true, false) => "✅ Serien er lagt til i din liste!",
+            _             => "⚠️ Kunne ikke legge til serien. Prøv igjen senere."
+        };
+
+        if (success)
+            _watchStatus = await Tvservice.GetTvWatchStatusAsync(TmdbId);
+
+        _isImporting = false;
+    }
+
+    private async Task ToggleSeasonWatched(int seasonNumber, bool currentlyWatched)
+    {
+        _seasonBusy = seasonNumber;
+        await Tvservice.MarkSeasonAsWatchedAsync(TmdbId, seasonNumber, !currentlyWatched);
+        _watchStatus = await Tvservice.GetTvWatchStatusAsync(TmdbId);
+        _seasonBusy = null;
     }
 }

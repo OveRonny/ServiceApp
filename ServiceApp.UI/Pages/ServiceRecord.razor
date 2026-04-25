@@ -6,18 +6,32 @@
 @inject NavigationManager NavigationManager
 @attribute [Authorize]
 
-<h3>Service</h3>
+<div class="srp-page">
 
-<div class="mb-3">
-    <ServiceRecordForm Id="Id"
-                       OnServiceRecordDeleted="RequestDelete"
-                       OnServiceRecordSaved="HandleValidSubmit"
-                       serviceRecord="serviceRecord" />
+    <div class="srp-header">
+        <h1 class="srp-title">@(Id > 0 ? "✏️ Rediger service" : "🔧 Ny service")</h1>
+    </div>
+
+    <div class="srp-body">
+        <div class="srp-form-col">
+            <div class="srp-form-card">
+                <ServiceRecordForm Id="Id"
+                                   OnServiceRecordDeleted="RequestDelete"
+                                   OnServiceRecordSaved="HandleValidSubmit"
+                                   serviceRecord="serviceRecord" />
+            </div>
+        </div>
+
+        <div class="srp-images-col">
+            <div class="srp-form-card">
+                <ServiceRecordImages ImageIds="imageIds"
+                                     ImageSasUrls="imageSasUrls"
+                                     OnFileSelected="OnInputFileChange" />
+            </div>
+        </div>
+    </div>
+
 </div>
-
-<ServiceRecordImages ImageIds="imageIds"
-                     ImageSasUrls="imageSasUrls"
-                     OnFileSelected="OnInputFileChange" />
 
 <ConfirmModal TContext="ServiceRecordModel"
               Show="@showDelete"

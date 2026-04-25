@@ -1,20 +1,30 @@
 @using Microsoft.AspNetCore.Components.Forms
 
-<div class="mb-3">
-    <label class="form-label" for="imageUpload">Last opp bilde</label>
-    <InputFile id="imageUpload" class="form-control" OnChange="OnInputFileChange" accept="image/*" />
+<div class="sri-field">
+    <label class="sri-label" for="imageUpload">📎 Last opp bilde</label>
+    <InputFile id="imageUpload" class="sri-file-input" OnChange="OnInputFileChange" accept="image/*" />
 </div>
 
 @if (ImageSasUrls != null && ImageSasUrls.Count > 0 && ImageIds != null)
 {
-    <div>
+    <div class="sri-gallery">
         @foreach (var id in ImageIds)
         {
             if (ImageSasUrls.TryGetValue(id, out var url))
             {
-                <img src="@url" style="max-width:200px; margin:10px;" />
+                <img src="@url" class="sri-image" @onclick="@(() => OpenLightbox(url))" />
             }
         }
+    </div>
+}
+
+@if (_lightboxUrl != null)
+{
+    <div class="sri-lightbox" @onclick="CloseLightbox">
+        <div class="sri-lightbox-inner" @onclick:stopPropagation>
+            <button class="sri-lightbox-close" @onclick="CloseLightbox">✕</button>
+            <img src="@_lightboxUrl" class="sri-lightbox-img" />
+        </div>
     </div>
 }
 
@@ -23,8 +33,11 @@
     [Parameter] public Dictionary<int, string>? ImageSasUrls { get; set; }
     [Parameter] public EventCallback<InputFileChangeEventArgs> OnFileSelected { get; set; }
 
+    private string? _lightboxUrl;
+
     private void OnInputFileChange(InputFileChangeEventArgs e)
-    {
-        OnFileSelected.InvokeAsync(e);
-    }
+        => OnFileSelected.InvokeAsync(e);
+
+    private void OpenLightbox(string url) => _lightboxUrl = url;
+    private void CloseLightbox() => _lightboxUrl = null;
 }

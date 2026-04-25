@@ -1,69 +1,52 @@
 @inject NavigationManager NavigationManager
 
-
 <EditForm Model="serviceRecord" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
     <ValidationSummary />
-    <div class="col-6">
-        <div class="mb-3">
-            <label class="form-label" for="vehicle">Merke</label>
-            <div class="form-group">
-                <VehicleDropdown @bind-selectedVehicleId="serviceRecord.VehicleId" />
-            </div>
-        </div>
 
-        <div class="mb-3">
-            <label class="form-label" for="ServiceCompanyId">Verksted</label>
-            <div class="form-group">
-                <ServiceCompanyDropdown @bind-SelectedServiceCompanyId="serviceRecord.ServiceCompanyId" />
-            </div>
+    <div class="srf-grid">
+        <div class="srf-field">
+            <label class="srf-label">Kjøretøy</label>
+            <VehicleDropdown @bind-selectedVehicleId="serviceRecord.VehicleId" />
         </div>
+        <div class="srf-field">
+            <label class="srf-label">Verksted</label>
+            <ServiceCompanyDropdown @bind-SelectedServiceCompanyId="serviceRecord.ServiceCompanyId" />
+        </div>
+        <div class="srf-field">
+            <label class="srf-label">Servicetype</label>
+            <ServiceTypeDropdown @bind-SelectedServiceTypeId="serviceRecord.ServiceTypeId" />
+        </div>
+        <div class="srf-field">
+            <label class="srf-label" for="serviceDate">Dato</label>
+            <InputDate id="serviceDate" @bind-Value="serviceRecord.ServiceDate" class="srf-input" />
+        </div>
+        <div class="srf-field srf-field-full">
+            <label class="srf-label" for="description">Beskrivelse</label>
+            <InputTextArea id="description" @bind-Value="serviceRecord.Description" class="srf-input srf-textarea" />
+        </div>
+        <div class="srf-field">
+            <label class="srf-label" for="cost">Sum (kr)</label>
+            <InputNumber id="cost" @bind-Value="serviceRecord.Cost" class="srf-input" />
+            <span class="srf-hint">Beregnet fra deler: @(CalculatedPartsTotal().ToString("C"))</span>
+        </div>
+        <div class="srf-field">
+            <label class="srf-label" for="mileage">Kilometerstand</label>
+            <InputNumber id="mileage" @bind-Value="serviceRecord.Mileage" class="srf-input" />
+        </div>
+    </div>
 
-        <div class="mb-3">
-            <label class="form-label" for="ServiceTypeId">Service type</label>
-            <div class="form-group">
-                <ServiceTypeDropdown @bind-SelectedServiceTypeId="serviceRecord.ServiceTypeId" />
-            </div>
-        </div>
+    <div class="srf-parts">
+        <ServiceRecordUsedParts VehicleId="serviceRecord.VehicleId" @bind-UsedParts="serviceRecord.UsedParts" />
+    </div>
 
-        <div class="mb-3">
-            <div class="form-group">
-                <label class="form-label" for="serviceDate">Dato</label>
-                <InputDate id="serviceDate" @bind-Value="serviceRecord.ServiceDate" class="form-control" />
-            </div>
-        </div>
-
-        <div class="mb-3">
-            <div class="form-group">
-                <label class="form-label" for="description">Beskrivelse</label>
-                <InputTextArea id="description" @bind-Value="serviceRecord.Description" class="form-control" />
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label" for="cost">Sum</label>
-            <InputNumber id="cost" @bind-Value="serviceRecord.Cost" class="form-control" />
-            <small class="text-muted">Beregnet: @(CalculatedPartsTotal().ToString("C"))</small>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label" for="mileage">Kilometer</label>
-            <InputNumber id="mileage" @bind-Value="serviceRecord.Mileage" class="form-control" />
-        </div>
-
-   
-
-        <div class="d-flex gap-2 mt-3 mb-3">
-            <button type="submit" class="btn btn-primary">Lagre</button>
-            <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
-            @if (Id > 0)
-            {
-                <button type="button" class="btn btn-danger" @onclick="DeleteServiceRecord">Delete</button>
-            }
-        </div>
-        <div class="mb-3">
-            <ServiceRecordUsedParts VehicleId="serviceRecord.VehicleId" @bind-UsedParts="serviceRecord.UsedParts" />
-        </div>
+    <div class="srf-actions">
+        <button type="submit" class="srf-btn srf-btn-save">💾 Lagre</button>
+        <button type="button" class="srf-btn srf-btn-cancel" @onclick="Cancel">Avbryt</button>
+        @if (Id > 0)
+        {
+            <button type="button" class="srf-btn srf-btn-delete" @onclick="DeleteServiceRecord">🗑 Slett</button>
+        }
     </div>
 </EditForm>
 

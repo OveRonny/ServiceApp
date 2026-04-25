@@ -1,21 +1,117 @@
-
-
-/* File input text and background */
-#imageUpload {
-    color: #000 !important;
-    background-color: #fff !important;
+.sri-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 20px;
 }
 
-/* “Choose file” button styles */
-#imageUpload::file-selector-button {
-    color: #000 !important;
-    background-color: #fff !important;
-    border: 1px solid #ced4da !important;
+.sri-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
-/* Safari/older Chromium */
-#imageUpload::-webkit-file-upload-button {
-    color: #000 !important;
-    background-color: #fff !important;
-    border: 1px solid #ced4da !important;
+.sri-file-input {
+    background-color: var(--gray-900);
+    border: 1px solid var(--border-muted);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text-primary);
+    font-size: 0.88rem;
+    width: 100%;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.sri-file-input::file-selector-button {
+    background: linear-gradient(135deg, #6366f1, #3b82f6);
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    padding: 5px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 12px;
+}
+
+.sri-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+}
+
+.sri-image {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid var(--border-muted);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.sri-image:hover {
+    transform: scale(1.04);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* ?? Lightbox ????????????????????????????????????????????????????? */
+.sri-lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(4px);
+    animation: sri-fade-in 0.15s ease;
+}
+
+@keyframes sri-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.sri-lightbox-inner {
+    position: relative;
+    max-width: 92vw;
+    max-height: 92vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sri-lightbox-img {
+    max-width: 92vw;
+    max-height: 88vh;
+    border-radius: 14px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7);
+    object-fit: contain;
+}
+
+.sri-lightbox-close {
+    position: absolute;
+    top: -40px;
+    right: -8px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+}
+
+.sri-lightbox-close:hover {
+    background: rgba(255, 255, 255, 0.25);
 }

@@ -1,14 +1,12 @@
 ﻿@inject IServiceCompanyService ServiceCompanyService
 
-<div class="mb-3">
-    <InputSelect @bind-Value="SelectedServiceCompanyId" @bind-Value:after="OnInput" class="form-select">
-        <option value="0">Velg servicefirma</option>
-        @foreach (var company in serviceCompanies)
-        {
-            <option value="@company.Id">@company.Name</option>
-        }
-    </InputSelect>
-</div>
+<InputSelect @bind-Value="SelectedServiceCompanyId" @bind-Value:after="OnInput" class="srf-input">
+    <option value="0">Velg servicefirma</option>
+    @foreach (var company in serviceCompanies)
+    {
+        <option value="@company.Id">@company.Name</option>
+    }
+</InputSelect>
 
 
 @code {

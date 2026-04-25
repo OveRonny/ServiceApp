@@ -1,16 +1,14 @@
 ﻿@inject IServiceTypeService ServiceTypeService
 @inject NavigationManager NavigationManager
 
-<div class="mb-3">
-    <InputSelect @bind-Value="SelectedServiceTypeId" @bind-Value:after="OnInput" class="form-select">
-        <option value="0">Velg service type</option>
-        @foreach (var serviceType in serviceTypes)
-        {
-            <option value="@serviceType.Id">@serviceType.Name</option>
-        }
-        <option value="-1">Opprett ny service type</option>
-    </InputSelect>
-</div>
+<InputSelect @bind-Value="SelectedServiceTypeId" @bind-Value:after="OnInput" class="srf-input">
+    <option value="0">Velg service type</option>
+    @foreach (var serviceType in serviceTypes)
+    {
+        <option value="@serviceType.Id">@serviceType.Name</option>
+    }
+    <option value="-1">Opprett ny service type</option>
+</InputSelect>
 
 
 @code {

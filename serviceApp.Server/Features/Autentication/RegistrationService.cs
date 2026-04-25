@@ -35,8 +35,9 @@ public sealed class RegistrationService(
         // Default: FamilyOwner
         //_ = await _users.AddToRoleAsync(user, Roles.FamilyOwner);
 
-        // Send confirmation email in the background to avoid delaying the response
-        TrySendConfirmationEmail(user);
+        // Generate token in-scope, then fire email in background
+        var token = await _users.GenerateEmailConfirmationTokenAsync(user);
+        TrySendConfirmationEmail(user, token);
 
         return (true, null);
     }
@@ -57,30 +58,33 @@ public sealed class RegistrationService(
         var user = await _users.FindByEmailAsync(req.Email);
         if (user is null || user.EmailConfirmed) return (true, null); // don't leak existence
 
-        return await SendConfirmationEmailAsync(user, ct);
+        var token = await _users.GenerateEmailConfirmationTokenAsync(user);
+        var link = BuildConfirmLink(user.Id, token);
+        return await SendConfirmationEmailAsync(user.Email!, link, ct);
     }
 
-    private void TrySendConfirmationEmail(ApplicationUser user)
+    private void TrySendConfirmationEmail(ApplicationUser user, string token)
     {
+        var userId = user.Id;
+        var email = user.Email!;
+        var link = BuildConfirmLink(userId, token);
         _ = Task.Run(async () =>
         {
             try
             {
-                var (ok, error) = await SendConfirmationEmailAsync(user, CancellationToken.None);
+                var (ok, error) = await SendConfirmationEmailAsync(email, link, CancellationToken.None);
                 if (!ok && !string.IsNullOrWhiteSpace(error))
-                    _logger.LogWarning("Failed to send confirmation email to {Email}: {Error}", user.Email, error);
+                    _logger.LogWarning("Failed to send confirmation email to {Email}: {Error}", email, error);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error when sending confirmation email to {Email}", user.Email);
+                _logger.LogError(ex, "Unexpected error when sending confirmation email to {Email}", email);
             }
         });
     }
 
-    private async Task<(bool ok, string? error)> SendConfirmationEmailAsync(ApplicationUser user, CancellationToken ct)
+    private async Task<(bool ok, string? error)> SendConfirmationEmailAsync(string email, string link, CancellationToken ct)
     {
-        var token = await _users.GenerateEmailConfirmationTokenAsync(user);
-        var link = BuildConfirmLink(user.Id, token);
         var html = $$"""
                  <p>Hei!</p>
                  <p>Bekreft e-post for Progorb-kontoen din ved å klikke:
@@ -90,12 +94,12 @@ public sealed class RegistrationService(
 
         try
         {
-            await _email.SendAsync(user.Email!, "Bekreft e-post", html, ct);
+            await _email.SendAsync(email, "Bekreft e-post", html, ct);
             return (true, null);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Kunne ikke sende bekreftelsesepost til {Email}", user.Email);
+            _logger.LogError(ex, "Kunne ikke sende bekreftelsesepost til {Email}", email);
             return (false, "Kunne ikke sende bekreftelsesepost.");
         }
     }

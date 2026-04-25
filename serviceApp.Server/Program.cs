@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Scalar.AspNetCore;
+using serviceApp.Server.Data;
 using serviceApp.Server.Features.Autentication;
 using serviceApp.Server.Features.Images;
 using serviceApp.Server.Features.Roles;
@@ -57,6 +58,9 @@ app.RegisterEndpointDefinitions();
 
 using (var scope = app.Services.CreateScope())
 {
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await db.Database.MigrateAsync();
+
     var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var cfg = scope.ServiceProvider.GetRequiredService<IConfiguration>();

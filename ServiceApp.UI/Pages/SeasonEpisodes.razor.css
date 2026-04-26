@@ -85,8 +85,6 @@
 }
 
 .episode-item.ep-watched {
-    border-color: rgba(34, 197, 94, 0.35);
-    background-color: rgba(34, 197, 94, 0.05);
 }
 
 .ep-meta {
@@ -182,8 +180,6 @@
 }
 
 .episode-item.ep-watched {
-    background-color: #f0fff4;
-    border-color: #b7e4c7;
 }
 
 .ep-meta {

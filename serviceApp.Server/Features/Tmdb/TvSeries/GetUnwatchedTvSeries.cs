@@ -23,7 +23,11 @@ public static class GetUnwatchedTvSeries
 
             var query = _db.WatchlistItems
                 .AsNoTracking()
-                .Where(w => w.UserId == userId && w.MediaItem.Type == MediaType.Series);
+                .Where(w => w.UserId == userId && w.MediaItem.Type == MediaType.Series)
+                .Where(w => w.MediaItem.SeasonsNav
+                    .SelectMany(s => s.Episodes)
+                    .Any(e => !w.MediaItem.WatchHistories
+                        .Any(wh => wh.UserId == userId && wh.EpisodeId == e.Id)));
 
             if (!string.IsNullOrWhiteSpace(request.Search))
                 query = query.Where(w => EF.Functions.Like(w.MediaItem.Title, $"%{request.Search.Trim()}%"));

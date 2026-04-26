@@ -45,7 +45,7 @@ jobs:
       # 6️⃣ Installer dotnet-ef
       - name: Install dotnet-ef
         run: |
-          dotnet tool install --global dotnet-ef
+          dotnet tool install --global dotnet-ef --version 10.0.7
           echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
       # 7️⃣ List migrations (valgfritt, for kontroll)

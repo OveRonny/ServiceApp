@@ -8,17 +8,17 @@
 
     <div class="movies-header">
         <div>
-            <h1 class="movies-title">?? Ikke sett</h1>
+            <h1 class="movies-title">🎬 Ikke sett</h1>
             <p class="movies-subtitle">@_total film@(_total == 1 ? "" : "er") i watchlisten</p>
         </div>
     </div>
 
     <div class="movies-filter-bar">
         <div class="movies-search-wrap">
-            <span class="movies-search-icon">??</span>
+            <span class="movies-search-icon">🔍</span>
             <input class="movies-search-input"
                    type="text"
-                   placeholder="S�k etter film..."
+                   placeholder="Søk etter film..."
                    value="@searchQuery"
                    @oninput="OnSearchInput" />
         </div>
@@ -51,7 +51,7 @@
                         <div class="movie-poster-overlay">
                             <p class="movie-overview">@movie.Overview</p>
                         </div>
-                        <span class="movie-unwatched-badge">?? Ikke sett</span>
+                        <span class="movie-unwatched-badge">👁 Ikke sett</span>
                     </div>
                     <div class="movie-info">
                         <h4 class="movie-title">@movie.Title</h4>

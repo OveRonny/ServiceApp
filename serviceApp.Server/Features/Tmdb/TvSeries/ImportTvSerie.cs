@@ -51,8 +51,6 @@ public static class ImportTvSerie
 
                     foreach (var s in tmdbShow.Seasons)
                     {
-                        if (s.SeasonNumber == 0) continue;
-
                         media.SeasonsNav.Add(new Season
                         {
                             SeasonNumber = s.SeasonNumber,

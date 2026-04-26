@@ -80,7 +80,7 @@ else
     <div class="tvd-seasons">
         <h2 class="tvd-seasons-title">Sesonger</h2>
         <div class="tvd-seasons-grid">
-            @foreach (var season in TvSerieDetailsModel.Seasons)
+            @foreach (var season in TvSerieDetailsModel.Seasons.Where(s => s.SeasonNumber > 0))
             {
                 var watchedEpCount = _watchStatus?.WatchedEpisodeCountBySeason.GetValueOrDefault(season.SeasonNumber, 0) ?? 0;
                 var totalEpCount = season.EpisodeCount;
@@ -151,6 +151,86 @@ else
                 </div>
             }
         </div>
+
+        @{
+            var specials = TvSerieDetailsModel.Seasons.Where(s => s.SeasonNumber == 0).ToList();
+        }
+        @if (specials.Any())
+        {
+            <h2 class="tvd-seasons-title tvd-seasons-title--specials">Spesialepisoder</h2>
+            <div class="tvd-seasons-grid">
+                @foreach (var season in specials)
+                {
+                    var watchedEpCount = _watchStatus?.WatchedEpisodeCountBySeason.GetValueOrDefault(season.SeasonNumber, 0) ?? 0;
+                    var totalEpCount = season.EpisodeCount;
+                    var allEpisodesWatched = totalEpCount > 0 && watchedEpCount >= totalEpCount;
+                    var isWatched = _watchStatus?.WatchedSeasonNumbers.Contains(season.SeasonNumber) == true || allEpisodesWatched;
+                    var progress = totalEpCount > 0 ? (double)watchedEpCount / totalEpCount : 0;
+
+                    <div class="tvd-season-card tvd-season-card--special @(isWatched ? "tvd-season-card--watched" : "")">
+                        <div class="tvd-season-poster-wrap">
+                            @if (!string.IsNullOrEmpty(season.PosterUrl))
+                            {
+                                <img class="tvd-season-poster" src="@season.PosterUrl" alt="@season.Name" />
+                            }
+                            else
+                            {
+                                <div class="tvd-season-poster-placeholder">⭐</div>
+                            }
+                            @if (isWatched)
+                            {
+                                <span class="tvd-season-done-badge">✔ Sett</span>
+                            }
+                        </div>
+                        <div class="tvd-season-body">
+                            <h3 class="tvd-season-name">@season.Name</h3>
+                            <div class="tvd-season-meta">
+                                @if (!string.IsNullOrEmpty(season.AirDate))
+                                {
+                                    <span>📅 @season.AirDateParsed?.ToString("yyyy")</span>
+                                }
+                                @if (season.VoteAverage > 0)
+                                {
+                                    <span>⭐ @($"{season.VoteAverage:F1}")</span>
+                                }
+                            </div>
+
+                            @if (totalEpCount > 0)
+                            {
+                                <div class="tvd-progress-bar-wrap">
+                                    <div class="tvd-progress-bar" style="width: @((progress * 100).ToString("F0"))%"></div>
+                                </div>
+                                <p class="tvd-ep-progress @(watchedEpCount == totalEpCount ? "tvd-ep-progress--done" : "")">
+                                    👁 @watchedEpCount / @totalEpCount episoder
+                                </p>
+                            }
+
+                            <div class="tvd-season-actions">
+                                <button class="tvd-btn-season @(isWatched ? "tvd-btn-season--watched" : "")"
+                                        disabled="@(_seasonBusy == season.SeasonNumber)"
+                                        @onclick="() => ToggleSeasonWatched(season.SeasonNumber, isWatched)">
+                                    @if (_seasonBusy == season.SeasonNumber)
+                                    {
+                                        <span>⏳</span>
+                                    }
+                                    else if (isWatched)
+                                    {
+                                        <span>✅ Sett</span>
+                                    }
+                                    else
+                                    {
+                                        <span>👁 Merk sett</span>
+                                    }
+                                </button>
+                                <NavLink class="tvd-btn-episodes" href="@($"tv-serie-details/{TmdbId}/season/{season.SeasonNumber}")">
+                                    📋 Episoder
+                                </NavLink>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
     </div>
 }
 

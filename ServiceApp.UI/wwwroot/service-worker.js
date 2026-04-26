@@ -1,5 +1,5 @@
 /* SW (dev) */
-const SW_VERSION = 'v4-dev';
+const SW_VERSION = 'v5-dev';
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));

@@ -153,6 +153,17 @@
     margin: 0 0 20px;
 }
 
+.tvd-seasons-title--specials {
+    margin-top: 36px;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+}
+
+.tvd-season-card--special {
+    border-color: rgba(251, 191, 36, 0.25);
+    background: linear-gradient(135deg, var(--gray-800), rgba(251, 191, 36, 0.05));
+}
+
 .tvd-seasons-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));

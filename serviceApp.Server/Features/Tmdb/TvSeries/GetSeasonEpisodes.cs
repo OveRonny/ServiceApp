@@ -51,11 +51,40 @@ public static class GetSeasonEpisodes
             }
 
             var season = media.SeasonsNav.FirstOrDefault(s => s.SeasonNumber == request.SeasonNumber);
-            if (season == null)
-                return Result.Fail<SeasonEpisodesDto>($"Sesong {request.SeasonNumber} ikke funnet.");
 
-            // Lazy-load episodes from TMDB if not stored yet
-            if (!season.Episodes.Any())
+            // Season not in DB (e.g. Season 0 / Specials on series imported before this was supported)
+            // — create it on the fly from TMDB and persist it
+            if (season == null)
+            {
+                var tmdbSeason = await _tmdb.GetSeasonAsync(request.TmdbId, request.SeasonNumber);
+                if (tmdbSeason == null)
+                    return Result.Fail<SeasonEpisodesDto>($"Sesong {request.SeasonNumber} ikke funnet.");
+
+                season = new Season
+                {
+                    SeasonNumber = request.SeasonNumber,
+                    Name = request.SeasonNumber == 0 ? "Spesialepisoder" : $"Sesong {request.SeasonNumber}",
+                    EpisodeCount = tmdbSeason.Episodes.Count,
+                    MediaItemId = media.Id
+                };
+
+                foreach (var ep in tmdbSeason.Episodes)
+                {
+                    season.Episodes.Add(new Episode
+                    {
+                        EpisodeNumber = ep.EpisodeNumber,
+                        Name = ep.Name,
+                        Overview = ep.Overview,
+                        AirDate = ParseDate(ep.AirDate),
+                        VoteAverage = ep.VoteAverage
+                    });
+                }
+
+                _db.Seasons.Add(season);
+                await _db.SaveChangesAsync(ct);
+            }
+            // Lazy-load episodes from TMDB if season exists but has no episodes yet
+            else if (!season.Episodes.Any())
             {
                 var tmdbSeason = await _tmdb.GetSeasonAsync(request.TmdbId, request.SeasonNumber);
                 if (tmdbSeason != null)
@@ -67,7 +96,7 @@ public static class GetSeasonEpisodes
                             EpisodeNumber = ep.EpisodeNumber,
                             Name = ep.Name,
                             Overview = ep.Overview,
-                            AirDate = string.IsNullOrEmpty(ep.AirDate) ? null : DateTime.Parse(ep.AirDate),
+                            AirDate = ParseDate(ep.AirDate),
                             VoteAverage = ep.VoteAverage,
                             SeasonId = season.Id
                         });
@@ -106,6 +135,12 @@ public static class GetSeasonEpisodes
                 SeasonNumber = request.SeasonNumber,
                 Episodes = episodeDtos
             });
+        }
+
+        private static DateTime? ParseDate(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return null;
+            return DateTime.TryParse(raw, out var d) && d.Year > 1 ? d : null;
         }
     }
 

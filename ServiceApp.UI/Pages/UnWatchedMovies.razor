@@ -1,4 +1,4 @@
-@page "/unwatched-movies"
+ï»¿@page "/unwatched-movies"
 @using ServiceApp.UI.Services.GenreServices
 @inject IMovieService MovieService
 @inject IGenreService GenreService
@@ -8,7 +8,7 @@
 
     <div class="movies-header">
         <div>
-            <h1 class="movies-title">??? Ikke sett</h1>
+            <h1 class="movies-title">?? Ikke sett</h1>
             <p class="movies-subtitle">@_total film@(_total == 1 ? "" : "er") i watchlisten</p>
         </div>
     </div>
@@ -18,7 +18,7 @@
             <span class="movies-search-icon">??</span>
             <input class="movies-search-input"
                    type="text"
-                   placeholder="Søk etter film..."
+                   placeholder="Sï¿½k etter film..."
                    value="@searchQuery"
                    @oninput="OnSearchInput" />
         </div>
@@ -34,7 +34,7 @@
 
     @if (Movies is null)
     {
-        <div class="movies-loading">Laster filmer…</div>
+        <div class="movies-loading">Laster filmer&#x2026;</div>
     }
     else if (Movies.Count == 0)
     {
@@ -65,9 +65,9 @@
         </div>
 
         <div class="movies-pagination">
-            <button class="movies-page-btn" @onclick="PreviousPage" disabled="@IsPreviousDisabled">? Forrige</button>
+            <button class="movies-page-btn" @onclick="PreviousPage" disabled="@IsPreviousDisabled">&#x2190; Forrige</button>
             <span class="movies-page-info">Side @_currentPage av @TotalPages</span>
-            <button class="movies-page-btn" @onclick="NextPage" disabled="@IsNextDisabled">Neste ?</button>
+            <button class="movies-page-btn" @onclick="NextPage" disabled="@IsNextDisabled">Neste &#x2192;</button>
         </div>
     }
 

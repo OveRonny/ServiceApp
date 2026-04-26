@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 
 namespace serviceApp.Server.Features.Tmdb.Dashboard;
 
@@ -222,38 +222,40 @@ public static class GetDashboard
                 Summaries: vehicleSummaries
             );
 
-            // ── Recent watches — deduplicated per media item ──────────────────
-            var rawRecentWatches = await _db.WatchHistories
+            // Recent watches - deduplicated per media item
+            var recentRaw = await _db.WatchHistories
                 .AsNoTracking()
                 .Where(w => w.UserId == userId)
-                .OrderByDescending(w => w.WatchDate)
-                .Take(50)
                 .Select(w => new
                 {
                     w.MediaItemId,
                     w.MediaItem.TmdbId,
                     w.MediaItem.Title,
                     w.MediaItem.PosterPath,
-                    w.WatchDate,
-                    w.MediaItem.Type
+                    w.MediaItem.Type,
+                    w.WatchDate
                 })
-                .ToListAsync(ct);
-
-            var recentWatches = rawRecentWatches
-                .GroupBy(w => w.MediaItemId)
-                .Select(g =>
+                .GroupBy(w => new { w.MediaItemId, w.TmdbId, w.Title, w.PosterPath, w.Type })
+                .Select(g => new
                 {
-                    var first = g.First();
-                    return new RecentWatchDto(
-                        first.TmdbId,
-                        first.Title,
-                        first.PosterPath,
-                        g.Max(w => w.WatchDate),
-                        first.Type == MediaType.Movie ? "Movie" : "Series"
-                    );
+                    g.Key.TmdbId,
+                    g.Key.Title,
+                    g.Key.PosterPath,
+                    g.Key.Type,
+                    WatchDate = g.Max(w => w.WatchDate)
                 })
                 .OrderByDescending(w => w.WatchDate)
                 .Take(8)
+                .ToListAsync(ct);
+
+            var recentWatches = recentRaw
+                .Select(w => new RecentWatchDto(
+                    w.TmdbId,
+                    w.Title,
+                    w.PosterPath,
+                    w.WatchDate,
+                    w.Type == MediaType.Movie ? "Movie" : "Series"
+                ))
                 .ToList();
 
             return Result.Ok(new DashboardDto(movieStats, tvStats, vehicleStats, recentWatches));

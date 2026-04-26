@@ -871,6 +871,9 @@ namespace serviceApp.Server.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Comment")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("EpisodeId")
                         .HasColumnType("int");
 
@@ -922,6 +925,9 @@ namespace serviceApp.Server.Migrations
 
                     b.Property<DateTime>("AddedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int?>("StreamingService")
+                        .HasColumnType("int");
 
                     b.Property<int>("MediaItemId")
                         .HasColumnType("int");

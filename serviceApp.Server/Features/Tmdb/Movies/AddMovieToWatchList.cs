@@ -4,7 +4,7 @@ namespace serviceApp.Server.Features.Tmdb.Movies;
 
 public static class AddMovieToWatchList
 {
-    public record Command(int TmdbId) : ICommand;
+    public record Command(int TmdbId, StreamingService? StreamingService = null) : ICommand;
 
     public class Handler : ICommandHandler<Command>
     {
@@ -31,7 +31,7 @@ public static class AddMovieToWatchList
 
             // 1️⃣ Finn MediaItem (eller importer)
             var media = await _db.MediaItems
-                .FirstOrDefaultAsync(m => m.TmdbId == request.TmdbId, ct);
+                .FirstOrDefaultAsync(m => m.TmdbId == request.TmdbId && m.Type == MediaType.Movie, ct);
 
             if (media == null)
             {
@@ -65,7 +65,8 @@ public static class AddMovieToWatchList
             // 2️⃣ Sjekk om allerede i watchlist
             var exists = await _db.WatchlistItems.AnyAsync(w =>
                 w.UserId == userId &&
-                w.MediaItem.TmdbId == request.TmdbId,
+                w.MediaItem.TmdbId == request.TmdbId &&
+                w.MediaItem.Type == MediaType.Movie,
                 ct);
 
             if (exists)
@@ -76,7 +77,8 @@ public static class AddMovieToWatchList
             {
                 UserId = userId,
                 MediaItem = media,
-                AddedAt = DateTime.UtcNow
+                AddedAt = DateTime.UtcNow,
+                StreamingService = request.StreamingService
             });
 
             await _db.SaveChangesAsync(ct);

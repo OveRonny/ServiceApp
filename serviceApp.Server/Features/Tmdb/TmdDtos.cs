@@ -300,6 +300,8 @@ public class TvWatchStatusDto
     public List<int> WatchedEpisodeIds { get; set; } = new();
     /// <summary>SeasonNumber → antall sette episoder</summary>
     public Dictionary<int, int> WatchedEpisodeCountBySeason { get; set; } = new();
+    public int? StreamingService { get; set; }
+    public string? Comment { get; set; }
 }
 
 #endregion

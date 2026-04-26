@@ -18,6 +18,7 @@ public class WatchHistory
     public ApplicationUser User { get; set; } = null!;
     public bool? Liked { get; set; }
     public int? Rating { get; set; }
+    public string? Comment { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

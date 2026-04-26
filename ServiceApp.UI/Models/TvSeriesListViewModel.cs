@@ -33,6 +33,12 @@ public class TvWatchStatusViewModel
 
     [JsonPropertyName("watchedEpisodeCountBySeason")]
     public Dictionary<int, int> WatchedEpisodeCountBySeason { get; set; } = new();
+
+    [JsonPropertyName("streamingService")]
+    public int? StreamingService { get; set; }
+
+    [JsonPropertyName("comment")]
+    public string? Comment { get; set; }
 }
 
 public class SeasonEpisodeViewModel

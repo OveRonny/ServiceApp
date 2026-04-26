@@ -11,7 +11,8 @@ public static class GetMovieDetails
       DateTime? WatchDate,
       double Progress,
       bool? Liked,
-      int? Rating);
+      int? Rating,
+      string? Comment);
 
     public record MovieDetailsDto(
      int TmdbId,
@@ -29,6 +30,8 @@ public static class GetMovieDetails
         public bool InWatchlist { get; init; }
         public DateTime? LastWatchedDate { get; init; }
         public double? LastProgress { get; init; }
+        public int? StreamingService { get; init; }
+        public string? Comment { get; init; }
     }
 
 
@@ -52,8 +55,8 @@ public static class GetMovieDetails
             var userId = GetUserId();
 
             var watchData = await GetUserWatchData(request.TmdbId, userId, cancellationToken);
-
             var inWatchlist = await IsInWatchlist(request.TmdbId, userId, cancellationToken);
+            var streamingService = await GetStreamingService(request.TmdbId, userId, cancellationToken);
 
             var meta = await GetMovieMetadata(request.TmdbId, cancellationToken);
             if (meta == null)
@@ -68,7 +71,7 @@ public static class GetMovieDetails
                 .FirstOrDefaultAsync(m => m.TmdbId == request.TmdbId, cancellationToken);
 
 
-            return Result.Ok(BuildDto(meta, watchData, inWatchlist));
+            return Result.Ok(BuildDto(meta, watchData, inWatchlist, streamingService));
 
         }
 
@@ -81,13 +84,14 @@ public static class GetMovieDetails
         private async Task<List<WatchHistoryDto>> GetUserWatchData(int tmdbId, string userId, CancellationToken ct)
         {
             return await _db.WatchHistories
-             .Where(w => w.UserId == userId && w.MediaItem.TmdbId == tmdbId)
+             .Where(w => w.UserId == userId && w.MediaItem.TmdbId == tmdbId && w.MediaItem.Type == MediaType.Movie)
              .OrderByDescending(w => w.WatchDate)
              .Select(w => new WatchHistoryDto(
                  w.WatchDate,
                  w.Progress,
                  w.Liked,
-                 w.Rating
+                 w.Rating,
+                 w.Comment
              ))
              .ToListAsync(ct);
         }
@@ -95,7 +99,15 @@ public static class GetMovieDetails
         private async Task<bool> IsInWatchlist(int tmdbId, string userId, CancellationToken ct)
         {
             return await _db.WatchlistItems
-                .AnyAsync(w => w.MediaItem.TmdbId == tmdbId && w.UserId == userId, ct);
+                .AnyAsync(w => w.MediaItem.TmdbId == tmdbId && w.MediaItem.Type == MediaType.Movie && w.UserId == userId, ct);
+        }
+
+        private async Task<int?> GetStreamingService(int tmdbId, string userId, CancellationToken ct)
+        {
+            return (int?)await _db.WatchlistItems
+                .Where(w => w.MediaItem.TmdbId == tmdbId && w.MediaItem.Type == MediaType.Movie && w.UserId == userId)
+                .Select(w => (Entities.StreamingService?)w.StreamingService)
+                .FirstOrDefaultAsync(ct);
         }
 
         private async Task<MovieMeta?> GetMovieMetadata(int tmdbId, CancellationToken ct)
@@ -103,7 +115,7 @@ public static class GetMovieDetails
             var movie = await _db.MediaItems
                 .Include(m => m.MediaItemGenres)
                     .ThenInclude(mg => mg.Genre)
-                .FirstOrDefaultAsync(m => m.TmdbId == tmdbId, ct);
+                .FirstOrDefaultAsync(m => m.TmdbId == tmdbId && m.Type == MediaType.Movie, ct);
 
             if (movie != null)
             {
@@ -149,7 +161,7 @@ public static class GetMovieDetails
             bool IsImported
         );
 
-        private MovieDetailsDto BuildDto(MovieMeta meta, List<WatchHistoryDto> watchData, bool inWatchlist)
+        private MovieDetailsDto BuildDto(MovieMeta meta, List<WatchHistoryDto> watchData, bool inWatchlist, int? streamingService)
         {
             var last = watchData.FirstOrDefault();
 
@@ -168,7 +180,9 @@ public static class GetMovieDetails
             {
                 InWatchlist = inWatchlist,
                 LastWatchedDate = last?.WatchDate,
-                LastProgress = last?.Progress
+                LastProgress = last?.Progress,
+                StreamingService = streamingService,
+                Comment = last?.Comment
             };
         }
 

@@ -31,6 +31,18 @@ public static class GetTvWatchStatus
             var isInWatchlist = await _db.WatchlistItems
                 .AnyAsync(w => w.UserId == userId && w.MediaItemId == media.Id, ct);
 
+            var streamingService = await _db.WatchlistItems
+                .Where(w => w.UserId == userId && w.MediaItemId == media.Id)
+                .Select(w => (int?)w.StreamingService)
+                .FirstOrDefaultAsync(ct);
+
+            var lastComment = await _db.WatchHistories
+                .AsNoTracking()
+                .Where(w => w.UserId == userId && w.MediaItemId == media.Id && w.SeasonId == null && w.EpisodeId == null)
+                .OrderByDescending(w => w.WatchDate)
+                .Select(w => w.Comment)
+                .FirstOrDefaultAsync(ct);
+
             var watchedSeasonIds = await _db.WatchHistories
                 .AsNoTracking()
                 .Where(w => w.UserId == userId && w.MediaItemId == media.Id && w.SeasonId != null && w.EpisodeId == null)
@@ -67,7 +79,9 @@ public static class GetTvWatchStatus
                 IsInWatchlist = isInWatchlist,
                 WatchedSeasonNumbers = watchedSeasonNumbers,
                 WatchedEpisodeIds = watchedEpisodeIds,
-                WatchedEpisodeCountBySeason = watchedEpisodeCountBySeason.ToDictionary(x => x.SeasonNumber, x => x.Count)
+                WatchedEpisodeCountBySeason = watchedEpisodeCountBySeason.ToDictionary(x => x.SeasonNumber, x => x.Count),
+                StreamingService = streamingService,
+                Comment = lastComment
             });
         }
     }

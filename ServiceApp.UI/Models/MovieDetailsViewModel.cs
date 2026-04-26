@@ -29,16 +29,17 @@ public class MovieDetailsViewModel
     public bool MarkAsWatched { get; set; } = false;
 
     public bool IsInMyWatchlist => InWatchlist;
+
+    public int? StreamingService { get; set; }
+    public string? Comment { get; set; }
 }
 
 
 public class WatchHistoryModel
 {
-    public DateTime WatchDate { get; set; }
+    public DateTime? WatchDate { get; set; }
     public double Progress { get; set; }
-
-
-
     public bool? Liked { get; set; }
     public int? Rating { get; set; }
+    public string? Comment { get; set; }
 }

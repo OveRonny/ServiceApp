@@ -8,10 +8,9 @@ public static class GetWatchedMovies
 
     public record Response(List<MovieFullDto> Movies);
 
-    public class Handler(ApplicationDbContext db, TmdbClient tmdb, IHttpContextAccessor httpContext) : IQueryHandler<Query, List<MovieFullDto>>
+    public class Handler(ApplicationDbContext db, IHttpContextAccessor httpContext) : IQueryHandler<Query, List<MovieFullDto>>
     {
         private readonly ApplicationDbContext db = db;
-        private readonly TmdbClient tmdb = tmdb;
         private readonly IHttpContextAccessor httpContext = httpContext;
 
         public async Task<Result<List<MovieFullDto>>> Handle(Query request, CancellationToken cancellationToken)
@@ -21,8 +20,13 @@ public static class GetWatchedMovies
             // Hent MediaItems brukeren har sett
             var watchedMedia = await db.MediaItems
                 .Include(m => m.WatchHistories)
-                .Where(m => m.WatchHistories.Any(w => w.UserId == userId && w.Progress >= 100))
-                .OrderByDescending(m => m.WatchHistories.FirstOrDefault()!.WatchDate)
+                .Include(m => m.MediaItemGenres)
+                    .ThenInclude(mg => mg.Genre)
+                .Where(m => m.Type == MediaType.Movie &&
+                            m.WatchHistories.Any(w => w.UserId == userId && w.Progress >= 100 && w.SeasonId == null && w.EpisodeId == null))
+                .OrderByDescending(m => m.WatchHistories
+                    .Where(w => w.UserId == userId)
+                    .Max(w => w.WatchDate))
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .ToListAsync(cancellationToken);
@@ -30,41 +34,27 @@ public static class GetWatchedMovies
             if (watchedMedia == null || watchedMedia.Count == 0)
                 return Result.Ok(new List<MovieFullDto>());
 
-            // Hent TMDb-data parallelt
-            var tmdbTasks = watchedMedia.Select(async m =>
+            var movies = watchedMedia.Select(m =>
             {
-
-                var tmdbMovie = await tmdb.GetMovieAsync(m.TmdbId);
-                if (tmdbMovie == null) return null;
-
+                var lastWatch = m.WatchHistories
+                    .Where(w => w.UserId == userId && w.Progress >= 100 && w.SeasonId == null && w.EpisodeId == null)
+                    .OrderByDescending(w => w.WatchDate)
+                    .FirstOrDefault();
 
                 return new MovieFullDto
                 {
                     MediaItemId = m.Id,
                     TmdbId = m.TmdbId,
-                    Title = tmdbMovie.Title,
-                    PosterPath = tmdbMovie.PosterUrl,
-                    Overview = tmdbMovie.Overview,
-                    Runtime = tmdbMovie.Runtime,
-                    WatchedDate = m.WatchHistories.FirstOrDefault()?.WatchDate,
-                    Genres = tmdbMovie.Genres.Select(g => g.Name).ToList()
+                    Title = m.Title,
+                    PosterPath = m.PosterPath,
+                    Overview = m.Overview,
+                    Runtime = m.DurationMinutes,
+                    WatchedDate = lastWatch?.WatchDate,
+                    Genres = m.MediaItemGenres.Select(g => g.Genre.Name).ToList()
                 };
+            }).ToList();
 
-
-
-            });
-
-            var moviesNullable = await Task.WhenAll(tmdbTasks);
-
-            var movies = moviesNullable
-            .Where(m => m != null)    // fjern null
-            .Select(m => m!)           // konverter MovieFullDto? -> MovieFullDto
-            .ToList();
-
-            if (movies.Count > 0)
-                return Result.Ok(movies);
-
-            return Result.Fail<List<MovieFullDto>>("Failed to retrieve watched movies.");
+            return Result.Ok(movies);
 
         }
 

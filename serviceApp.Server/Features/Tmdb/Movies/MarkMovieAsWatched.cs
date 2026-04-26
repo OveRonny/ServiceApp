@@ -9,7 +9,8 @@ public static class MarkMovieAsWatched
         bool MarkAsWatched = false,
         DateTime? Date = null,
         bool? Liked = null,
-        int? Rating = null
+        int? Rating = null,
+        string? Comment = null
     ) : ICommand<Response>;
 
     public record Response(bool Success);
@@ -42,12 +43,13 @@ public static class MarkMovieAsWatched
 
                 newWatch.Liked = request.Liked;
                 newWatch.Rating = request.Rating;
+                newWatch.Comment = request.Comment;
 
                 _db.WatchHistories.Add(newWatch);
             }
-            else if (request.Liked.HasValue || request.Rating.HasValue)
+            else if (request.Liked.HasValue || request.Rating.HasValue || request.Comment != null)
             {
-                await UpdateLastWatchHistoryAsync(media.Id, userId, request.Liked, request.Rating);
+                await UpdateLastWatchHistoryAsync(media.Id, userId, request.Liked, request.Rating, request.Comment);
             }
 
             // 4️⃣ Fjern fra Watchlist
@@ -60,7 +62,7 @@ public static class MarkMovieAsWatched
 
         private async Task<MediaItem?> GetOrImportMedia(int tmdbId, CancellationToken ct)
         {
-            var media = await _db.MediaItems.FirstOrDefaultAsync(m => m.TmdbId == tmdbId, ct);
+            var media = await _db.MediaItems.FirstOrDefaultAsync(m => m.TmdbId == tmdbId && m.Type == MediaType.Movie, ct);
             if (media != null) return media;
 
             var movie = await _tmdb.GetMovieAsync(tmdbId);
@@ -102,7 +104,7 @@ public static class MarkMovieAsWatched
                 _db.WatchlistItems.Remove(item);
         }
 
-        public async Task<bool> UpdateLastWatchHistoryAsync(int mediaItemId, string userId, bool? liked = null, int? rating = null)
+        public async Task<bool> UpdateLastWatchHistoryAsync(int mediaItemId, string userId, bool? liked = null, int? rating = null, string? comment = null)
         {
             var lastWatch = await _db.WatchHistories
                 .Where(w => w.MediaItemId == mediaItemId && w.UserId == userId)
@@ -113,6 +115,7 @@ public static class MarkMovieAsWatched
 
             if (liked.HasValue) lastWatch.Liked = liked.Value;
             if (rating.HasValue) lastWatch.Rating = rating;
+            if (comment != null) lastWatch.Comment = comment;
 
             await _db.SaveChangesAsync();
             return true;

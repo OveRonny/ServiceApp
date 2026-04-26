@@ -10,4 +10,6 @@ public class WatchlistItem
     public MediaItem MediaItem { get; set; } = null!;
 
     public DateTime AddedAt { get; set; }
+
+    public StreamingService? StreamingService { get; set; }
 }

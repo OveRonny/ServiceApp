@@ -175,7 +175,8 @@ public class MovieService(IHttpClientFactory http) : IMovieService
        bool markAsWatched = false,
        DateTime? Date = null,
        bool? Liked = null,
-       int? Rating = null)
+       int? Rating = null,
+       string? Comment = null)
     {
         var http = ApiAuthed();
         var command = new
@@ -184,17 +185,34 @@ public class MovieService(IHttpClientFactory http) : IMovieService
             MarkAsWatched = markAsWatched,
             Date,
             Liked,
-            Rating
+            Rating,
+            Comment
         };
 
         var response = await http.PostAsJsonAsync("/api/movies/markaswatched", command);
         return response.IsSuccessStatusCode;
     }
 
-    public async Task AddMovieToWatchList(int tmdbId)
+    public async Task<bool> UpdateWatchCommentAsync(int tmdbId, string mediaType, string? comment)
     {
         var http = ApiAuthed();
-        await http.PostAsJsonAsync("api/tmdb/movies/watchlist", new { TmdbId = tmdbId });
+        var result = await http.PatchAsJsonAsync("api/tmdb/watchhistory/comment",
+            new { TmdbId = tmdbId, MediaType = mediaType, Comment = comment });
+        return result.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> UpdateStreamingServiceAsync(int tmdbId, StreamingService? streamingService)
+    {
+        var http = ApiAuthed();
+        var result = await http.PatchAsJsonAsync("api/tmdb/watchlist/streaming",
+            new { TmdbId = tmdbId, StreamingService = (int?)streamingService, MediaType = "movie" });
+        return result.IsSuccessStatusCode;
+    }
+
+    public async Task AddMovieToWatchList(int tmdbId, StreamingService? streamingService = null)
+    {
+        var http = ApiAuthed();
+        await http.PostAsJsonAsync("api/tmdb/movies/watchlist", new { TmdbId = tmdbId, StreamingService = (int?)streamingService });
     }
 
     public Task<MovieDetailsViewModel?> GetMovieDetailsFromTmdbAsync(int tmdbId)

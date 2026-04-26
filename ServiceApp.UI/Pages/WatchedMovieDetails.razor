@@ -43,7 +43,7 @@ else
                     @foreach (var h in movieDetails.WatchHistory)
                     {
                         <div class="wmd-history-row">
-                            <span class="wmd-history-date">📅 @h.WatchDate.ToString("d. MMM yyyy")</span>
+                            <span class="wmd-history-date">📅 @(h.WatchDate?.ToString("d. MMM yyyy") ?? "—")</span>
                             <div class="wmd-history-meta">
                                 @if (h.Liked.HasValue)
                                 {

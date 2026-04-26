@@ -1,5 +1,6 @@
-﻿@page "/tv-serie-details/{TmdbId:int}"
+@page "/tv-serie-details/{TmdbId:int}"
 @using ServiceApp.UI.Services.TvServices
+@using ServiceApp.UI.Models
 @inject ITvservice Tvservice
 @attribute [Authorize]
 
@@ -50,6 +51,21 @@ else
 
             <!-- Actions -->
             <div class="tvd-actions">
+                <select class="tvd-streaming-select"
+                        value="@_selectedStreamingService"
+                        @onchange="e => _selectedStreamingService = e.Value?.ToString() ?? string.Empty">
+                    <option value="">-- Velg str�mmetjeneste (valgfritt) --</option>
+                    @foreach (var s in Enum.GetValues<StreamingService>())
+                    {
+                        <option value="@((int)s)">@s.DisplayName()</option>
+                    }
+                </select>
+                @if (_watchStatus?.MediaItemId > 0)
+                {
+                    <button class="tvd-btn-save-streaming" @onclick="SaveStreamingService">
+                        💾 Lagre
+                    </button>
+                }
                 <button class="tvd-btn-import @(_watchStatus?.IsInWatchlist == true ? "tvd-btn-import--added" : "")"
                         disabled="@(_isImporting || _watchStatus?.IsInWatchlist == true)"
                         @onclick="ImportSerie">
@@ -68,6 +84,20 @@ else
                 </button>
                 <NavLink class="tvd-btn-back" href="/search-tv-series">← Tilbake</NavLink>
             </div>
+
+            @if (_watchStatus?.MediaItemId > 0)
+            {
+                <div class="tvd-comment-row">
+                    <textarea class="tvd-streaming-select tvd-textarea"
+                              placeholder="Legg til en kommentar (valgfritt)..."
+                              maxlength="1000"
+                              @bind="_comment"
+                              rows="3"></textarea>
+                    <button class="tvd-btn-save-streaming" @onclick="SaveComment">
+                        💬 Lagre kommentar
+                    </button>
+                </div>
+            }
 
             @if (!string.IsNullOrWhiteSpace(_importMessage))
             {
@@ -245,6 +275,8 @@ else
 
     private bool _isImporting = false;
     private string _importMessage = string.Empty;
+    private string _selectedStreamingService = "";
+    private string? _comment;
     private int? _seasonBusy;
 
     protected override async Task OnInitializedAsync()
@@ -254,6 +286,10 @@ else
         await Task.WhenAll(detailsTask, statusTask);
         TvSerieDetailsModel = detailsTask.Result;
         _watchStatus        = statusTask.Result;
+
+        if (_watchStatus?.StreamingService.HasValue == true)
+            _selectedStreamingService = ((int)_watchStatus.StreamingService.Value).ToString();
+        _comment = _watchStatus?.Comment;
     }
 
     private async Task ImportSerie()
@@ -263,7 +299,8 @@ else
         _isImporting = true;
         _importMessage = string.Empty;
 
-        var (success, alreadyInWatchlist) = await Tvservice.ImportTvAsync(TmdbId);
+        StreamingService? service = int.TryParse(_selectedStreamingService, out var v) ? (StreamingService)v : null;
+        var (success, alreadyInWatchlist) = await Tvservice.ImportTvAsync(TmdbId, service);
 
         _importMessage = (success, alreadyInWatchlist) switch
         {
@@ -284,5 +321,18 @@ else
         await Tvservice.MarkSeasonAsWatchedAsync(TmdbId, seasonNumber, !currentlyWatched);
         _watchStatus = await Tvservice.GetTvWatchStatusAsync(TmdbId);
         _seasonBusy = null;
+    }
+
+    private async Task SaveStreamingService()
+    {
+        StreamingService? service = int.TryParse(_selectedStreamingService, out var v) ? (StreamingService)v : null;
+        var ok = await Tvservice.UpdateStreamingServiceAsync(TmdbId, service);
+        _importMessage = ok ? "✅ Strømmetjeneste lagret!" : "⚠️ Kunne ikke lagre strømmetjeneste.";
+    }
+
+    private async Task SaveComment()
+    {
+        var ok = await Tvservice.UpdateWatchCommentAsync(TmdbId, "tv", _comment);
+        _importMessage = ok ? "✅ Kommentar lagret!" : "⚠️ Kunne ikke lagre kommentar.";
     }
 }

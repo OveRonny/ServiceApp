@@ -18,16 +18,13 @@ public static class GetFilterWatchedMovies
     {
         private readonly ApplicationDbContext _db;
         private readonly IHttpContextAccessor _httpContext;
-        private readonly TmdbClient _tmdb;
 
         public Handler(
             ApplicationDbContext db,
-            IHttpContextAccessor httpContext,
-            TmdbClient tmdb)
+            IHttpContextAccessor httpContext)
         {
             _db = db;
             _httpContext = httpContext;
-            _tmdb = tmdb;
         }
 
         public async Task<Result<PagedResult<MovieFullDto>>> Handle(
@@ -40,7 +37,8 @@ public static class GetFilterWatchedMovies
             // 1️⃣ Base query
             var query = _db.MediaItems
                 .AsNoTracking()
-                .Where(m => m.Type == MediaType.Movie && m.WatchHistories.Any(w => w.UserId == userId && w.Progress >= 100));
+                .Where(m => m.Type == MediaType.Movie &&
+                            m.WatchHistories.Any(w => w.UserId == userId && w.Progress >= 100 && w.SeasonId == null && w.EpisodeId == null));
 
             if (!string.IsNullOrWhiteSpace(request.Search))
             {
@@ -75,28 +73,29 @@ public static class GetFilterWatchedMovies
                 .ToListAsync(ct);
 
             var tasks = mediaItems
-              .Select(async m =>
+              .Select(m =>
               {
-                  var tmdbMovie = await _tmdb.GetMovieAsync(m.TmdbId);
+                  var lastWatch = m.WatchHistories
+                      .Where(w => w.UserId == userId && w.Progress >= 100 && w.SeasonId == null && w.EpisodeId == null)
+                      .OrderByDescending(w => w.WatchDate)
+                      .FirstOrDefault();
 
                   return new MovieFullDto
                   {
                       MediaItemId = m.Id,
                       TmdbId = m.TmdbId,
-                      Title = tmdbMovie?.Title ?? m.Title,
-                      PosterPath = tmdbMovie?.PosterUrl,
-                      Overview = tmdbMovie?.Overview,
-                      Runtime = tmdbMovie?.Runtime,
-                      WatchedDate = m.WatchHistories
-                          .OrderByDescending(w => w.WatchDate)
-                          .FirstOrDefault()?.WatchDate,
+                      Title = m.Title,
+                      PosterPath = m.PosterPath,
+                      Overview = m.Overview,
+                      Runtime = m.DurationMinutes,
+                      WatchedDate = lastWatch?.WatchDate,
                       Genres = m.MediaItemGenres
                           .Select(g => g.Genre.Name)
                           .ToList()
                   };
               });
 
-            var movies = await Task.WhenAll(tasks);
+            var movies = tasks.ToArray();
 
             var result = new PagedResult<MovieFullDto>
             {

@@ -1,9 +1,14 @@
-﻿@page "/moviedetails/{TmdbId:int}"
+@page "/moviedetails/{TmdbId:int}"
 @using ServiceApp.UI.Services.MovieServices
+@using ServiceApp.UI.Models
 @inject IMovieService MovieService
 @inject NavigationManager Navigation
 
-@if (selectedMovie == null)
+@if (selectedMovie == null && _loadError != null)
+{
+    <div style="color: var(--text-muted); padding: 40px 0;">⚠️ @_loadError</div>
+}
+else if (selectedMovie == null)
 {
     <div style="color: var(--text-muted); padding: 40px 0;">⏳ Laster filmdetaljer...</div>
 }
@@ -11,7 +16,7 @@ else
 {
     <div class="movie-details-page">
 
-        <!-- ── Hero ── -->
+        <!-- -- Hero -- -->
         <div class="md-hero">
             @if (!string.IsNullOrEmpty(selectedMovie.PosterUrl))
             {
@@ -41,9 +46,46 @@ else
             </div>
         </div>
 
-        <!-- ── Handlinger ── -->
+        <!-- -- Handlinger -- -->
         <div class="md-section">
             <h2 class="md-section-title">🎬 Handlinger</h2>
+
+            <div class="md-streaming-row">
+                <select class="md-input"
+                        value="@_selectedStreamingService"
+                        @onchange="e => _selectedStreamingService = e.Value?.ToString() ?? string.Empty">
+                    <option value="">-- Velg strømmetjeneste (valgfritt) --</option>
+                    @foreach (var s in Enum.GetValues<StreamingService>())
+                    {
+                        <option value="@((int)s)">@s.DisplayName()</option>
+                    }
+                </select>
+                @if (selectedMovie.IsInMyWatchlist || selectedMovie.IsWatched)
+                {
+                    <button class="md-btn md-btn--primary" @onclick="SaveStreamingService" disabled="@IsProcessing">
+                        💾 Lagre
+                    </button>
+                }
+            </div>
+
+            @if (selectedMovie.IsInMyWatchlist || selectedMovie.IsWatched)
+            {
+                <div class="md-comment-row">
+                    <textarea class="md-input md-textarea"
+                              placeholder="Legg til en kommentar (valgfritt)..."
+                              maxlength="1000"
+                              @bind="_comment"
+                              rows="3"></textarea>
+                    <button class="md-btn md-btn--primary" @onclick="SaveComment" disabled="@IsProcessing">
+                        💬 Lagre kommentar
+                    </button>
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(StatusMessage))
+            {
+                <p class="md-msg">@StatusMessage</p>
+            }
 
             @if (!selectedMovie.IsInMyWatchlist && !selectedMovie.IsWatched)
             {
@@ -91,7 +133,7 @@ else
             }
         </div>
 
-        <!-- ── Historikk ── -->
+        <!-- -- Historikk -- -->
         @if (selectedMovie.WatchHistory != null && selectedMovie.WatchHistory.Any())
         {
             <div class="md-section">
@@ -102,15 +144,17 @@ else
                             <th>Dato</th>
                             <th>Likt</th>
                             <th>Rating</th>
+                            <th>Kommentar</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var watch in selectedMovie.WatchHistory)
                         {
                             <tr>
-                                <td>@watch.WatchDate.ToString("d. MMM yyyy")</td>
+                                <td>@(watch.WatchDate?.ToString("d. MMM yyyy") ?? "—")</td>
                                 <td>@(watch.Liked == true ? "👍" : "👎")</td>
                                 <td>@(watch.Rating.HasValue ? $"{watch.Rating}/10" : "—")</td>
+                                <td>@(watch.Comment ?? "—")</td>
                             </tr>
                         }
                     </tbody>
@@ -132,11 +176,15 @@ else
     private string StatusMessage { get; set; } = string.Empty;
     private string? _importMessage;
     private bool _isImporting = false;
+    private string _selectedStreamingService = "";
+    private string? _comment;
     private int? UserRating { get; set; }
     private bool IsProcessing = false;
 
 
-    private MovieDetailsViewModel? selectedMovie { get; set; } = new();
+    private MovieDetailsViewModel? selectedMovie { get; set; } = null;
+
+    private string? _loadError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -145,7 +193,22 @@ else
 
     private async Task ShowDetails(int tmdbId)
     {
-        selectedMovie = await MovieService.GetMovieDetailsAsync(tmdbId);
+        try
+        {
+            selectedMovie = await MovieService.GetMovieDetailsAsync(tmdbId);
+            if (selectedMovie == null)
+                _loadError = "Fant ikke filmen.";
+            else
+            {
+                if (selectedMovie.StreamingService.HasValue)
+                    _selectedStreamingService = ((int)selectedMovie.StreamingService.Value).ToString();
+                _comment = selectedMovie.Comment;
+            }
+        }
+        catch (Exception ex)
+        {
+            _loadError = $"Kunne ikke laste filmdetaljer: {ex.Message}";
+        }
     }
 
     private async Task ImportMovie(int tmdbId)
@@ -157,10 +220,11 @@ else
 
         try
         {
-            await MovieService.AddMovieToWatchList(tmdbId);
+            StreamingService? service = int.TryParse(_selectedStreamingService, out var v) ? (StreamingService)v : null;
+            await MovieService.AddMovieToWatchList(tmdbId, service);
 
             _importMessage = "Film er lagret i systemet.";
-            selectedMovie.IsImported = true; 
+            selectedMovie.IsImported = true;
         }
         catch (Exception ex)
         {
@@ -168,8 +232,27 @@ else
         }
         finally
         {
-            _isImporting = false; 
+            _isImporting = false;
         }
+    }
+
+    private async Task SaveStreamingService()
+    {
+        if (selectedMovie == null) return;
+        IsProcessing = true;
+        StreamingService? service = int.TryParse(_selectedStreamingService, out var v) ? (StreamingService)v : null;
+        var ok = await MovieService.UpdateStreamingServiceAsync(selectedMovie.TmdbId, service);
+        StatusMessage = ok ? "✅ Strømmetjeneste lagret!" : "⚠️ Kunne ikke lagre strømmetjeneste.";
+        IsProcessing = false;
+    }
+
+    private async Task SaveComment()
+    {
+        if (selectedMovie == null) return;
+        IsProcessing = true;
+        var ok = await MovieService.UpdateWatchCommentAsync(selectedMovie.TmdbId, "movie", _comment);
+        StatusMessage = ok ? "✅ Kommentar lagret!" : "⚠️ Kunne ikke lagre kommentar.";
+        IsProcessing = false;
     }
 
     private async Task MarkAsWatched(int tmdbId)
@@ -242,14 +325,14 @@ else
         {
             await MovieService.AddMovieToWatchList(tmdbId);
 
-            _importMessage = "✓ Lagt til i din liste!";
+            _importMessage = "✅ Lagt til i din liste!";
 
             // Reload to get updated watchlist status
             await ShowDetails(tmdbId);
         }
         catch (Exception ex)
         {
-            _importMessage = $"❌ Kunne ikke legge til: {ex.Message}";
+            _importMessage = $"⚠️ Kunne ikke legge til: {ex.Message}";
         }
         finally
         {

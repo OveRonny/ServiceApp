@@ -39,7 +39,9 @@ public static class GetUnWatchedMovies
             // 1️⃣ Base query
             var query = _db.WatchlistItems
                 .AsNoTracking()
-                .Where(w => w.UserId == userId && w.MediaItem.Type == MediaType.Movie);
+                .Where(w => w.UserId == userId &&
+                            w.MediaItem.Type == MediaType.Movie &&
+                            !w.MediaItem.WatchHistories.Any(wh => wh.UserId == userId && wh.Progress >= 100 && wh.SeasonId == null && wh.EpisodeId == null));
 
             // Search filter
             if (!string.IsNullOrWhiteSpace(request.Search))

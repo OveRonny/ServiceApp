@@ -51,16 +51,27 @@ public class TvService(IHttpClientFactory http) : ITvservice
     // =========================
     // Import TV (+ adds to watchlist)
     // =========================
-    public async Task<(bool Success, bool AlreadyInWatchlist)> ImportTvAsync(int tmdbId)
+    public async Task<(bool Success, bool AlreadyInWatchlist)> ImportTvAsync(int tmdbId, StreamingService? streamingService = null)
     {
         var http = ApiAuthed();
-        var result = await http.PostAsJsonAsync("api/tmdb/import/tv", new { Tmdb = tmdbId });
+        var result = await http.PostAsJsonAsync("api/tmdb/import/tv", new { Tmdb = tmdbId, StreamingService = (int?)streamingService });
 
         if (!result.IsSuccessStatusCode)
             return (false, false);
 
         var response = await result.Content.ReadFromJsonAsync<ImportTvResponse>();
         return response is null ? (false, false) : (true, response.AlreadyInWatchlist);
+    }
+
+    // =========================
+    // Update Streaming Service
+    // =========================
+    public async Task<bool> UpdateStreamingServiceAsync(int tmdbId, StreamingService? streamingService)
+    {
+        var http = ApiAuthed();
+        var result = await http.PatchAsJsonAsync("api/tmdb/watchlist/streaming",
+            new { TmdbId = tmdbId, StreamingService = (int?)streamingService, MediaType = "tv" });
+        return result.IsSuccessStatusCode;
     }
 
     // =========================
@@ -174,6 +185,14 @@ public class TvService(IHttpClientFactory http) : ITvservice
         var http = ApiAuthed();
         var result = await http.PostAsJsonAsync("api/tmdb/tv/mark-episode",
             new { EpisodeId = episodeId, Watched = watched, MediaItemId = mediaItemId });
+        return result.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> UpdateWatchCommentAsync(int tmdbId, string mediaType, string? comment)
+    {
+        var http = ApiAuthed();
+        var result = await http.PatchAsJsonAsync("api/tmdb/watchhistory/comment",
+            new { TmdbId = tmdbId, MediaType = mediaType, Comment = comment });
         return result.IsSuccessStatusCode;
     }
 

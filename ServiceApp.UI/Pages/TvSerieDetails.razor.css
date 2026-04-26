@@ -95,6 +95,32 @@
     align-items: center;
 }
 
+.tvd-streaming-select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-muted);
+    background-color: var(--gray-800);
+    color: var(--text-primary);
+    font-size: 0.88em;
+    cursor: pointer;
+}
+
+.tvd-btn-save-streaming {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border-muted);
+    background-color: var(--gray-700, #374151);
+    color: var(--text-primary);
+    font-size: 0.88em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.tvd-btn-save-streaming:hover {
+    background-color: var(--gray-600, #4b5563);
+}
+
 .tvd-btn-import {
     background: linear-gradient(135deg, #6366f1, #3b82f6);
     color: #fff;

@@ -4,7 +4,7 @@ namespace serviceApp.Server.Features.Tmdb.TvSeries;
 
 public static class ImportTvSerie
 {
-    public record Command(int Tmdb) : ICommand<Response>;
+    public record Command(int Tmdb, StreamingService? StreamingService = null) : ICommand<Response>;
 
     public record Response(int MediaItemId, bool AlreadyExisted = false, bool AlreadyInWatchlist = false);
 
@@ -76,7 +76,8 @@ public static class ImportTvSerie
                     {
                         UserId = userId,
                         MediaItemId = media.Id,
-                        AddedAt = DateTime.UtcNow
+                        AddedAt = DateTime.UtcNow,
+                        StreamingService = request.StreamingService
                     });
                     await _db.SaveChangesAsync(ct);
                 }

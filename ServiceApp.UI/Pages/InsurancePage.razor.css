@@ -1,0 +1,181 @@
+/* ── Page wrapper ─────────────────────────────────────────────── */
+.insurance-page {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 8px 0 48px;
+}
+
+/* ── Section heading ──────────────────────────────────────────── */
+.insurance-title {
+    font-size: 1.5em;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 24px;
+}
+
+/* ── Form card ────────────────────────────────────────────────── */
+.insurance-form-card {
+    background-color: var(--gray-800);
+    border: 1px solid var(--border-muted);
+    border-radius: 16px;
+    padding: 28px 28px 24px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    margin-bottom: 28px;
+}
+
+.insurance-form-card .form-label {
+    font-size: 0.85em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.insurance-form-card ::deep .form-control {
+    background-color: var(--gray-900);
+    border: 1px solid var(--gray-700);
+    color: var(--text-primary);
+    border-radius: 10px;
+    padding: 10px 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.insurance-form-card ::deep .form-control:focus {
+    border-color: var(--blue-500);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    background-color: var(--gray-900);
+    color: var(--text-primary);
+    outline: none;
+}
+
+.insurance-form-card ::deep .form-control::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+/* InputDate calendar icon colour fix */
+.insurance-form-card ::deep input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) opacity(0.6);
+    cursor: pointer;
+}
+
+/* ── Vehicle dropdown (srf-input) ─────────────────────────────── */
+::deep .srf-input {
+    display: block;
+    width: 100%;
+    background-color: var(--gray-900);
+    border: 1px solid var(--gray-700);
+    color: var(--text-primary);
+    border-radius: 10px;
+    padding: 10px 14px;
+    appearance: auto;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+::deep .srf-input:focus {
+    border-color: var(--blue-500);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    outline: none;
+}
+
+::deep .srf-input option {
+    background-color: var(--gray-800);
+    color: var(--text-primary);
+}
+
+/* ── Form actions row ─────────────────────────────────────────── */
+.insurance-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.insurance-actions .btn-delete {
+    margin-left: auto;
+}
+
+/* ── Policy summary card ──────────────────────────────────────── */
+.policy-card {
+    background-color: var(--gray-800);
+    border: 1px solid var(--border-muted);
+    border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+}
+
+.policy-card .card-body {
+    background-color: var(--gray-800);
+    padding: 22px 24px;
+}
+
+.policy-card .card-title {
+    font-size: 1.15em;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.policy-card .text-muted {
+    color: var(--text-muted) !important;
+    font-size: 0.85em;
+}
+
+/* ── Metric grid ──────────────────────────────────────────────── */
+.policy-metrics .tiny-label {
+    font-size: 0.72em;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 3px;
+}
+
+.policy-metrics .fw-semibold {
+    font-size: 0.95em;
+    color: var(--text-primary);
+}
+
+/* ── Progress bar track ───────────────────────────────────────── */
+.policy-progress {
+    height: 8px;
+    border-radius: 100px;
+    background-color: var(--gray-700);
+    overflow: hidden;
+}
+
+.policy-progress .progress-bar {
+    border-radius: 100px;
+    transition: width 0.5s ease;
+}
+
+/* ── Status badge ─────────────────────────────────────────────── */
+.policy-card .badge {
+    font-size: 0.78em;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+/* ── Divider ──────────────────────────────────────────────────── */
+.policy-card hr {
+    border-color: var(--border-muted);
+    opacity: 1;
+}
+
+/* ── Footer timestamp ─────────────────────────────────────────── */
+.policy-card .text-muted.small {
+    font-size: 0.78em;
+    color: var(--text-muted) !important;
+}
+
+/* ── Empty state ──────────────────────────────────────────────── */
+.insurance-empty {
+    background-color: var(--gray-800);
+    border: 1px solid var(--border-muted);
+    border-radius: 14px;
+    color: var(--text-muted);
+    padding: 20px 24px;
+    font-size: 0.92em;
+    margin-top: 8px;
+}

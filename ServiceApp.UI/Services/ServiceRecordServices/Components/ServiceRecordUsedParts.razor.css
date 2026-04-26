@@ -1,0 +1,149 @@
+/* ── Section heading ──────────────────────────────────────────── */
+h5 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+/* ── Labels ───────────────────────────────────────────────────── */
+.form-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ── Inputs ───────────────────────────────────────────────────── */
+::deep .form-control,
+::deep .form-select {
+    background-color: var(--gray-900);
+    border: 1px solid var(--gray-700);
+    color: var(--text-primary);
+    border-radius: 10px;
+    padding: 10px 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+::deep .form-control:focus,
+::deep .form-select:focus {
+    border-color: var(--blue-500);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    background-color: var(--gray-900);
+    color: var(--text-primary);
+    outline: none;
+}
+
+::deep .form-select option {
+    background-color: var(--gray-800);
+    color: var(--text-primary);
+}
+
+::deep .form-control-sm {
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+/* ── Add-part button ──────────────────────────────────────────── */
+.btn-outline-primary {
+    color: var(--blue-400);
+    border-color: var(--blue-500);
+    background-color: transparent;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--blue-500);
+    color: #fff;
+    border-color: var(--blue-500);
+}
+
+/* ── Table ────────────────────────────────────────────────────── */
+.table {
+    color: var(--text-primary);
+    border-color: var(--border-muted);
+}
+
+.table thead th {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--gray-700);
+    padding-bottom: 8px;
+}
+
+.table tbody tr {
+    border-bottom: 1px solid var(--border-muted);
+}
+
+.table tbody td {
+    color: var(--text-primary);
+    vertical-align: middle;
+}
+
+.table tbody .small,
+.table tbody .text-black-50 {
+    color: var(--text-muted) !important;
+    font-size: 0.8rem;
+}
+
+/* ── Remove button ────────────────────────────────────────────── */
+.btn-outline-danger {
+    color: #f87171;
+    border-color: #f87171;
+    background-color: transparent;
+    border-radius: 8px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-outline-danger:hover {
+    background-color: #f87171;
+    color: #fff;
+    border-color: #f87171;
+}
+
+/* ── Unit price hint ──────────────────────────────────────────── */
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* ── Empty state ──────────────────────────────────────────────── */
+.alert-info {
+    background-color: var(--gray-800);
+    border: 1px solid var(--border-muted);
+    border-radius: 12px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    padding: 14px 18px;
+}
+
+/* ── VehicleInventorySelect dropdown (srf-input) ──────────────── */
+::deep .srf-input {
+    background-color: var(--gray-900);
+    border: 1px solid var(--gray-700);
+    color: var(--text-primary);
+    border-radius: 10px;
+    padding: 10px 14px;
+    width: 100%;
+    appearance: auto;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+::deep .srf-input:focus {
+    border-color: var(--blue-500);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    outline: none;
+}
+
+::deep .srf-input option {
+    background-color: var(--gray-800);
+    color: var(--text-primary);
+}

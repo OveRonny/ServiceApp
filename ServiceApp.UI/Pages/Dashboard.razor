@@ -127,6 +127,23 @@ else
                                     }
                                 </div>
 
+                                @if (v.InsuranceCompany is not null && v.InsuranceAnnualLimit > 0)
+                                {
+                                    var pct = Math.Clamp((double)(v.InsuranceUsedKm ?? 0) / v.InsuranceAnnualLimit.Value * 100, 0, 100);
+                                    var barClass = pct >= 90 ? "vcard-ins-bar--danger" : pct >= 75 ? "vcard-ins-bar--warn" : "vcard-ins-bar--ok";
+                                    <div class="vcard-ins">
+                                        <div class="vcard-ins-header">
+                                            <span class="vcard-stat-icon">🛡</span>
+                                            <span class="vcard-stat-label">@v.InsuranceCompany</span>
+                                            <span class="vcard-ins-km">@((v.InsuranceUsedKm ?? 0).ToString("N0")) / @v.InsuranceAnnualLimit.Value.ToString("N0") km</span>
+                                        </div>
+                                        <div class="vcard-ins-track">
+                                            <div class="vcard-ins-bar @barClass" style="width:@(pct.ToString("F1", System.Globalization.CultureInfo.InvariantCulture))%"></div>
+                                        </div>
+                                        <div class="vcard-ins-remaining">@((v.InsuranceRemainingKm ?? 0).ToString("N0")) km gjenstår</div>
+                                    </div>
+                                }
+
                                 <!-- Actions -->
                                 <div class="vcard-actions">
                                     <NavLink class="vcard-btn vcard-btn--fuel" href="@($"consumptionrecords/{v.Id}")">⛽ Forbruk</NavLink>

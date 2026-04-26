@@ -3,13 +3,16 @@
 @page "/insurance/{VehicleId:int}"
 @inject IInsuranceService InsuranceService
 
-<h3>Forsikring</h3>
+<div class="insurance-page">
+<h3 class="insurance-title">Forsikring</h3>
 
+<div class="insurance-form-card">
 <EditForm Model="policies" OnValidSubmit="HandleSubmit">
     <DataAnnotationsValidator />
 
      <div class="mb-3">
-        <VehicleDropdown @bind-SelectedVehicleId="policies.VehicleId" />
+         <label class="form-label">Kjøretøy</label>
+         <VehicleDropdown @bind-SelectedVehicleId="policies.VehicleId" />
      </div>
 
     <div class="mb-3">
@@ -43,10 +46,13 @@
         <ValidationMessage For="@(() => policies.RenewalDate)" />
     </div>
 
-    <button type="submit" class="btn btn-primary">Lagre</button>
-    <NavLink class="btn btn-secondary ms-2" href="/vehicles">Avbryt</NavLink>
-    <button type="button" class="btn btn-danger float-end" @onclick="async () => await InsuranceService.DeleteInsurance(policies.Id)">Slett</button>
+    <div class="insurance-actions">
+        <button type="submit" class="btn btn-primary">Lagre</button>
+        <NavLink class="btn btn-secondary" href="/vehicles">Avbryt</NavLink>
+        <button type="button" class="btn btn-danger btn-delete" @onclick="async () => await InsuranceService.DeleteInsurance(policies.Id)">Slett</button>
+    </div>
 </EditForm>
+</div>
 
 @if (policies is not null && policies.AnnualMileageLimit > 0)
 {
@@ -116,10 +122,11 @@
 }
 else
 {
-    <div class="alert alert-info mt-4">
+    <div class="insurance-empty">
         Ingen aktiv forsikring lastet eller mangler kilometergrense.
     </div>
 }
+</div>
 
 
 

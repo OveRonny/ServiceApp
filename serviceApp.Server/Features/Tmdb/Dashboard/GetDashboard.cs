@@ -44,7 +44,11 @@ public static class GetDashboard
         decimal? LastFuelLiters,
         DateTime? LastServiceDate,
         string? LastServiceType,
-        int? LastServiceMileage
+        int? LastServiceMileage,
+        string? InsuranceCompany,
+        int? InsuranceAnnualLimit,
+        int? InsuranceUsedKm,
+        int? InsuranceRemainingKm
     );
 
     // ── Recent watches ───────────────────────────────────────────────────────
@@ -153,6 +157,21 @@ public static class GetDashboard
                 .GroupBy(s => s.VehicleId)
                 .ToDictionary(g => g.Key, g => g.First());
 
+            List<InsurancePolicy> allInsurancePolicies = [];
+            if (vehicleIds.Count > 0)
+            {
+                allInsurancePolicies = await _db.InsurancePolicies
+                    .AsNoTracking()
+                    .Include(i => i.Vehicle)
+                        .ThenInclude(v => v!.MileageHistories)
+                    .Where(i => vehicleIds.Contains(i.VehicleId) && i.IsActive)
+                    .ToListAsync(ct);
+            }
+
+            var insuranceByVehicle = allInsurancePolicies
+                .GroupBy(i => i.VehicleId)
+                .ToDictionary(g => g.Key, g => g.First());
+
             // For fuel consumption: DieselConsumption requires the full vehicle graph.
             // Instead, compute per-vehicle average from raw data grouped in memory.
             var lastConsumptionByVehicle = allConsumptionRecords
@@ -169,6 +188,16 @@ public static class GetDashboard
                 lastConsumptionByVehicle.TryGetValue(v.Id, out var lastFuel);
                 lastServiceByVehicle.TryGetValue(v.Id, out var lastService);
 
+                insuranceByVehicle.TryGetValue(v.Id, out var insurance);
+                int? insuranceUsed = null;
+                int? insuranceRemaining = null;
+                if (insurance is not null)
+                {
+                    var remaining = insurance.CalculateRemainingMileage(v.MileageHistories);
+                    insuranceRemaining = remaining;
+                    insuranceUsed = Math.Max(0, insurance.AnnualMileageLimit - remaining);
+                }
+
                 return new VehicleSummaryDto(
                     Id: v.Id,
                     Make: v.Make,
@@ -180,7 +209,11 @@ public static class GetDashboard
                     LastFuelLiters: lastFuel?.DieselAdded,
                     LastServiceDate: lastService?.ServiceDate,
                     LastServiceType: lastService?.ServiceType?.Name,
-                    LastServiceMileage: lastService?.MileageHistory?.Mileage
+                    LastServiceMileage: lastService?.MileageHistory?.Mileage,
+                    InsuranceCompany: insurance?.CompanyName,
+                    InsuranceAnnualLimit: insurance?.AnnualMileageLimit,
+                    InsuranceUsedKm: insuranceUsed,
+                    InsuranceRemainingKm: insuranceRemaining
                 );
             }).ToList();
 

@@ -1,0 +1,110 @@
+/* ── Page wrapper ─────────────────────────────────────────────── */
+.vi-page {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 8px 0 48px;
+}
+
+/* ── Section heading ──────────────────────────────────────────── */
+.vi-title {
+    font-size: 1.5em;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 24px;
+}
+
+/* ── Form card ────────────────────────────────────────────────── */
+.vi-form-card {
+    background-color: var(--gray-800);
+    border: 1px solid var(--border-muted);
+    border-radius: 16px;
+    padding: 28px 28px 24px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    margin-bottom: 28px;
+}
+
+/* ── Labels ───────────────────────────────────────────────────── */
+.vi-form-card .form-label {
+    font-size: 0.85em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+/* ── All inputs / textareas / selects ─────────────────────────── */
+.vi-form-card ::deep .form-control,
+.vi-form-card ::deep .form-select {
+    background-color: var(--gray-900);
+    border: 1px solid var(--gray-700);
+    color: var(--text-primary);
+    border-radius: 10px;
+    padding: 10px 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.vi-form-card ::deep .form-control:focus,
+.vi-form-card ::deep .form-select:focus {
+    border-color: var(--blue-500);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    background-color: var(--gray-900);
+    color: var(--text-primary);
+    outline: none;
+}
+
+.vi-form-card ::deep .form-control::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+.vi-form-card ::deep .form-control:disabled,
+.vi-form-card ::deep .form-select:disabled {
+    background-color: var(--gray-700);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* InputDate calendar icon fix for dark background */
+.vi-form-card ::deep input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) opacity(0.6);
+    cursor: pointer;
+}
+
+/* ── Vehicle / Supplier dropdowns (srf-input) ─────────────────── */
+.vi-form-card ::deep .srf-input {
+    display: block;
+    width: 100%;
+    background-color: var(--gray-900);
+    border: 1px solid var(--gray-700);
+    color: var(--text-primary);
+    border-radius: 10px;
+    padding: 10px 14px;
+    appearance: auto;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.vi-form-card ::deep .srf-input:focus {
+    border-color: var(--blue-500);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    outline: none;
+}
+
+.vi-form-card ::deep .srf-input option {
+    background-color: var(--gray-800);
+    color: var(--text-primary);
+}
+
+/* ── Adjust-mode snapshot text ────────────────────────────────── */
+.vi-form-card .text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* ── Actions row ──────────────────────────────────────────────── */
+.vi-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+}

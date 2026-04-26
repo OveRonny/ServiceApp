@@ -84,6 +84,18 @@ public class VehicleSummaryDashboard
 
     [JsonPropertyName("lastServiceMileage")]
     public int? LastServiceMileage { get; set; }
+
+    [JsonPropertyName("insuranceCompany")]
+    public string? InsuranceCompany { get; set; }
+
+    [JsonPropertyName("insuranceAnnualLimit")]
+    public int? InsuranceAnnualLimit { get; set; }
+
+    [JsonPropertyName("insuranceUsedKm")]
+    public int? InsuranceUsedKm { get; set; }
+
+    [JsonPropertyName("insuranceRemainingKm")]
+    public int? InsuranceRemainingKm { get; set; }
 }
 
 public class RecentWatchDashboard

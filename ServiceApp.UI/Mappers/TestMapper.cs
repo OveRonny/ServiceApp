@@ -10,7 +10,7 @@ public static class TestMapper
         {
             TmdbId = dto.TmdbId,
             Title = dto.Title,
-            Overview = dto.Overview,
+            Overview = dto.Overview ?? "",
             FirstAirDate = string.IsNullOrEmpty(dto.FirstAirDate)
                 ? null
                 : DateTime.Parse(dto.FirstAirDate),

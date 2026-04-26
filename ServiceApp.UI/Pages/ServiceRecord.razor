@@ -59,7 +59,9 @@
     [Parameter] public int Id { get; set; }
 
     private bool showDelete;
+#pragma warning disable CS0414
     private bool deleting;
+#pragma warning restore CS0414
 
     // Move inline lambda + markup into a RenderFragment<T> property to avoid
     // "Component attributes do not support complex content" error.

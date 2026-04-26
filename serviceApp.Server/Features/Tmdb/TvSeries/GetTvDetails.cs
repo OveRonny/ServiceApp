@@ -24,16 +24,67 @@ public static class GetTvDetails
     public class Handler : IQueryHandler<Query, TmdbTvDetailsDto>
     {
         private readonly TmdbClient _tmdb;
+        private readonly ApplicationDbContext _db;
 
-        public Handler(TmdbClient tmdb) => _tmdb = tmdb;
+        public Handler(TmdbClient tmdb, ApplicationDbContext db)
+        {
+            _tmdb = tmdb;
+            _db = db;
+        }
 
         public async Task<Result<TmdbTvDetailsDto>> Handle(Query request, CancellationToken cancellationToken)
         {
-            var tvSeries = await _tmdb.GetTvDetailsAsync(request.TmdbId); // fetch full details from TMDb
+            // Prøv databasen først
+            var media = await _db.MediaItems
+                .AsNoTracking()
+                .Include(m => m.SeasonsNav)
+                .Include(m => m.MediaItemGenres)
+                    .ThenInclude(mg => mg.Genre)
+                .FirstOrDefaultAsync(m => m.TmdbId == request.TmdbId && m.Type == MediaType.Series, cancellationToken);
+
+            if (media != null)
+            {
+                var dbSeasons = media.SeasonsNav
+                    .OrderBy(s => s.SeasonNumber)
+                    .Select(s => new TmdbSeasonDto
+                    {
+                        SeasonNumber = s.SeasonNumber,
+                        Name = s.Name,
+                        Overview = s.Overview,
+                        PosterPath = s.PosterPath,
+                        EpisodeCount = s.EpisodeCount ?? 0,
+                        AirDate = s.AirDate?.ToString("yyyy-MM-dd"),
+                        VoteAverage = s.VoteAverage
+                    }).ToList();
+
+                var dbGenres = media.MediaItemGenres
+                    .Select(mg => mg.Genre.Name)
+                    .ToList();
+
+                return Result.Ok(new TmdbTvDetailsDto(
+                    media.TmdbId,
+                    media.Title,
+                    media.Title,
+                    media.Overview,
+                    media.ReleaseDate?.ToString("yyyy-MM-dd"),
+                    null,
+                    media.Seasons ?? 0,
+                    media.Episodes ?? 0,
+                    media.PosterPath,
+                    null,
+                    dbSeasons,
+                    new List<TmdbCreatorDto>(),
+                    dbGenres,
+                    0
+                ));
+            }
+
+            // Fallback: hent fra TMDB hvis ikke i databasen
+            var tvSeries = await _tmdb.GetTvDetailsAsync(request.TmdbId);
             if (tvSeries == null)
                 return Result.Fail<TmdbTvDetailsDto>("TV series not found");
 
-            var Seasons = tvSeries.Seasons.Select(s => new TmdbSeasonDto
+            var seasons = tvSeries.Seasons.Select(s => new TmdbSeasonDto
             {
                 Id = s.Id,
                 SeasonNumber = s.SeasonNumber,
@@ -43,7 +94,6 @@ public static class GetTvDetails
                 EpisodeCount = s.EpisodeCount,
                 AirDate = s.AirDate,
                 VoteAverage = s.VoteAverage
-
             }).ToList();
 
             var creator = tvSeries.CreatedBy.Select(c => new TmdbCreatorDto
@@ -53,28 +103,22 @@ public static class GetTvDetails
                 ProfilePath = c.ProfilePath
             }).ToList();
 
-            var dto = new TmdbTvDetailsDto(
-                 tvSeries.Id,                               // TmdbId
-                 tvSeries.Name,                             // Name
-                 tvSeries.OriginalName,                     // OriginalName
-                 tvSeries.Overview,                         // Overview
-                 tvSeries.FirstAirDate,                     // FirstAirDate
-                 tvSeries.LastAirDate,                      // LastAirDate
-                 tvSeries.NumberOfSeasons,                  // NumberOfSeasons
-                 tvSeries.NumberOfEpisodes,                 // NumberOfEpisodes
-                 tvSeries.PosterPath,                       // PosterPath
-                 tvSeries.BackdropPath,
-                 Seasons,
-                 creator,
-                 tvSeries.Genres.Select(g => g.Name).ToList(),
-                 tvSeries.VoteAverage
-            );
-
-
-
-
-
-            return Result.Ok(dto);
+            return Result.Ok(new TmdbTvDetailsDto(
+                tvSeries.Id,
+                tvSeries.Name,
+                tvSeries.OriginalName,
+                tvSeries.Overview,
+                tvSeries.FirstAirDate,
+                tvSeries.LastAirDate,
+                tvSeries.NumberOfSeasons,
+                tvSeries.NumberOfEpisodes,
+                tvSeries.PosterPath,
+                tvSeries.BackdropPath,
+                seasons,
+                creator,
+                tvSeries.Genres.Select(g => g.Name).ToList(),
+                tvSeries.VoteAverage
+            ));
         }
     }
 

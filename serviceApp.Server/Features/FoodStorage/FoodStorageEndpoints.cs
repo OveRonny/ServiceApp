@@ -18,6 +18,7 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         group.MapDelete("/stock/{id:int}", DeleteStockItemAsync);
         group.MapPut("/stock/{id:int}/minimum", SetMinimumQuantityAsync);
         group.MapGet("/shopping-list", GetShoppingListAsync);
+        group.MapPut("/stock/{id:int}/quantity", SetQuantityAsync);
         group.MapGet("/stores", GetStoresAsync);
         group.MapPost("/stores", CreateStoreAsync);
         group.MapGet("/products/{productId:int}/price-history", GetPriceHistoryAsync);
@@ -317,6 +318,18 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         await db.SaveChangesAsync(cancellationToken);
         return Results.NoContent();
     }
+    private static async Task<IResult> SetQuantityAsync(int id, SetStockQuantityRequest request,
+        ApplicationDbContext db, CancellationToken cancellationToken)
+    {
+        if (request.Quantity < 0) return Results.BadRequest("Antall kan ikke være negativt.");
+        var item = await db.FoodStockItems.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (item is null) return Results.NotFound();
+        item.Quantity = request.Quantity;
+        item.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(cancellationToken);
+        return Results.NoContent();
+    }
+
 
     private static async Task<IResult> GetShoppingListAsync(ApplicationDbContext db,
         CancellationToken cancellationToken)

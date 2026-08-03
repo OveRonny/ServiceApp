@@ -58,6 +58,7 @@ public sealed record UpdateFoodStockItemRequest(
     string Location,
     DateOnly? BestBeforeDate,
     DateOnly? PurchasedDate);
+public sealed record SetStockQuantityRequest(decimal Quantity);
 
 
 public sealed record SetMinimumQuantityRequest(decimal? MinimumQuantity);

@@ -88,4 +88,12 @@ public sealed class FoodStorageService(IHttpClientFactory clients) : IFoodStorag
         await Api().GetFromJsonAsync<List<FoodShoppingListItemModel>>(
             "api/food-storage/shopping-list", cancellationToken) ?? [];
 
+    public async Task SetQuantityAsync(int id, decimal quantity,
+        CancellationToken cancellationToken = default)
+    {
+        using var response = await Api().PutAsJsonAsync($"api/food-storage/stock/{id}/quantity",
+            new { quantity }, cancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
+
 }

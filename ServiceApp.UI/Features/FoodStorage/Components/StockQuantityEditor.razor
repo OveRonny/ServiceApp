@@ -1,0 +1,32 @@
+@using ServiceApp.UI.Features.FoodStorage.Services
+@inject IFoodStorageService FoodStorageService
+
+<div class="input-group input-group-sm" style="min-width:145px">
+    <InputNumber class="form-control" min="0" @bind-Value="quantity" />
+    <span class="input-group-text">@Unit</span>
+    <button type="button" class="btn btn-outline-primary" title="Lagre antall"
+            disabled="@isSaving" @onclick="SaveAsync">Lagre</button>
+</div>
+
+@code {
+    [Parameter] public int StockItemId { get; set; }
+    [Parameter] public decimal Value { get; set; }
+    [Parameter] public string Unit { get; set; } = string.Empty;
+    [Parameter] public EventCallback OnSaved { get; set; }
+    private decimal quantity;
+    private bool isSaving;
+
+    protected override void OnParametersSet() => quantity = Value;
+
+    private async Task SaveAsync()
+    {
+        if (quantity < 0) return;
+        isSaving = true;
+        try
+        {
+            await FoodStorageService.SetQuantityAsync(StockItemId, quantity);
+            await OnSaved.InvokeAsync();
+        }
+        finally { isSaving = false; }
+    }
+}

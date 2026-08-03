@@ -129,7 +129,8 @@
                 {
                     <tr class="@(IsExpiringSoon(item) ? "table-warning" : null)">
                         <td><strong>@item.Product.Name</strong><br /><small class="text-muted">@item.Product.Brand</small></td>
-                        <td>@(item.Category ?? "–")</td><td>@item.Quantity @item.Unit</td>
+                        <td>@(item.Category ?? "–")</td>
+                        <td><StockQuantityEditor StockItemId="item.Id" Value="item.Quantity" Unit="item.Unit" OnSaved="RefreshAfterQuantityAsync" /></td>
                         <td><MinimumQuantityEditor StockItemId="item.Id" Value="item.MinimumQuantity" OnSaved="RefreshAfterMinimumAsync" /></td>
                         <td>@(item.LatestUnitPrice is decimal unitPrice ? $"{unitPrice:N2} kr" : "–")</td>
                         <td><strong>@item.EstimatedValue.ToString("N2") kr</strong></td><td>@item.Location</td>
@@ -216,6 +217,12 @@
         shoppingListVersion++;
         await ReloadAsync();
     }
+    private async Task RefreshAfterQuantityAsync()
+    {
+        shoppingListVersion++;
+        await ReloadAsync();
+    }
+
 
     private int PricedItemCount => stock.Count(x => x.LatestUnitPrice.HasValue);
     private int InStockCount => stock.Count(x => x.Quantity > 0);

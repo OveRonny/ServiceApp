@@ -5,28 +5,47 @@
 <button type="button" class="btn btn-sm btn-outline-primary me-1" @onclick="ToggleAsync">Priser</button>
 @if (show)
 {
-    <div class="card position-absolute end-0 mt-1 shadow" style="z-index:10;min-width:360px">
-        <div class="card-body p-2 text-start">
-            <strong>Prishistorikk</strong>
+    <div class="price-history-backdrop" @onclick="Close">
+        <section class="price-history-dialog" role="dialog" aria-modal="true" aria-labelledby="price-history-title"
+                 @onclick:stopPropagation="true">
+            <header class="price-history-header">
+                <div>
+                    <div class="text-uppercase text-muted small">Matlager</div>
+                    <h2 id="price-history-title" class="h4 mb-0">Prishistorikk</h2>
+                </div>
+                <button type="button" class="btn-close" aria-label="Lukk" @onclick="Close"></button>
+            </header>
+            <div class="price-history-body">
             @if (history.Count == 0)
             {
-                <div class="text-muted small mt-2">Ingen priser registrert.</div>
+                <div class="empty-price-history">
+                    <span class="empty-price-icon">🏷️</span>
+                    <strong>Ingen priser registrert</strong>
+                    <span class="text-muted">Pris vises her etter at varen er lagt inn med butikk og kjøpspris.</span>
+                </div>
             }
             else
             {
-                <table class="table table-sm mb-0 mt-2">
-                    <thead><tr><th>Dato</th><th>Butikk</th><th>Pris</th><th>Per enhet</th></tr></thead>
-                    <tbody>
-                    @foreach (var price in history)
-                    {
-                        <tr><td>@price.PurchasedDate.ToString("dd.MM.yyyy")</td><td>@price.StoreName</td>
-                            <td>@price.TotalPrice.ToString("C")</td><td>@price.UnitPrice.ToString("C")/@price.Unit</td></tr>
-                    }
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0 price-history-table">
+                        <thead><tr><th>Dato</th><th>Butikk</th><th class="text-end">Totalpris</th><th class="text-end">Pris per enhet</th></tr></thead>
+                        <tbody>
+                        @foreach (var price in history)
+                        {
+                            <tr>
+                                <td>@price.PurchasedDate.ToString("dd.MM.yyyy")</td>
+                                <td><strong>@price.StoreName</strong><div class="text-muted small">@price.Quantity.ToString("N2") @price.Unit</div></td>
+                                <td class="text-end price-total">@price.TotalPrice.ToString("N2") kr</td>
+                                <td class="text-end"><span class="unit-price">@price.UnitPrice.ToString("N2") kr/@price.Unit</span></td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
             }
+            </div>
+        </section>
         </div>
-    </div>
 }
 
 @code {
@@ -38,4 +57,5 @@
         show = !show;
         if (show) history = await FoodStorageService.GetPriceHistoryAsync(ProductId);
     }
+    private void Close() => show = false;
 }

@@ -20,6 +20,7 @@ using ServiceApp.UI.Services.TvServices;
 using ServiceApp.UI.Services.UserServices;
 using ServiceApp.UI.Services.VehicleInventoryServices;
 using ServiceApp.UI.Services.VehicleServices;
+using ServiceApp.UI.Features.FoodStorage.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -75,6 +76,7 @@ builder.Services.AddScoped<MovieSearchState>();
 builder.Services.AddScoped<ITvservice, TvService>();
 builder.Services.AddScoped<TvSearchState>();
 builder.Services.AddScoped<IGenreService, GenreService>();
+builder.Services.AddScoped<IFoodStorageService, FoodStorageService>();
 
 var host = builder.Build();
 

@@ -68,6 +68,15 @@ public static class DependencyInjection
             client.BaseAddress = new Uri(configuration["Tmdb:BaseUrl"]!);
         });
 
+        services.AddHttpClient<
+            serviceApp.Server.Features.FoodStorage.External.IOpenFoodFactsClient,
+            serviceApp.Server.Features.FoodStorage.External.OpenFoodFactsClient>(client =>
+        {
+            client.BaseAddress = new Uri("https://world.openfoodfacts.org/");
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("ProgorbFoodStorage/1.0 (https://progorb.no)");
+            client.Timeout = TimeSpan.FromSeconds(10);
+        });
+
         return services;
     }
 }

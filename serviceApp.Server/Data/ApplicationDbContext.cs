@@ -50,6 +50,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Episode> Episodes { get; set; }
     public DbSet<Season> Seasons { get; set; }
     public DbSet<WatchlistItem> WatchlistItems { get; set; }
+    public DbSet<serviceApp.Server.Entities.FoodStorage.FoodProduct> FoodProducts { get; set; }
+    public DbSet<serviceApp.Server.Entities.FoodStorage.FoodStockItem> FoodStockItems { get; set; }
 
 
 
@@ -153,6 +155,19 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         modelBuilder.Entity<WatchlistItem>()
         .HasIndex(x => new { x.UserId, x.MediaItemId })
         .IsUnique();
+
+        modelBuilder.Entity<serviceApp.Server.Entities.FoodStorage.FoodProduct>(b =>
+        {
+            b.HasIndex(x => x.Barcode).IsUnique().HasFilter("[Barcode] <> ''");
+        });
+
+        modelBuilder.Entity<serviceApp.Server.Entities.FoodStorage.FoodStockItem>(b =>
+        {
+            b.HasQueryFilter(x => _familyId != null && x.FamilyId == _familyId);
+            b.HasIndex(x => new { x.FamilyId, x.BestBeforeDate });
+            b.HasOne(x => x.FoodProduct).WithMany(x => x.StockItems)
+                .HasForeignKey(x => x.FoodProductId).OnDelete(DeleteBehavior.Restrict);
+        });
 
     }
 

@@ -1,0 +1,151 @@
+@page "/food-storage"
+@attribute [Authorize]
+@using ServiceApp.UI.Features.FoodStorage.Models
+@using ServiceApp.UI.Features.FoodStorage.Services
+@inject IFoodStorageService FoodStorageService
+
+<PageTitle>Matlager</PageTitle>
+
+<div class="container-xxl page-section mt-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h1 class="h3 mb-1">🥫 Matlager</h1>
+            <p class="text-muted mb-0">Skann en strekkode eller registrer en matvare manuelt.</p>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <label class="form-label" for="barcode">Strekkode</label>
+            <div class="input-group">
+                <input id="barcode" class="form-control" inputmode="numeric" autocomplete="off"
+                       placeholder="Skann eller skriv EAN-koden" @bind="barcode" @bind:event="oninput" />
+                <button class="btn btn-primary" disabled="@isBusy" @onclick="LookupBarcodeAsync">Slå opp</button>
+            </div>
+            <div class="form-text">Produktdata hentes fra Open Food Facts og lagres lokalt etter første treff.</div>
+        </div>
+    </div>
+
+    @if (selectedProduct is not null)
+    {
+        <div class="card mb-4 border-success">
+            <div class="card-body">
+                <div class="d-flex gap-3 align-items-start">
+                    @if (!string.IsNullOrWhiteSpace(selectedProduct.ImageUrl))
+                    {
+                        <img src="@selectedProduct.ImageUrl" alt="" style="width:72px;height:72px;object-fit:contain" />
+                    }
+                    <div class="flex-grow-1">
+                        <h2 class="h5">@selectedProduct.Name</h2>
+                        <div class="text-muted">@selectedProduct.Brand @selectedProduct.QuantityLabel</div>
+                        <div class="small">Kilde: @selectedProduct.Source</div>
+                    </div>
+                </div>
+
+                <EditForm Model="stockForm" OnValidSubmit="AddStockAsync" FormName="add-food-stock" class="row g-3 mt-2">
+                    <DataAnnotationsValidator />
+                    <div class="col-6 col-md-2"><label class="form-label">Antall</label><InputNumber class="form-control" @bind-Value="stockForm.Quantity" /></div>
+                    <div class="col-6 col-md-2"><label class="form-label">Enhet</label><InputText class="form-control" @bind-Value="stockForm.Unit" /></div>
+                    <div class="col-md-3"><label class="form-label">Plassering</label><InputText class="form-control" @bind-Value="stockForm.Location" /></div>
+                    <div class="col-md-3"><label class="form-label">Best før</label><InputDate class="form-control" @bind-Value="stockForm.BestBeforeDate" /></div>
+                    <div class="col-md-2 d-flex align-items-end"><button class="btn btn-success w-100" disabled="@isBusy">Legg på lager</button></div>
+                    <ValidationSummary />
+                </EditForm>
+            </div>
+        </div>
+    }
+    else if (showManualForm)
+    {
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2 class="h5">Produktet ble ikke funnet</h2>
+                <EditForm Model="manualProduct" OnValidSubmit="CreateManualProductAsync" FormName="manual-food-product" class="row g-3">
+                    <DataAnnotationsValidator />
+                    <div class="col-md-5"><label class="form-label">Produktnavn</label><InputText class="form-control" @bind-Value="manualProduct.Name" /></div>
+                    <div class="col-md-3"><label class="form-label">Merke</label><InputText class="form-control" @bind-Value="manualProduct.Brand" /></div>
+                    <div class="col-md-2"><label class="form-label">Pakning</label><InputText class="form-control" @bind-Value="manualProduct.QuantityLabel" /></div>
+                    <div class="col-md-2 d-flex align-items-end"><button class="btn btn-outline-primary w-100">Opprett</button></div>
+                    <ValidationSummary />
+                </EditForm>
+            </div>
+        </div>
+    }
+
+    <h2 class="h4">Beholdning</h2>
+    @if (isLoading)
+    {
+        <p><em>Laster…</em></p>
+    }
+    else if (stock.Count == 0)
+    {
+        <div class="alert alert-info">Matlageret er tomt.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead><tr><th>Produkt</th><th>Beholdning</th><th>Plassering</th><th>Best før</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var item in stock)
+                {
+                    <tr class="@(IsExpiringSoon(item) ? "table-warning" : null)">
+                        <td><strong>@item.Product.Name</strong><br /><small class="text-muted">@item.Product.Brand</small></td>
+                        <td>@item.Quantity @item.Unit</td><td>@item.Location</td>
+                        <td>@(item.BestBeforeDate?.ToString("dd.MM.yyyy") ?? "–")</td>
+                        <td class="text-end"><button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(item.Id)">Fjern</button></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private readonly AddFoodStockModel stockForm = new();
+    private readonly ManualFoodProductModel manualProduct = new();
+    private List<FoodStockItemModel> stock = [];
+    private FoodProductModel? selectedProduct;
+    private string barcode = string.Empty;
+    private string? errorMessage;
+    private bool showManualForm;
+    private bool isBusy;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync() => await ReloadAsync();
+
+    private async Task LookupBarcodeAsync()
+    {
+        errorMessage = null; showManualForm = false; selectedProduct = null; isBusy = true;
+        try
+        {
+            selectedProduct = await FoodStorageService.LookupBarcodeAsync(barcode);
+            if (selectedProduct is null) { showManualForm = true; manualProduct.Barcode = barcode; }
+            else stockForm.FoodProductId = selectedProduct.Id;
+        }
+        catch (Exception ex) { errorMessage = $"Oppslaget mislyktes: {ex.Message}"; }
+        finally { isBusy = false; }
+    }
+
+    private async Task CreateManualProductAsync()
+    {
+        selectedProduct = await FoodStorageService.CreateManualProductAsync(manualProduct);
+        stockForm.FoodProductId = selectedProduct.Id; showManualForm = false;
+    }
+
+    private async Task AddStockAsync()
+    {
+        isBusy = true;
+        try { await FoodStorageService.AddStockAsync(stockForm); selectedProduct = null; barcode = string.Empty; await ReloadAsync(); }
+        finally { isBusy = false; }
+    }
+
+    private async Task DeleteAsync(int id) { await FoodStorageService.DeleteStockAsync(id); await ReloadAsync(); }
+    private async Task ReloadAsync() { isLoading = true; stock = (await FoodStorageService.GetStockAsync()).ToList(); isLoading = false; }
+    private static bool IsExpiringSoon(FoodStockItemModel item) => item.BestBeforeDate is { } date && date <= DateOnly.FromDateTime(DateTime.Today.AddDays(7));
+}

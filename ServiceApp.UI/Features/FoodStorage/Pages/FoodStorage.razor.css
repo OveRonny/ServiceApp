@@ -1,0 +1,119 @@
+.food-storage-page {
+    color: var(--text-primary);
+}
+
+.food-storage-page h1,
+.food-storage-page h2,
+.food-storage-page h3,
+.food-storage-page h4,
+.food-storage-page h5,
+.food-storage-page label,
+.food-storage-page strong {
+    color: var(--text-primary);
+}
+
+.food-storage-page .text-muted,
+.food-storage-page .form-text {
+    color: #b8c2d1 !important;
+}
+
+.food-storage-page .text-success {
+    color: #6ee7b7 !important;
+}
+
+.food-storage-page ::deep .card {
+    color: var(--text-primary);
+    background: var(--gray-800);
+    border: 1px solid rgba(148, 163, 184, .22);
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .24);
+}
+
+.food-storage-page ::deep .form-control,
+.food-storage-page ::deep .form-select {
+    color: var(--text-primary);
+    background-color: #111827;
+    border-color: #4b5563;
+}
+
+.food-storage-page ::deep .form-control::placeholder {
+    color: #9ca3af;
+    opacity: 1;
+}
+
+.food-storage-page ::deep .form-control:focus,
+.food-storage-page ::deep .form-select:focus {
+    color: #fff;
+    background-color: #111827;
+    border-color: var(--blue-400);
+    box-shadow: 0 0 0 .2rem rgba(96, 165, 250, .22);
+}
+
+.food-storage-page ::deep .form-select option {
+    color: var(--text-primary);
+    background: #111827;
+}
+
+.food-storage-page ::deep .input-group-text {
+    color: #dbeafe;
+    background: #374151;
+    border-color: #4b5563;
+}
+
+.food-storage-page .table-responsive {
+    overflow: visible;
+    border: 1px solid rgba(148, 163, 184, .2);
+    border-radius: .9rem;
+    background: var(--gray-800);
+}
+
+.food-storage-page ::deep .table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--text-primary);
+    --bs-table-border-color: #374151;
+    --bs-table-hover-bg: rgba(96, 165, 250, .08);
+    --bs-table-hover-color: #fff;
+    margin-bottom: 0;
+}
+
+.food-storage-page ::deep .table thead th {
+    color: #cbd5e1;
+    background: rgba(17, 24, 39, .72);
+    border-bottom-color: #4b5563;
+    font-size: .78rem;
+    letter-spacing: .035em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.food-storage-page ::deep .table td {
+    color: #e5e7eb;
+}
+
+.food-storage-page ::deep .table-warning {
+    --bs-table-bg: rgba(245, 158, 11, .14);
+    --bs-table-color: #fef3c7;
+    --bs-table-border-color: rgba(245, 158, 11, .28);
+}
+
+.food-storage-page ::deep .alert-info {
+    color: #dbeafe;
+    background: rgba(30, 64, 175, .24);
+    border-color: rgba(96, 165, 250, .38);
+}
+
+.food-storage-page ::deep .btn-outline-secondary {
+    color: #d1d5db;
+    border-color: #6b7280;
+}
+
+.food-storage-page ::deep .btn-outline-secondary:hover {
+    color: #fff;
+    background: #4b5563;
+}
+
+@media (max-width: 767.98px) {
+    .food-storage-page .table-responsive {
+        overflow-x: auto;
+    }
+}

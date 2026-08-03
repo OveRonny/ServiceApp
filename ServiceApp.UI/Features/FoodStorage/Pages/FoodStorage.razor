@@ -137,7 +137,7 @@
                         <td class="text-end position-relative">
                             <button class="btn btn-sm btn-primary me-1" @onclick="() => PrepareAddQuantity(item)">Legg til antall</button>
                             <PriceHistory ProductId="item.Product.Id" />
-                            <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(item.Id)">Fjern</button>
+                            <button class="btn btn-sm btn-outline-warning" @onclick="() => SetEmptyAsync(item.Id)">Sett tom</button>
                         </td>
                     </tr>
                 }
@@ -208,7 +208,7 @@
     }
 
 
-    private async Task DeleteAsync(int id) { await FoodStorageService.DeleteStockAsync(id); shoppingListVersion++; await ReloadAsync(); }
+    private async Task SetEmptyAsync(int id) { await FoodStorageService.DeleteStockAsync(id); shoppingListVersion++; await ReloadAsync(); }
     private async Task ReloadAsync() { isLoading = true; stock = (await FoodStorageService.GetStockAsync()).ToList(); isLoading = false; }
     private decimal TotalStockValue => stock.Sum(x => x.EstimatedValue);
     private async Task RefreshAfterMinimumAsync()

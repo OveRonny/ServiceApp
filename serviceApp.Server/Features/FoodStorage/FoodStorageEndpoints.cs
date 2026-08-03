@@ -201,7 +201,8 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
     {
         var item = await db.FoodStockItems.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
         if (item is null) return Results.NotFound();
-        db.FoodStockItems.Remove(item);
+        item.Quantity = 0;
+        item.UpdatedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync(cancellationToken);
         return Results.NoContent();
     }

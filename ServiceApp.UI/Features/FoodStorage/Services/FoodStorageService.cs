@@ -43,6 +43,16 @@ public sealed class FoodStorageService(IHttpClientFactory clients) : IFoodStorag
         await Api().GetFromJsonAsync<List<FoodPriceHistoryModel>>(
             $"api/food-storage/products/{productId}/price-history", cancellationToken) ?? [];
 
+    public async Task<IReadOnlyList<FoodStorageLocationModel>> GetLocationsAsync(CancellationToken cancellationToken = default) =>
+        await Api().GetFromJsonAsync<List<FoodStorageLocationModel>>("api/food-storage/locations", cancellationToken) ?? [];
+
+    public async Task<FoodStorageLocationModel> CreateLocationAsync(string name, CancellationToken cancellationToken = default)
+    {
+        using var response = await Api().PostAsJsonAsync("api/food-storage/locations", new { name }, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<FoodStorageLocationModel>(cancellationToken))!;
+    }
+
     public async Task AddStockAsync(AddFoodStockModel model, CancellationToken cancellationToken = default)
     {
         using var response = await Api().PostAsJsonAsync("api/food-storage/stock", model, cancellationToken);

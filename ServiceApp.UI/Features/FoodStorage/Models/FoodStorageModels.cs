@@ -10,6 +10,7 @@ public sealed record FoodStockItemModel(
     int Id, FoodProductModel Product, decimal Quantity, string Unit,
     string Location, DateOnly? BestBeforeDate, DateOnly? PurchasedDate);
 public sealed record FoodStoreModel(int Id, string Name);
+public sealed record FoodStorageLocationModel(int Id, string Name);
 public sealed record FoodPriceHistoryModel(int Id, int ProductId, string StoreName,
     decimal Quantity, string Unit, decimal TotalPrice, decimal UnitPrice, DateOnly PurchasedDate);
 

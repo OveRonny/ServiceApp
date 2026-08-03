@@ -1,0 +1,42 @@
+@using ServiceApp.UI.Features.FoodStorage.Models
+@using ServiceApp.UI.Features.FoodStorage.Services
+@inject IFoodStorageService FoodStorageService
+
+<div class="col-md-3">
+    <label class="form-label">Plassering</label>
+    <InputSelect class="form-select" @bind-Value="Model.Location">
+        <option value="">Velg plassering</option>
+        @foreach (var location in locations)
+        {
+            <option value="@location.Name">@location.Name</option>
+        }
+    </InputSelect>
+</div>
+<div class="col-12">
+    <div class="input-group input-group-sm" style="max-width:420px">
+        <input class="form-control" placeholder="Legg til ny plassering" @bind="newLocationName" />
+        <button type="button" class="btn btn-outline-secondary" @onclick="CreateLocationAsync">Ny plassering</button>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public AddFoodStockModel Model { get; set; } = null!;
+    private IReadOnlyList<FoodStorageLocationModel> locations = [];
+    private string newLocationName = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        locations = await FoodStorageService.GetLocationsAsync();
+        if (locations.Count > 0 && !locations.Any(x => x.Name == Model.Location))
+            Model.Location = locations[0].Name;
+    }
+
+    private async Task CreateLocationAsync()
+    {
+        if (string.IsNullOrWhiteSpace(newLocationName)) return;
+        var location = await FoodStorageService.CreateLocationAsync(newLocationName);
+        locations = await FoodStorageService.GetLocationsAsync();
+        Model.Location = location.Name;
+        newLocationName = string.Empty;
+    }
+}

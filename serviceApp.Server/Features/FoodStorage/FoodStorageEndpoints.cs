@@ -19,6 +19,8 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         group.MapGet("/stores", GetStoresAsync);
         group.MapPost("/stores", CreateStoreAsync);
         group.MapGet("/products/{productId:int}/price-history", GetPriceHistoryAsync);
+        group.MapGet("/locations", GetLocationsAsync);
+        group.MapPost("/locations", CreateLocationAsync);
     }
 
     private static async Task<IResult> LookupBarcodeAsync(string barcode, ApplicationDbContext db,
@@ -186,6 +188,30 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         return Results.Ok(history);
     }
 
+
+    private static async Task<IResult> GetLocationsAsync(ApplicationDbContext db, CancellationToken cancellationToken)
+    {
+        var locations = await db.FoodStorageLocations.AsNoTracking().OrderBy(x => x.Name)
+            .Select(x => new FoodStorageLocationDto(x.Id, x.Name)).ToListAsync(cancellationToken);
+        return Results.Ok(locations);
+    }
+
+    private static async Task<IResult> CreateLocationAsync(CreateFoodStorageLocationRequest request,
+        ApplicationDbContext db, ICurrentUser currentUser, CancellationToken cancellationToken)
+    {
+        var familyId = await currentUser.GetFamilyIdAsync(cancellationToken);
+        if (familyId is null) return Results.Unauthorized();
+        var name = request.Name.Trim();
+        if (name.Length is < 2 or > 100)
+            return Results.BadRequest("Plassering må inneholde mellom 2 og 100 tegn.");
+        var existing = await db.FoodStorageLocations.AsNoTracking()
+            .SingleOrDefaultAsync(x => x.Name == name, cancellationToken);
+        if (existing is not null) return Results.Ok(new FoodStorageLocationDto(existing.Id, existing.Name));
+        var location = new FoodStorageLocation { FamilyId = familyId.Value, Name = name };
+        db.FoodStorageLocations.Add(location);
+        await db.SaveChangesAsync(cancellationToken);
+        return Results.Created($"/api/food-storage/locations/{location.Id}", new FoodStorageLocationDto(location.Id, location.Name));
+    }
 
     private static FoodProductDto ToDto(FoodProduct product) => new(product.Id, product.Barcode,
         product.Name, product.Brand, product.QuantityLabel, product.ImageUrl, product.Source);

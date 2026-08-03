@@ -54,6 +54,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<serviceApp.Server.Entities.FoodStorage.FoodStockItem> FoodStockItems { get; set; }
     public DbSet<serviceApp.Server.Entities.FoodStorage.FoodStore> FoodStores { get; set; }
     public DbSet<serviceApp.Server.Entities.FoodStorage.FoodPurchase> FoodPurchases { get; set; }
+    public DbSet<serviceApp.Server.Entities.FoodStorage.FoodStorageLocation> FoodStorageLocations { get; set; }
 
 
 
@@ -171,6 +172,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .HasForeignKey(x => x.FoodProductId).OnDelete(DeleteBehavior.Restrict);
         });
         modelBuilder.Entity<serviceApp.Server.Entities.FoodStorage.FoodStore>(b =>
+        {
+            b.HasQueryFilter(x => _familyId != null && x.FamilyId == _familyId);
+            b.HasIndex(x => new { x.FamilyId, x.Name }).IsUnique();
+        });
+
+        modelBuilder.Entity<serviceApp.Server.Entities.FoodStorage.FoodStorageLocation>(b =>
         {
             b.HasQueryFilter(x => _familyId != null && x.FamilyId == _familyId);
             b.HasIndex(x => new { x.FamilyId, x.Name }).IsUnique();

@@ -11,5 +11,7 @@ public interface IFoodStorageService
     Task<IReadOnlyList<FoodStoreModel>> GetStoresAsync(CancellationToken cancellationToken = default);
     Task<FoodStoreModel> CreateStoreAsync(string name, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<FoodPriceHistoryModel>> GetPriceHistoryAsync(int productId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<FoodStorageLocationModel>> GetLocationsAsync(CancellationToken cancellationToken = default);
+    Task<FoodStorageLocationModel> CreateLocationAsync(string name, CancellationToken cancellationToken = default);
     Task DeleteStockAsync(int id, CancellationToken cancellationToken = default);
 }

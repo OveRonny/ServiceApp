@@ -1,0 +1,140 @@
+@using System.Text.Json
+@using Microsoft.JSInterop
+@using ServiceApp.UI.Features.FoodStorage.Models
+@inject IJSRuntime JS
+
+<section class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <div>
+                <div class="text-uppercase text-muted small">Egne lister</div>
+                <h2 class="h4 mb-0">Handlelister</h2>
+            </div>
+            <span class="badge text-bg-primary">@selectedIds.Count valgt</span>
+        </div>
+
+        <div class="row g-2 mb-3">
+            <div class="col-md-8">
+                <input class="form-control" placeholder="Navn på handlelisten" @bind="listName" />
+            </div>
+            <div class="col-md-4">
+                <button type="button" class="btn btn-success w-100" disabled="@(selectedIds.Count == 0)"
+                        @onclick="SaveListAsync">Lagre handleliste</button>
+            </div>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 g-2 mb-3">
+            @foreach (var item in Stock.OrderBy(x => x.Quantity > 0).ThenBy(x => x.Product.Name))
+            {
+                <div class="col">
+                    <label class="d-flex align-items-center gap-2 border rounded p-2 h-100">
+                        <input type="checkbox" class="form-check-input m-0"
+                               checked="@selectedIds.Contains(item.Id)"
+                               @onchange="args => SetSelected(item.Id, args.Value is true)" />
+                        <span class="flex-grow-1">
+                            <strong>@item.Product.Name</strong>
+                            <small class="d-block text-muted">@item.Quantity @item.Unit · @(item.Category ?? "Uten kategori")</small>
+                        </span>
+                        <span class="badge @(item.Quantity <= 0 ? "text-bg-danger" : "text-bg-secondary")">
+                            @(item.Quantity <= 0 ? "Tomt" : "På lager")
+                        </span>
+                    </label>
+                </div>
+            }
+        </div>
+
+        @if (lists.Count > 0)
+        {
+            <div class="row row-cols-1 row-cols-lg-2 g-3">
+                @foreach (var list in lists.OrderByDescending(x => x.CreatedAt))
+                {
+                    <div class="col">
+                        <article class="border rounded p-3 h-100">
+                            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                <div><strong>@list.Name</strong><div class="small text-muted">@list.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</div></div>
+                                <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => DeleteListAsync(list.Id)">Slett</button>
+                            </div>
+                            @foreach (var item in list.Items)
+                            {
+                                <label class="d-flex align-items-center gap-2 py-1">
+                                    <input type="checkbox" class="form-check-input m-0" @bind="item.IsPurchased" @bind:after="PersistAsync" />
+                                    <span class="@(item.IsPurchased ? "text-decoration-line-through text-muted" : null)">@item.ProductName</span>
+                                </label>
+                            }
+                        </article>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    private const string StorageKey = "food-storage-custom-shopping-lists";
+    [Parameter, EditorRequired] public IReadOnlyList<FoodStockItemModel> Stock { get; set; } = [];
+    private readonly HashSet<int> selectedIds = [];
+    private List<SavedShoppingList> lists = [];
+    private string listName = string.Empty;
+    private bool loaded;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        var json = await JS.InvokeAsync<string?>("localStorage.getItem", StorageKey);
+        if (!string.IsNullOrWhiteSpace(json))
+            lists = JsonSerializer.Deserialize<List<SavedShoppingList>>(json) ?? [];
+        loaded = true;
+        StateHasChanged();
+    }
+
+    private void SetSelected(int id, bool selected)
+    {
+        if (selected) selectedIds.Add(id);
+        else selectedIds.Remove(id);
+    }
+
+    private async Task SaveListAsync()
+    {
+        var items = Stock.Where(x => selectedIds.Contains(x.Id))
+            .Select(x => new SavedShoppingListItem { StockItemId = x.Id, ProductName = x.Product.Name })
+            .ToList();
+        if (items.Count == 0) return;
+        lists.Add(new SavedShoppingList
+        {
+            Id = Guid.NewGuid(),
+            Name = string.IsNullOrWhiteSpace(listName) ? $"Handleliste {DateTime.Today:dd.MM.yyyy}" : listName.Trim(),
+            CreatedAt = DateTimeOffset.Now,
+            Items = items
+        });
+        selectedIds.Clear();
+        listName = string.Empty;
+        await PersistAsync();
+    }
+
+    private async Task DeleteListAsync(Guid id)
+    {
+        lists.RemoveAll(x => x.Id == id);
+        await PersistAsync();
+    }
+
+    private async Task PersistAsync()
+    {
+        if (loaded)
+            await JS.InvokeVoidAsync("localStorage.setItem", StorageKey, JsonSerializer.Serialize(lists));
+    }
+
+    public sealed class SavedShoppingList
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public DateTimeOffset CreatedAt { get; set; }
+        public List<SavedShoppingListItem> Items { get; set; } = [];
+    }
+
+    public sealed class SavedShoppingListItem
+    {
+        public int StockItemId { get; set; }
+        public string ProductName { get; set; } = string.Empty;
+        public bool IsPurchased { get; set; }
+    }
+}

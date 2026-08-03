@@ -11,7 +11,8 @@ public enum StreamingService
     NRKTVPlus,
     TVNorge,
     ParamountPlus,
-    Other
+    Other,
+    TV2Play
 }
 
 public static class StreamingServiceExtensions
@@ -28,6 +29,7 @@ public static class StreamingServiceExtensions
         StreamingService.TVNorge       => "TV Norge",
         StreamingService.ParamountPlus => "Paramount+",
         StreamingService.Other         => "Annet",
+        StreamingService.TV2Play       => "TV 2 Play",
         _                              => service.ToString()
     };
 }

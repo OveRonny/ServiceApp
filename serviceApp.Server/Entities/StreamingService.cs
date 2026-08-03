@@ -11,5 +11,6 @@ public enum StreamingService
     NRKTVPlus,
     TVNorge,
     ParamountPlus,
-    Other
+    Other,
+    TV2Play
 }

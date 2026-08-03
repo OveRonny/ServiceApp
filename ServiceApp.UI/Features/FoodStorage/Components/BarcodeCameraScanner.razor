@@ -1,0 +1,79 @@
+@implements IAsyncDisposable
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+
+<button type="button" class="btn btn-outline-primary" @onclick="OpenAsync">
+    <span aria-hidden="true">📷</span> Skann med kamera
+</button>
+
+@if (isOpen)
+{
+    <div class="scanner-backdrop">
+        <section class="scanner-dialog" role="dialog" aria-modal="true" aria-labelledby="scanner-title">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <h2 id="scanner-title" class="h5 mb-0">Skann strekkode</h2>
+                    <small class="text-muted">Hold strekkoden rolig innenfor rammen.</small>
+                </div>
+                <button type="button" class="btn-close btn-close-white" aria-label="Lukk" @onclick="CloseAsync"></button>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <div class="alert alert-danger">@errorMessage</div>
+            }
+            <div class="scanner-viewport">
+                <video id="@videoId" autoplay muted playsinline></video>
+                <div class="scanner-frame" aria-hidden="true"></div>
+            </div>
+            <button type="button" class="btn btn-outline-light w-100 mt-3" @onclick="CloseAsync">Avbryt</button>
+        </section>
+    </div>
+}
+
+@code {
+    [Parameter] public EventCallback<string> OnDetected { get; set; }
+    private readonly string videoId = $"food-barcode-video-{Guid.NewGuid():N}";
+    private DotNetObjectReference<BarcodeCameraScanner>? reference;
+    private bool isOpen;
+    private string? errorMessage;
+
+    private async Task OpenAsync()
+    {
+        errorMessage = null;
+        isOpen = true;
+        await Task.Yield();
+        StateHasChanged();
+        reference ??= DotNetObjectReference.Create(this);
+        try
+        {
+            await JS.InvokeVoidAsync("foodBarcodeScanner.start", videoId, reference);
+        }
+        catch (JSException ex)
+        {
+            errorMessage = ex.Message.Contains("Permission", StringComparison.OrdinalIgnoreCase)
+                ? "Kameratilgang ble avvist. Tillat kamera i nettleseren og prøv igjen."
+                : ex.Message;
+        }
+    }
+
+    [JSInvokable]
+    public async Task BarcodeDetected(string value)
+    {
+        isOpen = false;
+        await OnDetected.InvokeAsync(value);
+        StateHasChanged();
+    }
+
+    private async Task CloseAsync()
+    {
+        await JS.InvokeVoidAsync("foodBarcodeScanner.stop");
+        isOpen = false;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try { await JS.InvokeVoidAsync("foodBarcodeScanner.stop"); }
+        catch (JSDisconnectedException) { }
+        reference?.Dispose();
+    }
+}

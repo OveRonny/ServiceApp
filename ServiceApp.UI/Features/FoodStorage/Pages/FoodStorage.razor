@@ -28,6 +28,7 @@
                        placeholder="Skann eller skriv EAN-koden" @bind="barcode" @bind:event="oninput" />
                 <button class="btn btn-primary" disabled="@isBusy" @onclick="LookupBarcodeAsync">Slå opp</button>
             </div>
+                <BarcodeCameraScanner OnDetected="HandleBarcodeDetectedAsync" />
             <div class="form-text">Produktdata hentes fra Open Food Facts og lagres lokalt etter første treff.</div>
         </div>
     </div>
@@ -177,6 +178,13 @@
         catch (Exception ex) { errorMessage = $"Oppslaget mislyktes: {ex.Message}"; }
         finally { isBusy = false; }
     }
+    private async Task HandleBarcodeDetectedAsync(string detectedBarcode)
+    {
+        barcode = new string(detectedBarcode.Where(char.IsAsciiDigit).ToArray());
+        if (!string.IsNullOrWhiteSpace(barcode))
+            await LookupBarcodeAsync();
+    }
+
 
     private async Task CreateManualProductAsync()
     {

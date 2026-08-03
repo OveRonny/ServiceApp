@@ -79,7 +79,27 @@
         </div>
     }
 
-    <h2 class="h4">Beholdning</h2>
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-3">
+        <div>
+            <h2 class="h4 mb-1">Beholdning</h2>
+            <div class="text-muted">@stock.Count varer · @PricedItemCount med registrert pris</div>
+        </div>
+        <div class="text-end">
+            <div class="text-muted small text-uppercase">Total lagerverdi</div>
+            <div class="h3 mb-0 text-success">@TotalStockValue.ToString("N2") kr</div>
+        </div>
+    </div>
+    <div class="row g-2 mb-3">
+        <div class="col-md-8">
+            <input class="form-control" placeholder="Søk etter produkt, merke, kategori eller plassering" @bind="searchText" @bind:event="oninput" />
+        </div>
+        <div class="col-md-4">
+            <select class="form-select" @bind="sortOrder">
+                <option value="name">Sorter: Navn</option><option value="category">Kategori</option><option value="expiry">Best før</option>
+                <option value="quantity-desc">Mengde, høyest først</option><option value="value-desc">Verdi, høyest først</option>
+            </select>
+        </div>
+    </div>
     @if (isLoading)
     {
         <p><em>Laster…</em></p>
@@ -92,13 +112,15 @@
     {
         <div class="table-responsive">
             <table class="table align-middle">
-                <thead><tr><th>Produkt</th><th>Kategori</th><th>Beholdning</th><th>Plassering</th><th>Best før</th><th></th></tr></thead>
+                <thead><tr><th>Produkt</th><th>Kategori</th><th>Beholdning</th><th>Enhetspris</th><th>Verdi</th><th>Plassering</th><th>Best før</th><th></th></tr></thead>
                 <tbody>
-                @foreach (var item in stock)
+                @foreach (var item in FilteredAndSortedStock)
                 {
                     <tr class="@(IsExpiringSoon(item) ? "table-warning" : null)">
                         <td><strong>@item.Product.Name</strong><br /><small class="text-muted">@item.Product.Brand</small></td>
-                        <td>@(item.Category ?? "–")</td><td>@item.Quantity @item.Unit</td><td>@item.Location</td>
+                        <td>@(item.Category ?? "–")</td><td>@item.Quantity @item.Unit</td>
+                        <td>@(item.LatestUnitPrice is decimal unitPrice ? $"{unitPrice:N2} kr" : "–")</td>
+                        <td><strong>@item.EstimatedValue.ToString("N2") kr</strong></td><td>@item.Location</td>
                         <td>@(item.BestBeforeDate?.ToString("dd.MM.yyyy") ?? "–")</td>
                         <td class="text-end position-relative"><PriceHistory ProductId="item.Product.Id" /><button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(item.Id)">Fjern</button></td>
                     </tr>
@@ -114,6 +136,8 @@
     private readonly ManualFoodProductModel manualProduct = new();
     private List<FoodStockItemModel> stock = [];
     private FoodProductModel? selectedProduct;
+    private string searchText = string.Empty;
+    private string sortOrder = "name";
     private string barcode = string.Empty;
     private string? errorMessage;
     private bool showManualForm;
@@ -150,5 +174,28 @@
 
     private async Task DeleteAsync(int id) { await FoodStorageService.DeleteStockAsync(id); await ReloadAsync(); }
     private async Task ReloadAsync() { isLoading = true; stock = (await FoodStorageService.GetStockAsync()).ToList(); isLoading = false; }
+    private decimal TotalStockValue => stock.Sum(x => x.EstimatedValue);
+    private int PricedItemCount => stock.Count(x => x.LatestUnitPrice.HasValue);
+
+    private IEnumerable<FoodStockItemModel> FilteredAndSortedStock
+    {
+        get
+        {
+            var query = stock.Where(item => string.IsNullOrWhiteSpace(searchText) ||
+                item.Product.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                (item.Product.Brand?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (item.Category?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                item.Location.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+
+            return sortOrder switch
+            {
+                "category" => query.OrderBy(x => x.Category).ThenBy(x => x.Product.Name),
+                "expiry" => query.OrderBy(x => x.BestBeforeDate is null).ThenBy(x => x.BestBeforeDate),
+                "quantity-desc" => query.OrderByDescending(x => x.Quantity),
+                "value-desc" => query.OrderByDescending(x => x.EstimatedValue),
+                _ => query.OrderBy(x => x.Product.Name)
+            };
+        }
+    }
     private static bool IsExpiringSoon(FoodStockItemModel item) => item.BestBeforeDate is { } date && date <= DateOnly.FromDateTime(DateTime.Today.AddDays(7));
 }

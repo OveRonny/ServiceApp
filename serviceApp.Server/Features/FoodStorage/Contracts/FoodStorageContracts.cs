@@ -17,7 +17,9 @@ public sealed record FoodStockItemDto(
     string Location,
     DateOnly? BestBeforeDate,
     DateOnly? PurchasedDate,
-    string? Category);
+    string? Category,
+    decimal? LatestUnitPrice,
+    decimal EstimatedValue);
 public sealed record FoodStoreDto(int Id, string Name);
 public sealed record FoodStorageLocationDto(int Id, string Name);
 public sealed record FoodCategoryDto(int Id, string Name);

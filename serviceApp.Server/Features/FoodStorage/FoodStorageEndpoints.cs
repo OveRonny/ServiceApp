@@ -96,14 +96,14 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
             .Select(x => new { x.FoodProductId, x.TotalPrice, x.Quantity })
             .ToListAsync(cancellationToken);
 
-        var latestPrices = purchases.GroupBy(x => x.FoodProductId)
-            .ToDictionary(x => x.Key, x => x.First().Quantity == 0
+        var averagePrices = purchases.GroupBy(x => x.FoodProductId)
+            .ToDictionary(x => x.Key, x => x.Sum(p => p.Quantity) == 0
                 ? (decimal?)null
-                : x.First().TotalPrice / x.First().Quantity);
+                : x.Sum(p => p.TotalPrice) / x.Sum(p => p.Quantity));
 
         var stock = items.Select(item =>
         {
-            latestPrices.TryGetValue(item.FoodProductId, out var unitPrice);
+            averagePrices.TryGetValue(item.FoodProductId, out var unitPrice);
             return ToDto(item, unitPrice);
         }).ToList();
         return Results.Ok(stock);
@@ -340,7 +340,7 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         product.Name, product.Brand, product.QuantityLabel, product.ImageUrl, product.Source);
     private static FoodStockItemDto ToDto(FoodStockItem item, decimal? unitPrice = null) => new(item.Id, ToDto(item.FoodProduct),
         item.Quantity, item.Unit, item.Location, item.BestBeforeDate, item.PurchasedDate,
-        item.FoodCategory?.Name, unitPrice, unitPrice.GetValueOrDefault() * item.Quantity, item.MinimumQuantity);
+        item.FoodCategoryId, item.FoodCategory?.Name, unitPrice, unitPrice.GetValueOrDefault() * item.Quantity, item.MinimumQuantity);
     private static string NormalizeBarcode(string value) => new(value.Where(char.IsAsciiDigit).ToArray());
     private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     private static string? ValidateStock(decimal quantity, string unit, string location) =>

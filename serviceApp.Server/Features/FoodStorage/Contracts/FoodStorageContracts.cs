@@ -17,6 +17,7 @@ public sealed record FoodStockItemDto(
     string Location,
     DateOnly? BestBeforeDate,
     DateOnly? PurchasedDate,
+    int? CategoryId,
     string? Category,
     decimal? LatestUnitPrice,
     decimal EstimatedValue,

@@ -126,7 +126,11 @@
                         <td>@(item.LatestUnitPrice is decimal unitPrice ? $"{unitPrice:N2} kr" : "–")</td>
                         <td><strong>@item.EstimatedValue.ToString("N2") kr</strong></td><td>@item.Location</td>
                         <td>@(item.BestBeforeDate?.ToString("dd.MM.yyyy") ?? "–")</td>
-                        <td class="text-end position-relative"><PriceHistory ProductId="item.Product.Id" /><button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(item.Id)">Fjern</button></td>
+                        <td class="text-end position-relative">
+                            <button class="btn btn-sm btn-primary me-1" @onclick="() => PrepareAddQuantity(item)">Legg til antall</button>
+                            <PriceHistory ProductId="item.Product.Id" />
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(item.Id)">Fjern</button>
+                        </td>
                     </tr>
                 }
                 </tbody>
@@ -176,6 +180,24 @@
         try { await FoodStorageService.AddStockAsync(stockForm); selectedProduct = null; barcode = string.Empty; shoppingListVersion++; await ReloadAsync(); }
         finally { isBusy = false; }
     }
+    private void PrepareAddQuantity(FoodStockItemModel item)
+    {
+        selectedProduct = item.Product;
+        showManualForm = false;
+        errorMessage = null;
+        barcode = string.Empty;
+        stockForm.FoodCategoryId = item.CategoryId;
+        stockForm.FoodProductId = item.Product.Id;
+        stockForm.Quantity = 1;
+        stockForm.MinimumQuantity = item.MinimumQuantity;
+        stockForm.Unit = item.Unit;
+        stockForm.Location = item.Location;
+        stockForm.BestBeforeDate = null;
+        stockForm.PurchasedDate = DateOnly.FromDateTime(DateTime.Today);
+        stockForm.FoodStoreId = null;
+        stockForm.TotalPrice = null;
+    }
+
 
     private async Task DeleteAsync(int id) { await FoodStorageService.DeleteStockAsync(id); shoppingListVersion++; await ReloadAsync(); }
     private async Task ReloadAsync() { isLoading = true; stock = (await FoodStorageService.GetStockAsync()).ToList(); isLoading = false; }

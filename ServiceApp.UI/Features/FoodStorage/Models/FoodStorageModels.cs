@@ -8,7 +8,7 @@ public sealed record FoodProductModel(
 
 public sealed record FoodStockItemModel(
     int Id, FoodProductModel Product, decimal Quantity, string Unit,
-    string Location, DateOnly? BestBeforeDate, DateOnly? PurchasedDate, string? Category,
+    string Location, DateOnly? BestBeforeDate, DateOnly? PurchasedDate, int? CategoryId, string? Category,
     decimal? LatestUnitPrice, decimal EstimatedValue, decimal? MinimumQuantity);
 public sealed record FoodStoreModel(int Id, string Name);
 public sealed record FoodStorageLocationModel(int Id, string Name);

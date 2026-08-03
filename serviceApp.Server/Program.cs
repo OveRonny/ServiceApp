@@ -26,7 +26,8 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddControllers();
 
-builder.Services.AddOpenApi();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 builder.Services.AddDependency(builder.Configuration);
 builder.Services.AddAuthenticationSetup(builder.Configuration);
@@ -38,7 +39,8 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapScalarApiReference();
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseCors("AllowFrontend");

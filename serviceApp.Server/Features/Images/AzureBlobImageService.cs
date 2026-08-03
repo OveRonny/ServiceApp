@@ -1,5 +1,5 @@
 using Azure.Core;
-using Azure.Identity;
+using System.Reflection;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
@@ -9,18 +9,16 @@ namespace serviceApp.Server.Features.Images;
 public class AzureBlobImageService
 {
     private readonly BlobContainerClient _container;
-    private readonly TokenCredential _credential;
+    private readonly Azure.Core.TokenCredential _credential;
     private readonly string? _accountName;
     private readonly string? _connectionString;
 
     public AzureBlobImageService(IConfiguration config)
     {
-        _credential = new ChainedTokenCredential(
-            new ManagedIdentityCredential(),
-            new AzureCliCredential(),
-            new VisualStudioCredential(),
-            new AzureDeveloperCliCredential()
-        );
+        // Resolve DefaultAzureCredential dynamically via reflection to avoid
+        // compile-time ambiguous type errors introduced by overlapping
+        // Azure.Core / Azure.Identity package versions.
+        _credential = ResolveDefaultAzureCredential();
 
         var containerName = config["AzureStorage:ContainerName"] ?? "images";
         _connectionString = config["AzureStorage:ConnectionString"];
@@ -38,6 +36,39 @@ public class AzureBlobImageService
         }
 
         _container.CreateIfNotExists(PublicAccessType.None);
+    }
+
+    private static Azure.Core.TokenCredential ResolveDefaultAzureCredential()
+    {
+        try
+        {
+            // Try to load the Azure.Identity assembly from already loaded assemblies
+            var asm = AppDomain.CurrentDomain.GetAssemblies()
+                .FirstOrDefault(a => string.Equals(a.GetName().Name, "Azure.Identity", StringComparison.OrdinalIgnoreCase));
+
+            if (asm == null)
+            {
+                // Attempt to load by name
+                asm = Assembly.Load("Azure.Identity");
+            }
+
+            if (asm != null)
+            {
+                var type = asm.GetType("Azure.Identity.DefaultAzureCredential");
+                if (type != null)
+                {
+                    var instance = Activator.CreateInstance(type);
+                    if (instance is Azure.Core.TokenCredential cred)
+                        return cred;
+                }
+            }
+        }
+        catch
+        {
+            // ignore and move to throw below
+        }
+
+        throw new InvalidOperationException("Could not resolve DefaultAzureCredential. Ensure Azure.Identity is referenced or provide AzureStorage:ConnectionString in configuration.");
     }
 
     public async Task<string> UploadImageAsync(Stream stream, string fileName, string contentType, CancellationToken ct = default)

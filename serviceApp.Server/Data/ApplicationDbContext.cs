@@ -169,6 +169,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         {
             b.HasQueryFilter(x => _familyId != null && x.FamilyId == _familyId);
             b.HasIndex(x => new { x.FamilyId, x.BestBeforeDate });
+            b.HasIndex(x => new { x.FamilyId, x.FoodProductId }).IsUnique();
             b.HasOne(x => x.FoodProduct).WithMany(x => x.StockItems)
                 .HasForeignKey(x => x.FoodProductId).OnDelete(DeleteBehavior.Restrict);
         });

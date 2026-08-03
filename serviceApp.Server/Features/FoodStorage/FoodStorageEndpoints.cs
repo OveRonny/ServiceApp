@@ -130,15 +130,36 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
             !await db.FoodCategories.AnyAsync(x => x.Id == categoryId, cancellationToken))
             return Results.BadRequest("Kategorien finnes ikke.");
 
-        var item = new FoodStockItem
+        var item = await db.FoodStockItems
+            .Include(x => x.FoodProduct)
+            .Include(x => x.FoodCategory)
+            .SingleOrDefaultAsync(x => x.FoodProductId == request.FoodProductId, cancellationToken);
+        var isNew = item is null;
+        if (item is null)
         {
-            FamilyId = familyId.Value, FoodProductId = request.FoodProductId,
-            Quantity = request.Quantity, Unit = request.Unit.Trim(), Location = request.Location.Trim(),
-            FoodCategoryId = request.FoodCategoryId,
-            BestBeforeDate = request.BestBeforeDate, PurchasedDate = request.PurchasedDate,
-            MinimumQuantity = request.MinimumQuantity,
-        };
-        db.FoodStockItems.Add(item);
+            item = new FoodStockItem
+            {
+                FamilyId = familyId.Value, FoodProductId = request.FoodProductId,
+                Quantity = request.Quantity, Unit = request.Unit.Trim(), Location = request.Location.Trim(),
+                FoodCategoryId = request.FoodCategoryId,
+                BestBeforeDate = request.BestBeforeDate, PurchasedDate = request.PurchasedDate,
+                MinimumQuantity = request.MinimumQuantity,
+            };
+            db.FoodStockItems.Add(item);
+        }
+        else
+        {
+            item.Quantity += request.Quantity;
+            item.Unit = request.Unit.Trim();
+            item.Location = request.Location.Trim();
+            item.FoodCategoryId = request.FoodCategoryId ?? item.FoodCategoryId;
+            item.PurchasedDate = request.PurchasedDate ?? item.PurchasedDate;
+            item.MinimumQuantity = request.MinimumQuantity ?? item.MinimumQuantity;
+            if (request.BestBeforeDate.HasValue &&
+                (!item.BestBeforeDate.HasValue || request.BestBeforeDate < item.BestBeforeDate))
+                item.BestBeforeDate = request.BestBeforeDate;
+            item.UpdatedAt = DateTimeOffset.UtcNow;
+        }
         if (request.FoodStoreId is int purchaseStoreId && request.TotalPrice is decimal totalPrice)
         {
             db.FoodPurchases.Add(new FoodPurchase
@@ -151,8 +172,11 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         }
 
         await db.SaveChangesAsync(cancellationToken);
-        await db.Entry(item).Reference(x => x.FoodProduct).LoadAsync(cancellationToken);
-        return Results.Created($"/api/food-storage/stock/{item.Id}", ToDto(item));
+        if (isNew)
+            await db.Entry(item).Reference(x => x.FoodProduct).LoadAsync(cancellationToken);
+        if (item.FoodCategoryId.HasValue && item.FoodCategory is null)
+            await db.Entry(item).Reference(x => x.FoodCategory).LoadAsync(cancellationToken);
+        return isNew ? Results.Created($"/api/food-storage/stock/{item.Id}", ToDto(item)) : Results.Ok(ToDto(item));
     }
 
     private static async Task<IResult> UpdateStockItemAsync(int id, UpdateFoodStockItemRequest request,

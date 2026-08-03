@@ -21,6 +21,8 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         group.MapGet("/products/{productId:int}/price-history", GetPriceHistoryAsync);
         group.MapGet("/locations", GetLocationsAsync);
         group.MapPost("/locations", CreateLocationAsync);
+        group.MapGet("/categories", GetCategoriesAsync);
+        group.MapPost("/categories", CreateCategoryAsync);
     }
 
     private static async Task<IResult> LookupBarcodeAsync(string barcode, ApplicationDbContext db,
@@ -81,6 +83,7 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
     private static async Task<IResult> GetStockAsync(ApplicationDbContext db, CancellationToken cancellationToken)
     {
         var stock = await db.FoodStockItems.AsNoTracking().Include(x => x.FoodProduct)
+            .Include(x => x.FoodCategory)
             .OrderBy(x => x.BestBeforeDate == null).ThenBy(x => x.BestBeforeDate)
             .ThenBy(x => x.FoodProduct.Name).Select(x => ToDto(x)).ToListAsync(cancellationToken);
         return Results.Ok(stock);
@@ -103,11 +106,15 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
 
         if (!await db.FoodProducts.AnyAsync(x => x.Id == request.FoodProductId, cancellationToken))
             return Results.BadRequest("Produktet finnes ikke.");
+        if (request.FoodCategoryId is int categoryId &&
+            !await db.FoodCategories.AnyAsync(x => x.Id == categoryId, cancellationToken))
+            return Results.BadRequest("Kategorien finnes ikke.");
 
         var item = new FoodStockItem
         {
             FamilyId = familyId.Value, FoodProductId = request.FoodProductId,
             Quantity = request.Quantity, Unit = request.Unit.Trim(), Location = request.Location.Trim(),
+            FoodCategoryId = request.FoodCategoryId,
             BestBeforeDate = request.BestBeforeDate, PurchasedDate = request.PurchasedDate
         };
         db.FoodStockItems.Add(item);
@@ -213,10 +220,49 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         return Results.Created($"/api/food-storage/locations/{location.Id}", new FoodStorageLocationDto(location.Id, location.Name));
     }
 
+    private static readonly string[] DefaultCategoryNames =
+        ["Kjøtt", "Meieri og melk", "Frukt og grønt", "Tørrvarer", "Drikke", "Frysevarer", "Annet"];
+
+    private static async Task<IResult> GetCategoriesAsync(ApplicationDbContext db, ICurrentUser currentUser,
+        CancellationToken cancellationToken)
+    {
+        var familyId = await currentUser.GetFamilyIdAsync(cancellationToken);
+        if (familyId is null) return Results.Unauthorized();
+
+        if (!await db.FoodCategories.AnyAsync(cancellationToken))
+        {
+            db.FoodCategories.AddRange(DefaultCategoryNames.Select(name => new FoodCategory
+            {
+                FamilyId = familyId.Value,
+                Name = name
+            }));
+            await db.SaveChangesAsync(cancellationToken);
+        }
+
+        var categories = await db.FoodCategories.AsNoTracking().OrderBy(x => x.Name)
+            .Select(x => new FoodCategoryDto(x.Id, x.Name)).ToListAsync(cancellationToken);
+        return Results.Ok(categories);
+    }
+
+    private static async Task<IResult> CreateCategoryAsync(CreateFoodCategoryRequest request,
+        ApplicationDbContext db, ICurrentUser currentUser, CancellationToken cancellationToken)
+    {
+        var familyId = await currentUser.GetFamilyIdAsync(cancellationToken);
+        if (familyId is null) return Results.Unauthorized();
+        var name = request.Name.Trim();
+        if (name.Length is < 2 or > 100) return Results.BadRequest("Kategorinavn må inneholde mellom 2 og 100 tegn.");
+        var existing = await db.FoodCategories.AsNoTracking().SingleOrDefaultAsync(x => x.Name == name, cancellationToken);
+        if (existing is not null) return Results.Ok(new FoodCategoryDto(existing.Id, existing.Name));
+        var category = new FoodCategory { FamilyId = familyId.Value, Name = name };
+        db.FoodCategories.Add(category);
+        await db.SaveChangesAsync(cancellationToken);
+        return Results.Created($"/api/food-storage/categories/{category.Id}", new FoodCategoryDto(category.Id, category.Name));
+    }
+
     private static FoodProductDto ToDto(FoodProduct product) => new(product.Id, product.Barcode,
         product.Name, product.Brand, product.QuantityLabel, product.ImageUrl, product.Source);
     private static FoodStockItemDto ToDto(FoodStockItem item) => new(item.Id, ToDto(item.FoodProduct),
-        item.Quantity, item.Unit, item.Location, item.BestBeforeDate, item.PurchasedDate);
+        item.Quantity, item.Unit, item.Location, item.BestBeforeDate, item.PurchasedDate, item.FoodCategory?.Name);
     private static string NormalizeBarcode(string value) => new(value.Where(char.IsAsciiDigit).ToArray());
     private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     private static string? ValidateStock(decimal quantity, string unit, string location) =>

@@ -8,9 +8,10 @@ public sealed record FoodProductModel(
 
 public sealed record FoodStockItemModel(
     int Id, FoodProductModel Product, decimal Quantity, string Unit,
-    string Location, DateOnly? BestBeforeDate, DateOnly? PurchasedDate);
+    string Location, DateOnly? BestBeforeDate, DateOnly? PurchasedDate, string? Category);
 public sealed record FoodStoreModel(int Id, string Name);
 public sealed record FoodStorageLocationModel(int Id, string Name);
+public sealed record FoodCategoryModel(int Id, string Name);
 public sealed record FoodPriceHistoryModel(int Id, int ProductId, string StoreName,
     decimal Quantity, string Unit, decimal TotalPrice, decimal UnitPrice, DateOnly PurchasedDate);
 
@@ -19,6 +20,9 @@ public sealed class AddFoodStockModel
 {
     [Required]
     public int FoodProductId { get; set; }
+    [Required]
+    public int? FoodCategoryId { get; set; }
+
 
     [Range(0.001, 999999)]
     public decimal Quantity { get; set; } = 1;

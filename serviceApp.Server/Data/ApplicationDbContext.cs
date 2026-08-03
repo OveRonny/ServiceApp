@@ -55,6 +55,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<serviceApp.Server.Entities.FoodStorage.FoodStore> FoodStores { get; set; }
     public DbSet<serviceApp.Server.Entities.FoodStorage.FoodPurchase> FoodPurchases { get; set; }
     public DbSet<serviceApp.Server.Entities.FoodStorage.FoodStorageLocation> FoodStorageLocations { get; set; }
+    public DbSet<serviceApp.Server.Entities.FoodStorage.FoodCategory> FoodCategories { get; set; }
 
 
 
@@ -181,6 +182,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         {
             b.HasQueryFilter(x => _familyId != null && x.FamilyId == _familyId);
             b.HasIndex(x => new { x.FamilyId, x.Name }).IsUnique();
+        });
+
+        modelBuilder.Entity<serviceApp.Server.Entities.FoodStorage.FoodCategory>(b =>
+        {
+            b.HasQueryFilter(x => _familyId != null && x.FamilyId == _familyId);
+            b.HasIndex(x => new { x.FamilyId, x.Name }).IsUnique();
+            b.HasMany(x => x.StockItems).WithOne(x => x.FoodCategory)
+                .HasForeignKey(x => x.FoodCategoryId).OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<serviceApp.Server.Entities.FoodStorage.FoodPurchase>(b =>

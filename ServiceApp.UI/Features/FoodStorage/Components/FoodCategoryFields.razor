@@ -1,0 +1,42 @@
+@using ServiceApp.UI.Features.FoodStorage.Models
+@using ServiceApp.UI.Features.FoodStorage.Services
+@inject IFoodStorageService FoodStorageService
+
+<div class="col-md-3">
+    <label class="form-label">Matvarekategori</label>
+    <InputSelect class="form-select" @bind-Value="Model.FoodCategoryId">
+        <option value="">Velg kategori</option>
+        @foreach (var category in categories)
+        {
+            <option value="@category.Id">@category.Name</option>
+        }
+    </InputSelect>
+</div>
+<div class="col-12">
+    <div class="input-group input-group-sm" style="max-width:420px">
+        <input class="form-control" placeholder="Legg til ny kategori" @bind="newCategoryName" />
+        <button type="button" class="btn btn-outline-secondary" @onclick="CreateCategoryAsync">Ny kategori</button>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public AddFoodStockModel Model { get; set; } = null!;
+    private IReadOnlyList<FoodCategoryModel> categories = [];
+    private string newCategoryName = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await FoodStorageService.GetCategoriesAsync();
+        if (Model.FoodCategoryId is null && categories.Count > 0)
+            Model.FoodCategoryId = categories[0].Id;
+    }
+
+    private async Task CreateCategoryAsync()
+    {
+        if (string.IsNullOrWhiteSpace(newCategoryName)) return;
+        var category = await FoodStorageService.CreateCategoryAsync(newCategoryName);
+        categories = await FoodStorageService.GetCategoriesAsync();
+        Model.FoodCategoryId = category.Id;
+        newCategoryName = string.Empty;
+    }
+}

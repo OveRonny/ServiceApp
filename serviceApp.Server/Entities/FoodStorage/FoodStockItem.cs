@@ -8,6 +8,8 @@ public sealed class FoodStockItem
     public Guid FamilyId { get; set; }
     public int FoodProductId { get; set; }
     public FoodProduct FoodProduct { get; set; } = null!;
+    public int? FoodCategoryId { get; set; }
+    public FoodCategory? FoodCategory { get; set; }
 
     [Precision(18, 3)]
     public decimal Quantity { get; set; }

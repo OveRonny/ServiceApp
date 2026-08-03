@@ -3,6 +3,7 @@
 @using ServiceApp.UI.Features.FoodStorage.Models
 @using ServiceApp.UI.Features.FoodStorage.Services
 @inject IFoodStorageService FoodStorageService
+@using ServiceApp.UI.Features.FoodStorage.Components
 
 <PageTitle>Matlager</PageTitle>
 
@@ -53,6 +54,7 @@
                     <div class="col-6 col-md-2"><label class="form-label">Enhet</label><InputText class="form-control" @bind-Value="stockForm.Unit" /></div>
                     <div class="col-md-3"><label class="form-label">Plassering</label><InputText class="form-control" @bind-Value="stockForm.Location" /></div>
                     <div class="col-md-3"><label class="form-label">Best før</label><InputDate class="form-control" @bind-Value="stockForm.BestBeforeDate" /></div>
+                    <PurchaseFields Model="stockForm" />
                     <div class="col-md-2 d-flex align-items-end"><button class="btn btn-success w-100" disabled="@isBusy">Legg på lager</button></div>
                     <ValidationSummary />
                 </EditForm>
@@ -97,7 +99,7 @@
                         <td><strong>@item.Product.Name</strong><br /><small class="text-muted">@item.Product.Brand</small></td>
                         <td>@item.Quantity @item.Unit</td><td>@item.Location</td>
                         <td>@(item.BestBeforeDate?.ToString("dd.MM.yyyy") ?? "–")</td>
-                        <td class="text-end"><button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(item.Id)">Fjern</button></td>
+                        <td class="text-end position-relative"><PriceHistory ProductId="item.Product.Id" /><button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(item.Id)">Fjern</button></td>
                     </tr>
                 }
                 </tbody>

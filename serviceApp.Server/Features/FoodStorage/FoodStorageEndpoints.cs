@@ -16,6 +16,9 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         group.MapPost("/stock", CreateStockItemAsync);
         group.MapPut("/stock/{id:int}", UpdateStockItemAsync);
         group.MapDelete("/stock/{id:int}", DeleteStockItemAsync);
+        group.MapGet("/stores", GetStoresAsync);
+        group.MapPost("/stores", CreateStoreAsync);
+        group.MapGet("/products/{productId:int}/price-history", GetPriceHistoryAsync);
     }
 
     private static async Task<IResult> LookupBarcodeAsync(string barcode, ApplicationDbContext db,
@@ -88,6 +91,14 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         if (familyId is null) return Results.Unauthorized();
         var validation = ValidateStock(request.Quantity, request.Unit, request.Location);
         if (validation is not null) return Results.BadRequest(validation);
+        if (request.FoodStoreId.HasValue != request.TotalPrice.HasValue)
+            return Results.BadRequest("Butikk og pris må oppgis sammen.");
+        if (request.TotalPrice is <= 0)
+            return Results.BadRequest("Pris må være større enn null.");
+        if (request.FoodStoreId is int storeId &&
+            !await db.FoodStores.AnyAsync(x => x.Id == storeId, cancellationToken))
+            return Results.BadRequest("Butikken finnes ikke.");
+
         if (!await db.FoodProducts.AnyAsync(x => x.Id == request.FoodProductId, cancellationToken))
             return Results.BadRequest("Produktet finnes ikke.");
 
@@ -98,6 +109,17 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
             BestBeforeDate = request.BestBeforeDate, PurchasedDate = request.PurchasedDate
         };
         db.FoodStockItems.Add(item);
+        if (request.FoodStoreId is int purchaseStoreId && request.TotalPrice is decimal totalPrice)
+        {
+            db.FoodPurchases.Add(new FoodPurchase
+            {
+                FamilyId = familyId.Value, FoodProductId = request.FoodProductId,
+                FoodStoreId = purchaseStoreId, Quantity = request.Quantity,
+                Unit = request.Unit.Trim(), TotalPrice = totalPrice,
+                PurchasedDate = request.PurchasedDate ?? DateOnly.FromDateTime(DateTime.UtcNow)
+            });
+        }
+
         await db.SaveChangesAsync(cancellationToken);
         await db.Entry(item).Reference(x => x.FoodProduct).LoadAsync(cancellationToken);
         return Results.Created($"/api/food-storage/stock/{item.Id}", ToDto(item));
@@ -128,6 +150,42 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         await db.SaveChangesAsync(cancellationToken);
         return Results.NoContent();
     }
+    private static async Task<IResult> GetStoresAsync(ApplicationDbContext db, CancellationToken cancellationToken)
+    {
+        var stores = await db.FoodStores.AsNoTracking().OrderBy(x => x.Name)
+            .Select(x => new FoodStoreDto(x.Id, x.Name)).ToListAsync(cancellationToken);
+        return Results.Ok(stores);
+    }
+
+    private static async Task<IResult> CreateStoreAsync(CreateFoodStoreRequest request,
+        ApplicationDbContext db, ICurrentUser currentUser, CancellationToken cancellationToken)
+    {
+        var familyId = await currentUser.GetFamilyIdAsync(cancellationToken);
+        if (familyId is null) return Results.Unauthorized();
+        var name = request.Name.Trim();
+        if (name.Length is < 2 or > 150)
+            return Results.BadRequest("Butikknavn må inneholde mellom 2 og 150 tegn.");
+        var existing = await db.FoodStores.AsNoTracking()
+            .SingleOrDefaultAsync(x => x.Name == name, cancellationToken);
+        if (existing is not null) return Results.Ok(new FoodStoreDto(existing.Id, existing.Name));
+        var store = new FoodStore { FamilyId = familyId.Value, Name = name };
+        db.FoodStores.Add(store);
+        await db.SaveChangesAsync(cancellationToken);
+        return Results.Created($"/api/food-storage/stores/{store.Id}", new FoodStoreDto(store.Id, store.Name));
+    }
+
+    private static async Task<IResult> GetPriceHistoryAsync(int productId, ApplicationDbContext db,
+        CancellationToken cancellationToken)
+    {
+        var history = await db.FoodPurchases.AsNoTracking()
+            .Where(x => x.FoodProductId == productId)
+            .OrderByDescending(x => x.PurchasedDate).ThenByDescending(x => x.Id)
+            .Select(x => new FoodPriceHistoryDto(x.Id, x.FoodProductId, x.FoodStore.Name,
+                x.Quantity, x.Unit, x.TotalPrice, x.Quantity == 0 ? 0 : x.TotalPrice / x.Quantity,
+                x.PurchasedDate)).ToListAsync(cancellationToken);
+        return Results.Ok(history);
+    }
+
 
     private static FoodProductDto ToDto(FoodProduct product) => new(product.Id, product.Barcode,
         product.Name, product.Brand, product.QuantityLabel, product.ImageUrl, product.Source);

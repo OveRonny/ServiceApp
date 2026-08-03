@@ -17,6 +17,14 @@ public sealed record FoodStockItemDto(
     string Location,
     DateOnly? BestBeforeDate,
     DateOnly? PurchasedDate);
+public sealed record FoodStoreDto(int Id, string Name);
+
+public sealed record FoodPriceHistoryDto(
+    int Id, int ProductId, string StoreName, decimal Quantity, string Unit,
+    decimal TotalPrice, decimal UnitPrice, DateOnly PurchasedDate);
+
+public sealed record CreateFoodStoreRequest(string Name);
+
 
 public sealed record CreateFoodStockItemRequest(
     int FoodProductId,
@@ -24,7 +32,9 @@ public sealed record CreateFoodStockItemRequest(
     string Unit,
     string Location,
     DateOnly? BestBeforeDate,
-    DateOnly? PurchasedDate);
+    DateOnly? PurchasedDate,
+    int? FoodStoreId,
+    decimal? TotalPrice);
 
 public sealed record UpdateFoodStockItemRequest(
     decimal Quantity,

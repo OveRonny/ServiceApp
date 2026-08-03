@@ -1,0 +1,41 @@
+@using ServiceApp.UI.Features.FoodStorage.Models
+@using ServiceApp.UI.Features.FoodStorage.Services
+@inject IFoodStorageService FoodStorageService
+
+<div class="col-md-3">
+    <label class="form-label">Butikk</label>
+    <InputSelect class="form-select" @bind-Value="Model.FoodStoreId">
+        <option value="">Velg butikk</option>
+        @foreach (var store in stores)
+        {
+            <option value="@store.Id">@store.Name</option>
+        }
+    </InputSelect>
+</div>
+<div class="col-md-2">
+    <label class="form-label">Pris betalt</label>
+    <div class="input-group"><InputNumber class="form-control" @bind-Value="Model.TotalPrice" /><span class="input-group-text">kr</span></div>
+</div>
+<div class="col-12">
+    <div class="input-group input-group-sm" style="max-width:420px">
+        <input class="form-control" placeholder="Legg til ny butikk" @bind="newStoreName" />
+        <button type="button" class="btn btn-outline-secondary" @onclick="CreateStoreAsync">Ny butikk</button>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public AddFoodStockModel Model { get; set; } = null!;
+    private IReadOnlyList<FoodStoreModel> stores = [];
+    private string newStoreName = string.Empty;
+
+    protected override async Task OnInitializedAsync() => stores = await FoodStorageService.GetStoresAsync();
+
+    private async Task CreateStoreAsync()
+    {
+        if (string.IsNullOrWhiteSpace(newStoreName)) return;
+        var store = await FoodStorageService.CreateStoreAsync(newStoreName);
+        stores = await FoodStorageService.GetStoresAsync();
+        Model.FoodStoreId = store.Id;
+        newStoreName = string.Empty;
+    }
+}

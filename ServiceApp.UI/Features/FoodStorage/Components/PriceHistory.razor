@@ -1,0 +1,41 @@
+@using ServiceApp.UI.Features.FoodStorage.Models
+@using ServiceApp.UI.Features.FoodStorage.Services
+@inject IFoodStorageService FoodStorageService
+
+<button type="button" class="btn btn-sm btn-outline-primary me-1" @onclick="ToggleAsync">Priser</button>
+@if (show)
+{
+    <div class="card position-absolute end-0 mt-1 shadow" style="z-index:10;min-width:360px">
+        <div class="card-body p-2 text-start">
+            <strong>Prishistorikk</strong>
+            @if (history.Count == 0)
+            {
+                <div class="text-muted small mt-2">Ingen priser registrert.</div>
+            }
+            else
+            {
+                <table class="table table-sm mb-0 mt-2">
+                    <thead><tr><th>Dato</th><th>Butikk</th><th>Pris</th><th>Per enhet</th></tr></thead>
+                    <tbody>
+                    @foreach (var price in history)
+                    {
+                        <tr><td>@price.PurchasedDate.ToString("dd.MM.yyyy")</td><td>@price.StoreName</td>
+                            <td>@price.TotalPrice.ToString("C")</td><td>@price.UnitPrice.ToString("C")/@price.Unit</td></tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int ProductId { get; set; }
+    private IReadOnlyList<FoodPriceHistoryModel> history = [];
+    private bool show;
+    private async Task ToggleAsync()
+    {
+        show = !show;
+        if (show) history = await FoodStorageService.GetPriceHistoryAsync(ProductId);
+    }
+}

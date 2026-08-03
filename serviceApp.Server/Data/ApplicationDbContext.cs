@@ -52,6 +52,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<WatchlistItem> WatchlistItems { get; set; }
     public DbSet<serviceApp.Server.Entities.FoodStorage.FoodProduct> FoodProducts { get; set; }
     public DbSet<serviceApp.Server.Entities.FoodStorage.FoodStockItem> FoodStockItems { get; set; }
+    public DbSet<serviceApp.Server.Entities.FoodStorage.FoodStore> FoodStores { get; set; }
+    public DbSet<serviceApp.Server.Entities.FoodStorage.FoodPurchase> FoodPurchases { get; set; }
 
 
 
@@ -168,6 +170,22 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             b.HasOne(x => x.FoodProduct).WithMany(x => x.StockItems)
                 .HasForeignKey(x => x.FoodProductId).OnDelete(DeleteBehavior.Restrict);
         });
+        modelBuilder.Entity<serviceApp.Server.Entities.FoodStorage.FoodStore>(b =>
+        {
+            b.HasQueryFilter(x => _familyId != null && x.FamilyId == _familyId);
+            b.HasIndex(x => new { x.FamilyId, x.Name }).IsUnique();
+        });
+
+        modelBuilder.Entity<serviceApp.Server.Entities.FoodStorage.FoodPurchase>(b =>
+        {
+            b.HasQueryFilter(x => _familyId != null && x.FamilyId == _familyId);
+            b.HasIndex(x => new { x.FamilyId, x.FoodProductId, x.PurchasedDate });
+            b.HasOne(x => x.FoodProduct).WithMany()
+                .HasForeignKey(x => x.FoodProductId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne(x => x.FoodStore).WithMany(x => x.Purchases)
+                .HasForeignKey(x => x.FoodStoreId).OnDelete(DeleteBehavior.Restrict);
+        });
+
 
     }
 

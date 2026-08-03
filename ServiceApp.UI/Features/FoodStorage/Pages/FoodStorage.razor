@@ -51,6 +51,7 @@
                 <EditForm Model="stockForm" OnValidSubmit="AddStockAsync" FormName="add-food-stock" class="row g-3 mt-2">
                     <DataAnnotationsValidator />
                     <div class="col-6 col-md-2"><label class="form-label">Antall</label><InputNumber class="form-control" @bind-Value="stockForm.Quantity" /></div>
+                    <div class="col-6 col-md-2"><label class="form-label">Minimum</label><InputNumber class="form-control" @bind-Value="stockForm.MinimumQuantity" /></div>
                     <div class="col-6 col-md-2"><label class="form-label">Enhet</label><InputText class="form-control" @bind-Value="stockForm.Unit" /></div>
                     <StorageLocationFields Model="stockForm" />
                     <FoodCategoryFields Model="stockForm" />
@@ -78,6 +79,8 @@
             </div>
         </div>
     }
+
+    <RecommendedShoppingList @key="shoppingListVersion" />
 
     <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-3">
         <div>
@@ -112,13 +115,14 @@
     {
         <div class="table-responsive">
             <table class="table align-middle">
-                <thead><tr><th>Produkt</th><th>Kategori</th><th>Beholdning</th><th>Enhetspris</th><th>Verdi</th><th>Plassering</th><th>Best før</th><th></th></tr></thead>
+                <thead><tr><th>Produkt</th><th>Kategori</th><th>Beholdning</th><th>Minimum</th><th>Enhetspris</th><th>Verdi</th><th>Plassering</th><th>Best før</th><th></th></tr></thead>
                 <tbody>
                 @foreach (var item in FilteredAndSortedStock)
                 {
                     <tr class="@(IsExpiringSoon(item) ? "table-warning" : null)">
                         <td><strong>@item.Product.Name</strong><br /><small class="text-muted">@item.Product.Brand</small></td>
                         <td>@(item.Category ?? "–")</td><td>@item.Quantity @item.Unit</td>
+                        <td><MinimumQuantityEditor StockItemId="item.Id" Value="item.MinimumQuantity" OnSaved="RefreshAfterMinimumAsync" /></td>
                         <td>@(item.LatestUnitPrice is decimal unitPrice ? $"{unitPrice:N2} kr" : "–")</td>
                         <td><strong>@item.EstimatedValue.ToString("N2") kr</strong></td><td>@item.Location</td>
                         <td>@(item.BestBeforeDate?.ToString("dd.MM.yyyy") ?? "–")</td>
@@ -143,6 +147,7 @@
     private bool showManualForm;
     private bool isBusy;
     private bool isLoading = true;
+    private int shoppingListVersion;
 
     protected override async Task OnInitializedAsync() => await ReloadAsync();
 
@@ -168,13 +173,19 @@
     private async Task AddStockAsync()
     {
         isBusy = true;
-        try { await FoodStorageService.AddStockAsync(stockForm); selectedProduct = null; barcode = string.Empty; await ReloadAsync(); }
+        try { await FoodStorageService.AddStockAsync(stockForm); selectedProduct = null; barcode = string.Empty; shoppingListVersion++; await ReloadAsync(); }
         finally { isBusy = false; }
     }
 
-    private async Task DeleteAsync(int id) { await FoodStorageService.DeleteStockAsync(id); await ReloadAsync(); }
+    private async Task DeleteAsync(int id) { await FoodStorageService.DeleteStockAsync(id); shoppingListVersion++; await ReloadAsync(); }
     private async Task ReloadAsync() { isLoading = true; stock = (await FoodStorageService.GetStockAsync()).ToList(); isLoading = false; }
     private decimal TotalStockValue => stock.Sum(x => x.EstimatedValue);
+    private async Task RefreshAfterMinimumAsync()
+    {
+        shoppingListVersion++;
+        await ReloadAsync();
+    }
+
     private int PricedItemCount => stock.Count(x => x.LatestUnitPrice.HasValue);
 
     private IEnumerable<FoodStockItemModel> FilteredAndSortedStock

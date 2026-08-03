@@ -16,4 +16,6 @@ public interface IFoodStorageService
     Task<IReadOnlyList<FoodCategoryModel>> GetCategoriesAsync(CancellationToken cancellationToken = default);
     Task<FoodCategoryModel> CreateCategoryAsync(string name, CancellationToken cancellationToken = default);
     Task DeleteStockAsync(int id, CancellationToken cancellationToken = default);
+    Task SetMinimumQuantityAsync(int id, decimal? minimumQuantity, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<FoodShoppingListItemModel>> GetShoppingListAsync(CancellationToken cancellationToken = default);
 }

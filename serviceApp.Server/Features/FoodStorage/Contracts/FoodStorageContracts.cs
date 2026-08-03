@@ -19,7 +19,8 @@ public sealed record FoodStockItemDto(
     DateOnly? PurchasedDate,
     string? Category,
     decimal? LatestUnitPrice,
-    decimal EstimatedValue);
+    decimal EstimatedValue,
+    decimal? MinimumQuantity);
 public sealed record FoodStoreDto(int Id, string Name);
 public sealed record FoodStorageLocationDto(int Id, string Name);
 public sealed record FoodCategoryDto(int Id, string Name);
@@ -27,6 +28,10 @@ public sealed record FoodCategoryDto(int Id, string Name);
 public sealed record FoodPriceHistoryDto(
     int Id, int ProductId, string StoreName, decimal Quantity, string Unit,
     decimal TotalPrice, decimal UnitPrice, DateOnly PurchasedDate);
+
+public sealed record FoodShoppingListItemDto(int StockItemId, string ProductName, string? Category,
+    string Location, decimal CurrentQuantity, decimal MinimumQuantity,
+    decimal RecommendedQuantity, string Unit);
 
 public sealed record CreateFoodStoreRequest(string Name);
 
@@ -37,6 +42,7 @@ public sealed record CreateFoodStockItemRequest(
     int FoodProductId,
     int? FoodCategoryId,
     decimal Quantity,
+    decimal? MinimumQuantity,
     string Unit,
     string Location,
     DateOnly? BestBeforeDate,
@@ -46,11 +52,14 @@ public sealed record CreateFoodStockItemRequest(
 
 public sealed record UpdateFoodStockItemRequest(
     decimal Quantity,
+    decimal? MinimumQuantity,
     string Unit,
     string Location,
     DateOnly? BestBeforeDate,
     DateOnly? PurchasedDate);
 
+
+public sealed record SetMinimumQuantityRequest(decimal? MinimumQuantity);
 public sealed record CreateManualFoodProductRequest(
     string Name,
     string? Barcode,

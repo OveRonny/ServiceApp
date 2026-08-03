@@ -1,0 +1,22 @@
+@using ServiceApp.UI.Features.FoodStorage.Services
+@inject IFoodStorageService FoodStorageService
+
+<div class="input-group input-group-sm" style="min-width:150px">
+    <InputNumber class="form-control" @bind-Value="minimumQuantity" />
+    <button type="button" class="btn btn-outline-primary" title="Lagre minimum" @onclick="SaveAsync">Lagre</button>
+</div>
+
+@code {
+    [Parameter] public int StockItemId { get; set; }
+    [Parameter] public decimal? Value { get; set; }
+    [Parameter] public EventCallback OnSaved { get; set; }
+    private decimal? minimumQuantity;
+
+    protected override void OnParametersSet() => minimumQuantity = Value;
+
+    private async Task SaveAsync()
+    {
+        await FoodStorageService.SetMinimumQuantityAsync(StockItemId, minimumQuantity);
+        await OnSaved.InvokeAsync();
+    }
+}

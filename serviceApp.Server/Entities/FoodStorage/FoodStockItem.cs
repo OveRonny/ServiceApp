@@ -13,6 +13,9 @@ public sealed class FoodStockItem
 
     [Precision(18, 3)]
     public decimal Quantity { get; set; }
+    [Precision(18, 3)]
+    public decimal? MinimumQuantity { get; set; }
+
 
     [MaxLength(40)]
     public string Unit { get; set; } = "stk";

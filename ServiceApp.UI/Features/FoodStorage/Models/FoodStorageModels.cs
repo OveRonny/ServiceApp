@@ -9,12 +9,15 @@ public sealed record FoodProductModel(
 public sealed record FoodStockItemModel(
     int Id, FoodProductModel Product, decimal Quantity, string Unit,
     string Location, DateOnly? BestBeforeDate, DateOnly? PurchasedDate, string? Category,
-    decimal? LatestUnitPrice, decimal EstimatedValue);
+    decimal? LatestUnitPrice, decimal EstimatedValue, decimal? MinimumQuantity);
 public sealed record FoodStoreModel(int Id, string Name);
 public sealed record FoodStorageLocationModel(int Id, string Name);
 public sealed record FoodCategoryModel(int Id, string Name);
 public sealed record FoodPriceHistoryModel(int Id, int ProductId, string StoreName,
     decimal Quantity, string Unit, decimal TotalPrice, decimal UnitPrice, DateOnly PurchasedDate);
+public sealed record FoodShoppingListItemModel(int StockItemId, string ProductName, string? Category,
+    string Location, decimal CurrentQuantity, decimal MinimumQuantity, decimal RecommendedQuantity, string Unit);
+
 
 
 public sealed class AddFoodStockModel
@@ -27,6 +30,9 @@ public sealed class AddFoodStockModel
 
     [Range(0.001, 999999)]
     public decimal Quantity { get; set; } = 1;
+    [Range(0, 999999)]
+    public decimal? MinimumQuantity { get; set; }
+
 
     [Required, StringLength(40)]
     public string Unit { get; set; } = "stk";

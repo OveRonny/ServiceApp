@@ -16,6 +16,8 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         group.MapPost("/stock", CreateStockItemAsync);
         group.MapPut("/stock/{id:int}", UpdateStockItemAsync);
         group.MapDelete("/stock/{id:int}", DeleteStockItemAsync);
+        group.MapPut("/stock/{id:int}/minimum", SetMinimumQuantityAsync);
+        group.MapGet("/shopping-list", GetShoppingListAsync);
         group.MapGet("/stores", GetStoresAsync);
         group.MapPost("/stores", CreateStoreAsync);
         group.MapGet("/products/{productId:int}/price-history", GetPriceHistoryAsync);
@@ -133,7 +135,8 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
             FamilyId = familyId.Value, FoodProductId = request.FoodProductId,
             Quantity = request.Quantity, Unit = request.Unit.Trim(), Location = request.Location.Trim(),
             FoodCategoryId = request.FoodCategoryId,
-            BestBeforeDate = request.BestBeforeDate, PurchasedDate = request.PurchasedDate
+            BestBeforeDate = request.BestBeforeDate, PurchasedDate = request.PurchasedDate,
+            MinimumQuantity = request.MinimumQuantity,
         };
         db.FoodStockItems.Add(item);
         if (request.FoodStoreId is int purchaseStoreId && request.TotalPrice is decimal totalPrice)
@@ -164,6 +167,7 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         item.Quantity = request.Quantity; item.Unit = request.Unit.Trim();
         item.Location = request.Location.Trim(); item.BestBeforeDate = request.BestBeforeDate;
         item.PurchasedDate = request.PurchasedDate; item.UpdatedAt = DateTimeOffset.UtcNow;
+        item.MinimumQuantity = request.MinimumQuantity;
         await db.SaveChangesAsync(cancellationToken);
         return Results.Ok(ToDto(item));
     }
@@ -277,11 +281,42 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         return Results.Created($"/api/food-storage/categories/{category.Id}", new FoodCategoryDto(category.Id, category.Name));
     }
 
+    private static async Task<IResult> SetMinimumQuantityAsync(int id, SetMinimumQuantityRequest request,
+        ApplicationDbContext db, CancellationToken cancellationToken)
+    {
+        if (request.MinimumQuantity is < 0) return Results.BadRequest("Minimum kan ikke være negativt.");
+        var item = await db.FoodStockItems.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (item is null) return Results.NotFound();
+        item.MinimumQuantity = request.MinimumQuantity;
+        item.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(cancellationToken);
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> GetShoppingListAsync(ApplicationDbContext db,
+        CancellationToken cancellationToken)
+    {
+        var items = await db.FoodStockItems.AsNoTracking()
+            .Where(x => x.MinimumQuantity.HasValue && x.Quantity < x.MinimumQuantity.Value)
+            .OrderBy(x => x.FoodCategory!.Name).ThenBy(x => x.FoodProduct.Name)
+            .Select(x => new FoodShoppingListItemDto(
+                x.Id,
+                x.FoodProduct.Name,
+                x.FoodCategory == null ? null : x.FoodCategory.Name,
+                x.Location,
+                x.Quantity,
+                x.MinimumQuantity!.Value,
+                x.MinimumQuantity.Value - x.Quantity,
+                x.Unit))
+            .ToListAsync(cancellationToken);
+        return Results.Ok(items);
+    }
+
     private static FoodProductDto ToDto(FoodProduct product) => new(product.Id, product.Barcode,
         product.Name, product.Brand, product.QuantityLabel, product.ImageUrl, product.Source);
     private static FoodStockItemDto ToDto(FoodStockItem item, decimal? unitPrice = null) => new(item.Id, ToDto(item.FoodProduct),
         item.Quantity, item.Unit, item.Location, item.BestBeforeDate, item.PurchasedDate,
-        item.FoodCategory?.Name, unitPrice, unitPrice.GetValueOrDefault() * item.Quantity);
+        item.FoodCategory?.Name, unitPrice, unitPrice.GetValueOrDefault() * item.Quantity, item.MinimumQuantity);
     private static string NormalizeBarcode(string value) => new(value.Where(char.IsAsciiDigit).ToArray());
     private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     private static string? ValidateStock(decimal quantity, string unit, string location) =>

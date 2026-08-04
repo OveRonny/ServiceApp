@@ -1,0 +1,69 @@
+@using System.Text.Json
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+
+@if (!loaded)
+{
+    <div class="text-muted">Laster handlelister…</div>
+}
+else if (!ArchivedLists.Any())
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <div class="display-6 mb-2">🛒</div>
+            <h2 class="h5">Ingen gamle handlelister</h2>
+            <p class="text-muted mb-0">Lister vises her når alle varene er krysset av.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="shopping-history-grid">
+        @foreach (var list in ArchivedLists)
+        {
+            <article class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                        <div>
+                            <h2 class="h5 mb-1">@list.Name</h2>
+                            <div class="small text-muted">@list.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(list.Id)">Slett</button>
+                    </div>
+                    @foreach (var item in list.Items)
+                    {
+                        <div class="d-flex gap-2 align-items-center py-2 border-top">
+                            <span class="text-success" aria-hidden="true">✓</span>
+                            <span>@item.ProductName</span>
+                        </div>
+                    }
+                </div>
+            </article>
+        }
+    </div>
+}
+
+@code {
+    private const string StorageKey = "food-storage-custom-shopping-lists";
+    private List<CustomShoppingLists.SavedShoppingList> lists = [];
+    private bool loaded;
+    private IEnumerable<CustomShoppingLists.SavedShoppingList> ArchivedLists =>
+        lists.Where(x => x.Items.Count > 0 && x.Items.All(item => item.IsPurchased))
+            .OrderByDescending(x => x.CreatedAt);
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        var json = await JS.InvokeAsync<string?>("localStorage.getItem", StorageKey);
+        if (!string.IsNullOrWhiteSpace(json))
+            lists = JsonSerializer.Deserialize<List<CustomShoppingLists.SavedShoppingList>>(json) ?? [];
+        loaded = true;
+        StateHasChanged();
+    }
+
+    private async Task DeleteAsync(Guid id)
+    {
+        lists.RemoveAll(x => x.Id == id);
+        await JS.InvokeVoidAsync("localStorage.setItem", StorageKey, JsonSerializer.Serialize(lists));
+    }
+}

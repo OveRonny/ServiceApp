@@ -1,0 +1,20 @@
+@page "/food-shopping-list-history"
+@attribute [Authorize]
+@using ServiceApp.UI.Features.FoodStorage.Components
+
+<PageTitle>Gamle handlelister</PageTitle>
+
+<main class="container-lg py-3 shopping-page">
+    <header class="mb-3">
+        <div class="text-uppercase text-muted small">Matlager</div>
+        <h1 class="h2 mb-1">Gamle handlelister</h1>
+        <p class="text-muted mb-0">Ferdige lister der alle varene er krysset av.</p>
+    </header>
+
+    <nav class="d-flex gap-2 mb-4">
+        <a class="btn btn-outline-primary" href="/food-shopping-list">Aktive lister</a>
+        <a class="btn btn-primary" href="/food-shopping-list-history">Gamle handlelister</a>
+    </nav>
+
+    <ArchivedShoppingLists />
+</main>

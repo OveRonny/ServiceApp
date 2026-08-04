@@ -1,0 +1,18 @@
+.shopping-history-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+    gap: 1rem;
+}
+
+::deep .card {
+    color: var(--text-primary);
+    background: var(--gray-800);
+    border: 1px solid rgba(148, 163, 184, .22);
+    border-radius: 1rem;
+}
+
+@media (max-width: 575.98px) {
+    ::deep .card-body {
+        padding: 1rem;
+    }
+}

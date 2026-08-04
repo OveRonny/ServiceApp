@@ -1,0 +1,42 @@
+@page "/food-shopping-list"
+@attribute [Authorize]
+@using ServiceApp.UI.Features.FoodStorage.Components
+@using ServiceApp.UI.Features.FoodStorage.Models
+@using ServiceApp.UI.Features.FoodStorage.Services
+@inject IFoodStorageService FoodStorageService
+
+<PageTitle>Handleliste</PageTitle>
+
+<main class="container-lg py-3 shopping-page">
+    <header class="mb-3">
+        <div class="text-uppercase text-muted small">Matlager</div>
+        <h1 class="h2 mb-1">🛒 Handleliste</h1>
+        <p class="text-muted mb-0">Anbefalte varer og dine egne aktive handlelister.</p>
+    </header>
+
+    <nav class="d-flex gap-2 mb-4">
+        <a class="btn btn-primary" href="/food-shopping-list">Aktive lister</a>
+        <a class="btn btn-outline-primary" href="/food-shopping-list-history">Gamle handlelister</a>
+    </nav>
+
+    <RecommendedShoppingList />
+    @if (isLoading)
+    {
+        <div class="text-muted">Laster varer…</div>
+    }
+    else
+    {
+        <CustomShoppingLists Stock="stock" />
+    }
+</main>
+
+@code {
+    private IReadOnlyList<FoodStockItemModel> stock = [];
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        stock = await FoodStorageService.GetStockAsync();
+        isLoading = false;
+    }
+}

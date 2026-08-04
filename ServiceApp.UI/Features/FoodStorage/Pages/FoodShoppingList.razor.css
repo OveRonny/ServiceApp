@@ -1,0 +1,28 @@
+.shopping-page {
+    min-height: calc(100vh - 5rem);
+    color: var(--text-primary);
+}
+
+.shopping-page .text-muted {
+    color: #b8c2d1 !important;
+}
+
+@media (max-width: 575.98px) {
+    .shopping-page {
+        padding-inline: .75rem;
+    }
+
+    .shopping-page nav {
+        position: sticky;
+        top: .5rem;
+        z-index: 20;
+        padding: .5rem;
+        background: rgba(17, 24, 39, .94);
+        border-radius: .75rem;
+    }
+
+    .shopping-page nav .btn {
+        flex: 1;
+        min-height: 44px;
+    }
+}

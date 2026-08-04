@@ -46,7 +46,8 @@
         @if (lists.Count > 0)
         {
             <div class="row row-cols-1 row-cols-lg-2 g-3">
-                @foreach (var list in lists.OrderByDescending(x => x.CreatedAt))
+                @foreach (var list in lists.Where(x => x.Items.Count == 0 || x.Items.Any(item => !item.IsPurchased))
+                    .OrderByDescending(x => x.CreatedAt))
                 {
                     <div class="col">
                         <article class="border rounded p-3 h-100">

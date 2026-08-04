@@ -53,6 +53,7 @@ public sealed record CreateFoodStockItemRequest(
 
 public sealed record UpdateFoodStockItemRequest(
     decimal Quantity,
+    int? FoodCategoryId,
     decimal? MinimumQuantity,
     string Unit,
     string Location,

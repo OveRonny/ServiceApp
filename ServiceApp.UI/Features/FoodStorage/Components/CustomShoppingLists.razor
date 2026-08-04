@@ -53,35 +53,41 @@
                     <div class="col">
                         <article class="border rounded p-3 h-100">
                             <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                                <div><strong>@list.Name</strong><div class="small text-muted">@list.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</div></div>
+                                <div class="flex-grow-1 me-2">
+                                    <InputText class="form-control fw-semibold" @bind-Value="list.Name" @bind-Value:after="PersistAsync" />
+                                    <div class="small text-muted mt-1">@list.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</div>
+                                </div>
                                 <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => DeleteListAsync(list.Id)">Slett</button>
                             </div>
                             <label class="form-label small">Butikk</label>
-                            <select class="form-select mb-3" @bind="list.FoodStoreId">
+                            <select class="form-select mb-3" @bind="list.FoodStoreId" @bind:after="PersistAsync">
                                 <option value="">Velg butikk</option>
                                 @foreach (var store in stores) { <option value="@store.Id">@store.Name</option> }
                             </select>
                             @foreach (var item in list.Items)
                             {
                                 <div class="border-top py-3">
-                                    <strong class="d-block mb-2">@item.ProductName</strong>
+                                    <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                                        <strong>@item.ProductName</strong>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => RemoveItemAsync(list, item)">Fjern vare</button>
+                                    </div>
                                     <div class="row g-2">
                                         <div class="col-6">
                                             <label class="form-label small">Kjøpt antall</label>
-                                            <div class="input-group"><InputNumber class="form-control" min="0.001" @bind-Value="item.Quantity" /><span class="input-group-text">@item.Unit</span></div>
+                                            <div class="input-group"><InputNumber class="form-control" min="0.001" @bind-Value="item.Quantity" @bind-Value:after="PersistAsync" /><span class="input-group-text">@item.Unit</span></div>
                                         </div>
                                         <div class="col-6">
                                             <label class="form-label small">Pris per @item.Unit</label>
-                                            <div class="input-group"><InputNumber class="form-control" min="0.01" @bind-Value="item.UnitPrice" /><span class="input-group-text">kr</span></div>
+                                            <div class="input-group"><InputNumber class="form-control" min="0.01" @bind-Value="item.UnitPrice" @bind-Value:after="PersistAsync" /><span class="input-group-text">kr</span></div>
                                             @if (item.UnitPrice.HasValue) { <small class="text-muted">Tidligere pris er foreslått</small> }
                                         </div>
                                         <div class="col-6">
                                             <label class="form-label small">Best før</label>
-                                            <InputDate class="form-control" @bind-Value="item.BestBeforeDate" />
+                                            <InputDate class="form-control" @bind-Value="item.BestBeforeDate" @bind-Value:after="PersistAsync" />
                                         </div>
                                         <div class="col-6">
                                             <label class="form-label small">Plassering</label>
-                                            <select class="form-select" @bind="item.Location">
+                                            <select class="form-select" @bind="item.Location" @bind:after="PersistAsync">
                                                 @if (!locations.Any(x => x.Name == item.Location))
                                                 {
                                                     <option value="@item.Location">@item.Location</option>
@@ -215,6 +221,13 @@
     private async Task DeleteListAsync(Guid id)
     {
         lists.RemoveAll(x => x.Id == id);
+        await PersistAsync();
+    }
+
+    private async Task RemoveItemAsync(SavedShoppingList list, SavedShoppingListItem item)
+    {
+        list.Items.Remove(item);
+        if (list.Items.Count == 0) lists.Remove(list);
         await PersistAsync();
     }
 

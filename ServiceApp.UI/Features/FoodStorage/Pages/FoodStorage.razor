@@ -136,6 +136,7 @@
                         <td>@(item.BestBeforeDate?.ToString("dd.MM.yyyy") ?? "–")</td>
                         <td class="text-end position-relative">
                             <button class="btn btn-sm btn-primary me-1" @onclick="() => PrepareAddQuantity(item)">Legg til antall</button>
+                            <StockItemEditor Item="item" OnSaved="RefreshAfterQuantityAsync" />
                             <PriceHistory ProductId="item.Product.Id" />
                             <button class="btn btn-sm btn-outline-warning" @onclick="() => SetEmptyAsync(item.Id)">Sett tom</button>
                         </td>

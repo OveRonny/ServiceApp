@@ -185,12 +185,17 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
     {
         var validation = ValidateStock(request.Quantity, request.Unit, request.Location);
         if (validation is not null) return Results.BadRequest(validation);
+        if (request.MinimumQuantity is < 0) return Results.BadRequest("Minimum kan ikke være negativt.");
+        if (request.FoodCategoryId is int categoryId &&
+            !await db.FoodCategories.AnyAsync(x => x.Id == categoryId, cancellationToken))
+            return Results.BadRequest("Kategorien finnes ikke.");
         var item = await db.FoodStockItems.Include(x => x.FoodProduct)
             .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
         if (item is null) return Results.NotFound();
 
         item.Quantity = request.Quantity; item.Unit = request.Unit.Trim();
         item.Location = request.Location.Trim(); item.BestBeforeDate = request.BestBeforeDate;
+        item.FoodCategoryId = request.FoodCategoryId;
         item.PurchasedDate = request.PurchasedDate; item.UpdatedAt = DateTimeOffset.UtcNow;
         item.MinimumQuantity = request.MinimumQuantity;
         await db.SaveChangesAsync(cancellationToken);

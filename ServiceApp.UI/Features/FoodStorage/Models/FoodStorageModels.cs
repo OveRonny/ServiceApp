@@ -49,6 +49,22 @@ public sealed class AddFoodStockModel
     public decimal? TotalPrice { get; set; }
 }
 
+public sealed class EditFoodStockModel
+{
+    [Range(0, 999999)]
+    public decimal Quantity { get; set; }
+    [Range(0, 999999)]
+    public decimal? MinimumQuantity { get; set; }
+    [Required]
+    public int? FoodCategoryId { get; set; }
+    [Required, StringLength(40)]
+    public string Unit { get; set; } = "stk";
+    [Required, StringLength(100)]
+    public string Location { get; set; } = "Matlager";
+    public DateOnly? BestBeforeDate { get; set; }
+    public DateOnly? PurchasedDate { get; set; }
+}
+
 public sealed class ManualFoodProductModel
 {
     [Required, StringLength(300)]

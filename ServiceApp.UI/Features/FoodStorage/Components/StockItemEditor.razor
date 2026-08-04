@@ -1,0 +1,70 @@
+@using ServiceApp.UI.Features.FoodStorage.Models
+@using ServiceApp.UI.Features.FoodStorage.Services
+@inject IFoodStorageService FoodStorageService
+
+<button type="button" class="btn btn-sm btn-outline-primary me-1" @onclick="OpenAsync">Rediger</button>
+
+@if (isOpen)
+{
+    <div class="stock-edit-backdrop">
+        <section class="stock-edit-dialog" role="dialog" aria-modal="true">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div><div class="text-muted small">Rediger lager</div><h2 class="h5 mb-0">@Item.Product.Name</h2></div>
+                <button type="button" class="btn-close btn-close-white" aria-label="Lukk" @onclick="Close"></button>
+            </div>
+            <EditForm Model="model" OnValidSubmit="SaveAsync" FormName="@($"edit-stock-{Item.Id}")">
+                <DataAnnotationsValidator />
+                <div class="row g-3">
+                    <div class="col-6"><label class="form-label">Antall</label><InputNumber class="form-control" @bind-Value="model.Quantity" /></div>
+                    <div class="col-6"><label class="form-label">Minimum</label><InputNumber class="form-control" @bind-Value="model.MinimumQuantity" /></div>
+                    <div class="col-6"><label class="form-label">Enhet</label><InputText class="form-control" @bind-Value="model.Unit" /></div>
+                    <div class="col-6"><label class="form-label">Kategori</label><InputSelect class="form-select" @bind-Value="model.FoodCategoryId"><option value="">Ingen</option>@foreach (var c in categories) { <option value="@c.Id">@c.Name</option> }</InputSelect></div>
+                    <div class="col-12"><label class="form-label">Plassering</label><InputSelect class="form-select" @bind-Value="model.Location">@foreach (var l in locations) { <option value="@l.Name">@l.Name</option> }</InputSelect></div>
+                    <div class="col-6"><label class="form-label">Best før</label><InputDate class="form-control" @bind-Value="model.BestBeforeDate" /></div>
+                    <div class="col-6"><label class="form-label">Kjøpsdato</label><InputDate class="form-control" @bind-Value="model.PurchasedDate" /></div>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(errorMessage)) { <div class="alert alert-danger mt-3">@errorMessage</div> }
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-end mt-4">
+                    <button type="button" class="btn btn-outline-secondary" @onclick="Close">Avbryt</button>
+                    <button type="submit" class="btn btn-primary" disabled="@isSaving">Lagre endringer</button>
+                </div>
+            </EditForm>
+        </section>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public FoodStockItemModel Item { get; set; } = null!;
+    [Parameter] public EventCallback OnSaved { get; set; }
+    private readonly EditFoodStockModel model = new();
+    private IReadOnlyList<FoodStorageLocationModel> locations = [];
+    private IReadOnlyList<FoodCategoryModel> categories = [];
+    private bool isOpen;
+    private bool isSaving;
+    private string? errorMessage;
+
+    private async Task OpenAsync()
+    {
+        locations = await FoodStorageService.GetLocationsAsync();
+        categories = await FoodStorageService.GetCategoriesAsync();
+        model.Quantity = Item.Quantity; model.MinimumQuantity = Item.MinimumQuantity;
+        model.Unit = Item.Unit; model.Location = Item.Location; model.FoodCategoryId = Item.CategoryId;
+        model.BestBeforeDate = Item.BestBeforeDate; model.PurchasedDate = Item.PurchasedDate;
+        isOpen = true;
+    }
+
+    private async Task SaveAsync()
+    {
+        isSaving = true; errorMessage = null;
+        try
+        {
+            await FoodStorageService.UpdateStockAsync(Item.Id, model);
+            isOpen = false;
+            await OnSaved.InvokeAsync();
+        }
+        catch (Exception ex) { errorMessage = ex.Message; }
+        finally { isSaving = false; }
+    }
+
+    private void Close() => isOpen = false;
+}

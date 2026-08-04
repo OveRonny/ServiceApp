@@ -69,6 +69,12 @@ public sealed class FoodStorageService(IHttpClientFactory clients) : IFoodStorag
         response.EnsureSuccessStatusCode();
     }
 
+    public async Task UpdateStockAsync(int id, EditFoodStockModel model, CancellationToken cancellationToken = default)
+    {
+        using var response = await Api().PutAsJsonAsync($"api/food-storage/stock/{id}", model, cancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
+
     public async Task DeleteStockAsync(int id, CancellationToken cancellationToken = default)
     {
         using var response = await Api().DeleteAsync($"api/food-storage/stock/{id}", cancellationToken);

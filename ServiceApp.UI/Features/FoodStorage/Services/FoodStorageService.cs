@@ -68,6 +68,14 @@ public sealed class FoodStorageService(IHttpClientFactory clients) : IFoodStorag
         using var response = await Api().PostAsJsonAsync("api/food-storage/stock", model, cancellationToken);
         response.EnsureSuccessStatusCode();
     }
+    public async Task RecordStockPriceAsync(int stockItemId, int foodStoreId, decimal totalPrice,
+        DateOnly? purchasedDate, CancellationToken cancellationToken = default)
+    {
+        using var response = await Api().PostAsJsonAsync($"api/food-storage/stock/{stockItemId}/price",
+            new { foodStoreId, totalPrice, purchasedDate }, cancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
+
 
     public async Task UpdateStockAsync(int id, EditFoodStockModel model, CancellationToken cancellationToken = default)
     {

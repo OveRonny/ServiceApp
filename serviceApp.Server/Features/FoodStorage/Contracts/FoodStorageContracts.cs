@@ -1,4 +1,5 @@
 namespace serviceApp.Server.Features.FoodStorage.Contracts;
+public sealed record RecordFoodStockPriceRequest(int FoodStoreId, decimal TotalPrice, DateOnly? PurchasedDate);
 
 public sealed record FoodProductDto(
     int Id,

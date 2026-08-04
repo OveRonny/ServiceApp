@@ -20,6 +20,12 @@
         <div class="alert alert-danger">@errorMessage</div>
     }
 
+    <div class="form-check form-switch mb-3">
+        <InputCheckbox id="opening-inventory" class="form-check-input" @bind-Value="isOpeningInventory" @bind-Value:after="OpeningInventoryChanged" />
+        <label class="form-check-label" for="opening-inventory"><strong>Registrer startlager</strong></label>
+        <div class="form-text">Bruk ved første lageropptelling. Pris, leverandør og kjøpsdato er valgfritt.</div>
+    </div>
+
     <div class="card mb-4">
         <div class="card-body">
             <label class="form-label" for="barcode">Strekkode</label>
@@ -57,8 +63,8 @@
                     <StorageLocationFields Model="stockForm" />
                     <FoodCategoryFields Model="stockForm" />
                     <div class="col-md-3"><label class="form-label">Best før</label><InputDate class="form-control" @bind-Value="stockForm.BestBeforeDate" /></div>
-                    <PurchaseFields Model="stockForm" />
-                    <div class="col-md-2 d-flex align-items-end"><button class="btn btn-success w-100" disabled="@isBusy">Legg på lager</button></div>
+                    <PurchaseFields Model="stockForm" OpeningInventory="isOpeningInventory" />
+                    <div class="col-md-2 d-flex align-items-end"><button class="btn btn-success w-100" disabled="@isBusy">@(isOpeningInventory ? "Legg i startlager" : "Legg på lager")</button></div>
                     <ValidationSummary />
                 </EditForm>
             </div>
@@ -86,11 +92,12 @@
     <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-3">
         <div>
             <h2 class="h4 mb-1">Beholdning</h2>
-            <div class="text-muted">@stock.Count varer · @PricedItemCount med registrert pris</div>
+            <div class="text-muted">@stock.Count varer · @PricedItemCount med registrert pris · @MissingPriceCount mangler pris</div>
         </div>
         <div class="text-end">
             <div class="text-muted small text-uppercase">Total lagerverdi</div>
             <div class="h3 mb-0 text-success">@TotalStockValue.ToString("N2") kr</div>
+            @if (MissingPriceCount > 0) { <div class="small text-warning">+ @MissingPriceCount varer uten pris</div> }
         </div>
     </div>
     <div class="btn-group mb-3" role="group" aria-label="Velg lagerstatus">
@@ -103,6 +110,10 @@
     <div class="row g-2 mb-3">
         <div class="col-md-8">
             <input class="form-control" placeholder="Søk etter produkt, merke, kategori eller plassering" @bind="searchText" @bind:event="oninput" />
+        </div>
+        <div class="col-12">
+            <button type="button" class="btn @(showMissingPrices ? "btn-warning" : "btn-outline-warning")"
+                    @onclick="() => showMissingPrices = !showMissingPrices">Mangler pris (@MissingPriceCount)</button>
         </div>
         <div class="col-md-4">
             <select class="form-select" @bind="sortOrder">
@@ -132,12 +143,16 @@
                         <td>@(item.Category ?? "–")</td>
                         <td><StockQuantityEditor StockItemId="item.Id" Value="item.Quantity" Unit="item.Unit" OnSaved="RefreshAfterQuantityAsync" /></td>
                         <td><MinimumQuantityEditor StockItemId="item.Id" Value="item.MinimumQuantity" OnSaved="RefreshAfterMinimumAsync" /></td>
-                        <td>@(item.LatestUnitPrice is decimal unitPrice ? $"{unitPrice:N2} kr" : "–")</td>
-                        <td><strong>@item.EstimatedValue.ToString("N2") kr</strong></td><td>@item.Location</td>
+                        <td>@(item.LatestUnitPrice is decimal unitPrice ? $"{unitPrice:N2} kr" : "Pris mangler")</td>
+                        <td>@if (item.LatestUnitPrice.HasValue) { <strong>@item.EstimatedValue.ToString("N2") kr</strong> } else { <span class="text-muted">Ikke beregnet</span> }</td><td>@item.Location</td>
                         <td>@(item.BestBeforeDate?.ToString("dd.MM.yyyy") ?? "–")</td>
                         <td class="text-end position-relative">
                             <button class="btn btn-sm btn-primary me-1" @onclick="() => PrepareAddQuantity(item)">Legg til antall</button>
                             <StockItemEditor Item="item" OnSaved="RefreshAfterQuantityAsync" />
+                            @if (!item.LatestUnitPrice.HasValue && item.Quantity > 0)
+                            {
+                                <MissingPriceEditor StockItemId="item.Id" Quantity="item.Quantity" Unit="item.Unit" OnSaved="ReloadAsync" />
+                            }
                             <PriceHistory ProductId="item.Product.Id" />
                             <button class="btn btn-sm btn-outline-warning" @onclick="() => SetEmptyAsync(item.Id)">Sett tom</button>
                         </td>
@@ -164,6 +179,8 @@
     private bool showOutOfStock;
     private int shoppingListVersion;
 
+    private bool showMissingPrices;
+    private bool isOpeningInventory;
     protected override async Task OnInitializedAsync() => await ReloadAsync();
 
     private async Task LookupBarcodeAsync()
@@ -214,6 +231,7 @@
         stockForm.PurchasedDate = DateOnly.FromDateTime(DateTime.Today);
         stockForm.FoodStoreId = null;
         stockForm.TotalPrice = null;
+        isOpeningInventory = false;
     }
 
 
@@ -236,11 +254,13 @@
     private int InStockCount => stock.Count(x => x.Quantity > 0);
     private int OutOfStockCount => stock.Count(x => x.Quantity <= 0);
 
+    private int MissingPriceCount => stock.Count(x => x.Quantity > 0 && !x.LatestUnitPrice.HasValue);
     private IEnumerable<FoodStockItemModel> FilteredAndSortedStock
     {
         get
         {
             var query = stock.Where(item => (showOutOfStock ? item.Quantity <= 0 : item.Quantity > 0) &&
+                (!showMissingPrices || !item.LatestUnitPrice.HasValue) &&
                 (string.IsNullOrWhiteSpace(searchText) ||
                 item.Product.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
                 (item.Product.Brand?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
@@ -256,6 +276,13 @@
                 _ => query.OrderBy(x => x.Product.Name)
             };
         }
+    }
+    private void OpeningInventoryChanged()
+    {
+        if (isOpeningInventory)
+            stockForm.PurchasedDate = null;
+        else if (!stockForm.PurchasedDate.HasValue)
+            stockForm.PurchasedDate = DateOnly.FromDateTime(DateTime.Today);
     }
     private static bool IsExpiringSoon(FoodStockItemModel item) => item.BestBeforeDate is { } date && date <= DateOnly.FromDateTime(DateTime.Today.AddDays(7));
 }

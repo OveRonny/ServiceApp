@@ -1,0 +1,73 @@
+@using ServiceApp.UI.Features.FoodStorage.Models
+@using ServiceApp.UI.Features.FoodStorage.Services
+@inject IFoodStorageService FoodStorageService
+
+<button type="button" class="btn btn-sm btn-outline-warning" @onclick="() => show = !show">Registrer pris</button>
+@if (show)
+{
+    <div class="card card-body mt-2 text-start" style="min-width:280px">
+        <label class="form-label">Butikk eller leverandør</label>
+        <InputSelect class="form-select form-select-sm mb-2" @bind-Value="storeId">
+            <option value="">Velg</option>
+            @foreach (var store in stores)
+            {
+                <option value="@store.Id">@store.Name</option>
+            }
+        </InputSelect>
+        <label class="form-label">Samlet verdi for @Quantity @Unit</label>
+        <div class="input-group input-group-sm mb-2">
+            <InputNumber class="form-control" min="0.01" @bind-Value="totalPrice" />
+            <span class="input-group-text">kr</span>
+        </div>
+        <label class="form-label">Kjøpsdato (valgfritt)</label>
+        <InputDate class="form-control form-control-sm mb-2" @bind-Value="purchasedDate" />
+        @if (!string.IsNullOrWhiteSpace(error))
+        {
+            <div class="text-danger small mb-2">@error</div>
+        }
+        <button type="button" class="btn btn-sm btn-warning" disabled="@saving" @onclick="SaveAsync">Lagre pris</button>
+    </div>
+}
+
+@code {
+    [Parameter] public int StockItemId { get; set; }
+    [Parameter] public decimal Quantity { get; set; }
+    [Parameter] public string Unit { get; set; } = string.Empty;
+    [Parameter] public EventCallback OnSaved { get; set; }
+
+    private IReadOnlyList<FoodStoreModel> stores = [];
+    private int? storeId;
+    private decimal? totalPrice;
+    private DateOnly? purchasedDate;
+    private string? error;
+    private bool show;
+    private bool saving;
+
+    protected override async Task OnInitializedAsync() => stores = await FoodStorageService.GetStoresAsync();
+
+    private async Task SaveAsync()
+    {
+        if (!storeId.HasValue || totalPrice is null or <= 0)
+        {
+            error = "Velg leverandør og skriv inn en pris.";
+            return;
+        }
+
+        saving = true;
+        error = null;
+        try
+        {
+            await FoodStorageService.RecordStockPriceAsync(StockItemId, storeId.Value, totalPrice.Value, purchasedDate);
+            show = false;
+            await OnSaved.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+}

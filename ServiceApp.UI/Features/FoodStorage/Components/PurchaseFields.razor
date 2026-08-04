@@ -2,10 +2,18 @@
 @using ServiceApp.UI.Features.FoodStorage.Services
 @inject IFoodStorageService FoodStorageService
 
+@if (OpeningInventory)
+{
+    <div class="col-12"><div class="alert alert-info mb-0">Pris, leverandør og kjøpsdato kan stå tomt. Varen blir likevel tatt med i beholdningen.</div></div>
+}
 <div class="col-md-3">
-    <label class="form-label">Butikk</label>
+    <label class="form-label">Kjøpsdato</label>
+    <InputDate class="form-control" @bind-Value="Model.PurchasedDate" />
+</div>
+<div class="col-md-3">
+    <label class="form-label">Butikk eller leverandør</label>
     <InputSelect class="form-select" @bind-Value="Model.FoodStoreId">
-        <option value="">Velg butikk</option>
+        <option value="">Ikke kjent</option>
         @foreach (var store in stores)
         {
             <option value="@store.Id">@store.Name</option>
@@ -13,10 +21,22 @@
     </InputSelect>
 </div>
 <div class="col-md-2">
-    <label class="form-label">Pris betalt</label>
+    <label class="form-label">Pris betalt (valgfritt)</label>
     <div class="input-group"><InputNumber class="form-control" @bind-Value="Model.TotalPrice" /><span class="input-group-text">kr</span></div>
 </div>
 <div class="col-12">
+    <div class="form-check mb-2">
+        <input id="direct-farmer" class="form-check-input" type="checkbox" @bind="directFromFarmer" />
+        <label class="form-check-label" for="direct-farmer">Handlet direkte fra bonde</label>
+    </div>
+    @if (directFromFarmer)
+    {
+        <div class="input-group input-group-sm mb-2" style="max-width:420px">
+            <input class="form-control" placeholder="Navn på gård eller bonde" @bind="farmerName" />
+            <button type="button" class="btn btn-outline-success" @onclick="CreateFarmerAsync">Bruk leverandør</button>
+        </div>
+        <div class="form-text mb-2">Lagres som «Direkte fra bonde – navn» i pris- og kjøpshistorikken.</div>
+    }
     <div class="input-group input-group-sm" style="max-width:420px">
         <input class="form-control" placeholder="Legg til ny butikk" @bind="newStoreName" />
         <button type="button" class="btn btn-outline-secondary" @onclick="CreateStoreAsync">Ny butikk</button>
@@ -25,8 +45,11 @@
 
 @code {
     [Parameter, EditorRequired] public AddFoodStockModel Model { get; set; } = null!;
+    [Parameter] public bool OpeningInventory { get; set; }
     private IReadOnlyList<FoodStoreModel> stores = [];
     private string newStoreName = string.Empty;
+    private string farmerName = string.Empty;
+    private bool directFromFarmer;
 
     protected override async Task OnInitializedAsync() => stores = await FoodStorageService.GetStoresAsync();
 
@@ -37,5 +60,15 @@
         stores = await FoodStorageService.GetStoresAsync();
         Model.FoodStoreId = store.Id;
         newStoreName = string.Empty;
+    }
+
+    private async Task CreateFarmerAsync()
+    {
+        if (string.IsNullOrWhiteSpace(farmerName)) return;
+        var store = await FoodStorageService.CreateStoreAsync($"Direkte fra bonde – {farmerName.Trim()}");
+        stores = await FoodStorageService.GetStoresAsync();
+        Model.FoodStoreId = store.Id;
+        farmerName = string.Empty;
+        directFromFarmer = false;
     }
 }

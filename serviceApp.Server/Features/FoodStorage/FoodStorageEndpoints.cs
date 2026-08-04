@@ -14,6 +14,7 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         group.MapPost("/products/manual", CreateManualProductAsync);
         group.MapGet("/stock", GetStockAsync);
         group.MapPost("/stock", CreateStockItemAsync);
+        group.MapPost("/stock/{id:int}/price", RecordStockPriceAsync);
         group.MapPut("/stock/{id:int}", UpdateStockItemAsync);
         group.MapDelete("/stock/{id:int}", DeleteStockItemAsync);
         group.MapPut("/stock/{id:int}/minimum", SetMinimumQuantityAsync);
@@ -214,6 +215,36 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         await db.SaveChangesAsync(cancellationToken);
         return Results.NoContent();
     }
+
+    private static async Task<IResult> RecordStockPriceAsync(int id, RecordFoodStockPriceRequest request,
+        ApplicationDbContext db, CancellationToken cancellationToken)
+    {
+        if (request.TotalPrice <= 0)
+            return Results.BadRequest("Pris må være større enn null.");
+
+        var item = await db.FoodStockItems.AsNoTracking()
+            .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (item is null) return Results.NotFound();
+        if (item.Quantity <= 0)
+            return Results.BadRequest("Pris kan bare registreres for varer som er på lager.");
+
+        if (!await db.FoodStores.AnyAsync(x => x.Id == request.FoodStoreId, cancellationToken))
+            return Results.BadRequest("Butikken eller leverandøren finnes ikke.");
+
+        db.FoodPurchases.Add(new FoodPurchase
+        {
+            FamilyId = item.FamilyId,
+            FoodProductId = item.FoodProductId,
+            FoodStoreId = request.FoodStoreId,
+            Quantity = item.Quantity,
+            Unit = item.Unit,
+            TotalPrice = request.TotalPrice,
+            PurchasedDate = request.PurchasedDate ?? DateOnly.FromDateTime(DateTime.UtcNow)
+        });
+        await db.SaveChangesAsync(cancellationToken);
+        return Results.NoContent();
+    }
+
     private static async Task<IResult> GetStoresAsync(ApplicationDbContext db, CancellationToken cancellationToken)
     {
         var stores = await db.FoodStores.AsNoTracking().OrderBy(x => x.Name)

@@ -25,7 +25,7 @@
         </div>
 
         <div class="row row-cols-1 row-cols-md-2 g-2 mb-3">
-            @foreach (var item in Stock.OrderBy(x => x.Quantity > 0).ThenBy(x => x.Product.Name))
+            @foreach (var item in AvailableItems.OrderBy(x => x.Quantity > 0).ThenBy(x => x.Product.Name))
             {
                 <div class="col">
                     <label class="d-flex align-items-center gap-2 border rounded p-2 h-100">
@@ -117,6 +117,9 @@
     [Parameter, EditorRequired] public IReadOnlyList<FoodStockItemModel> Stock { get; set; } = [];
     private readonly HashSet<int> selectedIds = [];
     private List<SavedShoppingList> lists = [];
+    private readonly List<FoodStockItemModel> scannedItems = [];
+    private IEnumerable<FoodStockItemModel> AvailableItems => Stock.Concat(scannedItems)
+        .GroupBy(x => x.Product.Id).Select(x => x.First());
     private string listName = string.Empty;
     private IReadOnlyList<FoodStorageLocationModel> locations = [];
     private bool loaded;
@@ -159,7 +162,7 @@
 
     private async Task SaveListAsync()
     {
-        var items = Stock.Where(x => selectedIds.Contains(x.Id))
+        var items = AvailableItems.Where(x => selectedIds.Contains(x.Id))
             .Select(x => new SavedShoppingListItem
             {
                 StockItemId = x.Id, ProductId = x.Product.Id, ProductName = x.Product.Name,
@@ -178,6 +181,35 @@
         selectedIds.Clear();
         listName = string.Empty;
         await PersistAsync();
+    }
+
+    public void AddScannedProduct(FoodProductModel product)
+    {
+        var existing = AvailableItems.FirstOrDefault(x => x.Product.Id == product.Id);
+        if (existing is not null)
+        {
+            selectedIds.Add(existing.Id);
+            StateHasChanged();
+            return;
+        }
+
+        var location = locations.FirstOrDefault()?.Name ?? "Matlager";
+        var scanned = new FoodStockItemModel(
+            -product.Id,
+            product,
+            0,
+            "stk",
+            location,
+            null,
+            null,
+            null,
+            null,
+            null,
+            0,
+            null);
+        scannedItems.Add(scanned);
+        selectedIds.Add(scanned.Id);
+        StateHasChanged();
     }
 
     private async Task DeleteListAsync(Guid id)

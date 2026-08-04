@@ -71,8 +71,27 @@
                                             <div class="input-group"><InputNumber class="form-control" min="0.001" @bind-Value="item.Quantity" /><span class="input-group-text">@item.Unit</span></div>
                                         </div>
                                         <div class="col-6">
-                                            <label class="form-label small">Ny totalpris</label>
-                                            <div class="input-group"><InputNumber class="form-control" min="0.01" @bind-Value="item.TotalPrice" /><span class="input-group-text">kr</span></div>
+                                            <label class="form-label small">Pris per @item.Unit</label>
+                                            <div class="input-group"><InputNumber class="form-control" min="0.01" @bind-Value="item.UnitPrice" /><span class="input-group-text">kr</span></div>
+                                            @if (item.UnitPrice.HasValue) { <small class="text-muted">Tidligere pris er foreslått</small> }
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label small">Best før</label>
+                                            <InputDate class="form-control" @bind-Value="item.BestBeforeDate" />
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label small">Plassering</label>
+                                            <select class="form-select" @bind="item.Location">
+                                                @if (!locations.Any(x => x.Name == item.Location))
+                                                {
+                                                    <option value="@item.Location">@item.Location</option>
+                                                }
+                                                @foreach (var location in locations)
+                                                {
+                                                    <option value="@location.Name">@location.Name</option>
+                                                }
+                                            </select>
+                                            <small class="text-muted">Husket fra matlageret</small>
                                         </div>
                                     </div>
                                 </div>
@@ -99,6 +118,7 @@
     private readonly HashSet<int> selectedIds = [];
     private List<SavedShoppingList> lists = [];
     private string listName = string.Empty;
+    private IReadOnlyList<FoodStorageLocationModel> locations = [];
     private bool loaded;
     private IReadOnlyList<FoodStoreModel> stores = [];
 
@@ -110,16 +130,22 @@
         if (!string.IsNullOrWhiteSpace(json))
             lists = JsonSerializer.Deserialize<List<SavedShoppingList>>(json) ?? [];
         stores = await FoodStorageService.GetStoresAsync();
-        foreach (var savedItem in lists.SelectMany(x => x.Items).Where(x => x.ProductId == 0))
+        locations = await FoodStorageService.GetLocationsAsync();
+        foreach (var savedItem in lists.SelectMany(x => x.Items))
         {
             var stockItem = Stock.FirstOrDefault(x => x.Id == savedItem.StockItemId);
             if (stockItem is null) continue;
-            savedItem.ProductId = stockItem.Product.Id;
-            savedItem.CategoryId = stockItem.CategoryId;
-            savedItem.Unit = stockItem.Unit;
-            savedItem.Location = stockItem.Location;
-            savedItem.MinimumQuantity = stockItem.MinimumQuantity;
+            if (savedItem.ProductId == 0)
+            {
+                savedItem.ProductId = stockItem.Product.Id;
+                savedItem.CategoryId = stockItem.CategoryId;
+                savedItem.Unit = stockItem.Unit;
+                savedItem.Location = stockItem.Location;
+                savedItem.MinimumQuantity = stockItem.MinimumQuantity;
+            }
             savedItem.Quantity = savedItem.Quantity <= 0 ? 1 : savedItem.Quantity;
+            savedItem.UnitPrice ??= savedItem.TotalPrice.HasValue
+                ? savedItem.TotalPrice / savedItem.Quantity : stockItem.LatestUnitPrice;
         }
         loaded = true;
         StateHasChanged();
@@ -138,7 +164,7 @@
             {
                 StockItemId = x.Id, ProductId = x.Product.Id, ProductName = x.Product.Name,
                 CategoryId = x.CategoryId, Unit = x.Unit, Location = x.Location,
-                MinimumQuantity = x.MinimumQuantity, Quantity = 1
+                MinimumQuantity = x.MinimumQuantity, Quantity = 1, UnitPrice = x.LatestUnitPrice
             })
             .ToList();
         if (items.Count == 0) return;
@@ -173,7 +199,7 @@
             list.ErrorMessage = "Antall må være større enn null.";
             return;
         }
-        if (list.Items.Any(x => x.TotalPrice.HasValue) && !list.FoodStoreId.HasValue)
+        if (list.Items.Any(x => x.UnitPrice.HasValue) && !list.FoodStoreId.HasValue)
         {
             list.ErrorMessage = "Velg butikk når pris er registrert.";
             return;
@@ -193,10 +219,10 @@
                 {
                     FoodProductId = item.ProductId, FoodCategoryId = item.CategoryId,
                     Quantity = item.Quantity, MinimumQuantity = item.MinimumQuantity,
-                    Unit = item.Unit, Location = item.Location,
+                    Unit = item.Unit, Location = item.Location, BestBeforeDate = item.BestBeforeDate,
                     PurchasedDate = DateOnly.FromDateTime(DateTime.Today),
-                    FoodStoreId = item.TotalPrice.HasValue ? list.FoodStoreId : null,
-                    TotalPrice = item.TotalPrice
+                    FoodStoreId = item.UnitPrice.HasValue ? list.FoodStoreId : null,
+                    TotalPrice = item.UnitPrice * item.Quantity
                 });
                 item.IsPurchased = true;
                 await PersistAsync();
@@ -229,6 +255,8 @@
         public decimal? TotalPrice { get; set; }
         public decimal? MinimumQuantity { get; set; }
         public string Unit { get; set; } = "stk";
+        public decimal? UnitPrice { get; set; }
+        public DateOnly? BestBeforeDate { get; set; }
         public string Location { get; set; } = "Matlager";
         public bool IsPurchased { get; set; }
     }

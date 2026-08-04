@@ -2,6 +2,7 @@
 @using Microsoft.JSInterop
 @using ServiceApp.UI.Features.FoodStorage.Models
 @inject IJSRuntime JS
+@inject ServiceApp.UI.Features.FoodStorage.Services.IFoodStorageService FoodStorageService
 
 <section class="card mb-4">
     <div class="card-body">
@@ -55,13 +56,35 @@
                                 <div><strong>@list.Name</strong><div class="small text-muted">@list.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</div></div>
                                 <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => DeleteListAsync(list.Id)">Slett</button>
                             </div>
+                            <label class="form-label small">Butikk</label>
+                            <select class="form-select mb-3" @bind="list.FoodStoreId">
+                                <option value="">Velg butikk</option>
+                                @foreach (var store in stores) { <option value="@store.Id">@store.Name</option> }
+                            </select>
                             @foreach (var item in list.Items)
                             {
-                                <label class="d-flex align-items-center gap-2 py-1">
-                                    <input type="checkbox" class="form-check-input m-0" @bind="item.IsPurchased" @bind:after="PersistAsync" />
-                                    <span class="@(item.IsPurchased ? "text-decoration-line-through text-muted" : null)">@item.ProductName</span>
-                                </label>
+                                <div class="border-top py-3">
+                                    <strong class="d-block mb-2">@item.ProductName</strong>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label class="form-label small">Kjøpt antall</label>
+                                            <div class="input-group"><InputNumber class="form-control" min="0.001" @bind-Value="item.Quantity" /><span class="input-group-text">@item.Unit</span></div>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label small">Ny totalpris</label>
+                                            <div class="input-group"><InputNumber class="form-control" min="0.01" @bind-Value="item.TotalPrice" /><span class="input-group-text">kr</span></div>
+                                        </div>
+                                    </div>
+                                </div>
                             }
+                            @if (!string.IsNullOrWhiteSpace(list.ErrorMessage))
+                            {
+                                <div class="alert alert-danger py-2">@list.ErrorMessage</div>
+                            }
+                            <button type="button" class="btn btn-success w-100 mt-2" disabled="@list.IsSaving"
+                                    @onclick="() => RegisterPurchaseAsync(list)">
+                                @(list.IsSaving ? "Registrerer…" : "Registrer handel og legg på lager")
+                            </button>
                         </article>
                     </div>
                 }
@@ -77,13 +100,27 @@
     private List<SavedShoppingList> lists = [];
     private string listName = string.Empty;
     private bool loaded;
+    private IReadOnlyList<FoodStoreModel> stores = [];
 
+    [Parameter] public EventCallback OnStockUpdated { get; set; }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
         var json = await JS.InvokeAsync<string?>("localStorage.getItem", StorageKey);
         if (!string.IsNullOrWhiteSpace(json))
             lists = JsonSerializer.Deserialize<List<SavedShoppingList>>(json) ?? [];
+        stores = await FoodStorageService.GetStoresAsync();
+        foreach (var savedItem in lists.SelectMany(x => x.Items).Where(x => x.ProductId == 0))
+        {
+            var stockItem = Stock.FirstOrDefault(x => x.Id == savedItem.StockItemId);
+            if (stockItem is null) continue;
+            savedItem.ProductId = stockItem.Product.Id;
+            savedItem.CategoryId = stockItem.CategoryId;
+            savedItem.Unit = stockItem.Unit;
+            savedItem.Location = stockItem.Location;
+            savedItem.MinimumQuantity = stockItem.MinimumQuantity;
+            savedItem.Quantity = savedItem.Quantity <= 0 ? 1 : savedItem.Quantity;
+        }
         loaded = true;
         StateHasChanged();
     }
@@ -97,7 +134,12 @@
     private async Task SaveListAsync()
     {
         var items = Stock.Where(x => selectedIds.Contains(x.Id))
-            .Select(x => new SavedShoppingListItem { StockItemId = x.Id, ProductName = x.Product.Name })
+            .Select(x => new SavedShoppingListItem
+            {
+                StockItemId = x.Id, ProductId = x.Product.Id, ProductName = x.Product.Name,
+                CategoryId = x.CategoryId, Unit = x.Unit, Location = x.Location,
+                MinimumQuantity = x.MinimumQuantity, Quantity = 1
+            })
             .ToList();
         if (items.Count == 0) return;
         lists.Add(new SavedShoppingList
@@ -123,19 +165,71 @@
         if (loaded)
             await JS.InvokeVoidAsync("localStorage.setItem", StorageKey, JsonSerializer.Serialize(lists));
     }
+    private async Task RegisterPurchaseAsync(SavedShoppingList list)
+    {
+        list.ErrorMessage = null;
+        if (list.Items.Any(x => x.Quantity <= 0))
+        {
+            list.ErrorMessage = "Antall må være større enn null.";
+            return;
+        }
+        if (list.Items.Any(x => x.TotalPrice.HasValue) && !list.FoodStoreId.HasValue)
+        {
+            list.ErrorMessage = "Velg butikk når pris er registrert.";
+            return;
+        }
+        if (list.Items.Any(x => x.ProductId <= 0))
+        {
+            list.ErrorMessage = "En eldre vare mangler produktkobling. Lag en ny handleliste med varen.";
+            return;
+        }
+
+        list.IsSaving = true;
+        try
+        {
+            foreach (var item in list.Items.Where(x => !x.IsPurchased))
+            {
+                await FoodStorageService.AddStockAsync(new AddFoodStockModel
+                {
+                    FoodProductId = item.ProductId, FoodCategoryId = item.CategoryId,
+                    Quantity = item.Quantity, MinimumQuantity = item.MinimumQuantity,
+                    Unit = item.Unit, Location = item.Location,
+                    PurchasedDate = DateOnly.FromDateTime(DateTime.Today),
+                    FoodStoreId = item.TotalPrice.HasValue ? list.FoodStoreId : null,
+                    TotalPrice = item.TotalPrice
+                });
+                item.IsPurchased = true;
+                await PersistAsync();
+            }
+            await PersistAsync();
+            await OnStockUpdated.InvokeAsync();
+        }
+        catch (Exception ex) { list.ErrorMessage = ex.Message; }
+        finally { list.IsSaving = false; }
+    }
 
     public sealed class SavedShoppingList
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public DateTimeOffset CreatedAt { get; set; }
+        public int? FoodStoreId { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore] public bool IsSaving { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore] public string? ErrorMessage { get; set; }
         public List<SavedShoppingListItem> Items { get; set; } = [];
     }
 
     public sealed class SavedShoppingListItem
     {
         public int StockItemId { get; set; }
+        public int ProductId { get; set; }
         public string ProductName { get; set; } = string.Empty;
+        public int? CategoryId { get; set; }
+        public decimal Quantity { get; set; } = 1;
+        public decimal? TotalPrice { get; set; }
+        public decimal? MinimumQuantity { get; set; }
+        public string Unit { get; set; } = "stk";
+        public string Location { get; set; } = "Matlager";
         public bool IsPurchased { get; set; }
     }
 }

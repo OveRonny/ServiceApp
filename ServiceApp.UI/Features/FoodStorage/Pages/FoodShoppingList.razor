@@ -19,14 +19,14 @@
         <a class="btn btn-outline-primary" href="/food-shopping-list-history">Gamle handlelister</a>
     </nav>
 
-    <RecommendedShoppingList />
+    <RecommendedShoppingList @key="shoppingListVersion" />
     @if (isLoading)
     {
         <div class="text-muted">Laster varer…</div>
     }
     else
     {
-        <CustomShoppingLists Stock="stock" />
+        <CustomShoppingLists Stock="stock" OnStockUpdated="ReloadAfterPurchaseAsync" />
     }
 </main>
 
@@ -34,9 +34,15 @@
     private IReadOnlyList<FoodStockItemModel> stock = [];
     private bool isLoading = true;
 
+    private int shoppingListVersion;
     protected override async Task OnInitializedAsync()
     {
         stock = await FoodStorageService.GetStockAsync();
         isLoading = false;
+    }
+    private async Task ReloadAfterPurchaseAsync()
+    {
+        stock = await FoodStorageService.GetStockAsync();
+        shoppingListVersion++;
     }
 }

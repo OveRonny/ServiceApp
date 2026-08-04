@@ -17,6 +17,8 @@ public sealed record FoodPriceHistoryModel(int Id, int ProductId, string StoreNa
     decimal Quantity, string Unit, decimal TotalPrice, decimal UnitPrice, DateOnly PurchasedDate);
 public sealed record FoodShoppingListItemModel(int StockItemId, string ProductName, string? Category,
     string Location, decimal CurrentQuantity, decimal MinimumQuantity, decimal RecommendedQuantity, string Unit);
+public sealed record FoodStockWithdrawalModel(int Id, int ProductId, string ProductName,
+    decimal Quantity, decimal RemainingQuantity, string Unit, DateTimeOffset RemovedAt);
 
 
 

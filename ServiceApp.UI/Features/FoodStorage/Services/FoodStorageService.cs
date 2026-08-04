@@ -89,6 +89,19 @@ public sealed class FoodStorageService(IHttpClientFactory clients) : IFoodStorag
         response.EnsureSuccessStatusCode();
     }
 
+    public async Task WithdrawStockAsync(int productId, decimal quantity,
+        CancellationToken cancellationToken = default)
+    {
+        using var response = await Api().PostAsJsonAsync("api/food-storage/stock/withdraw",
+            new { productId, quantity }, cancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task<IReadOnlyList<FoodStockWithdrawalModel>> GetStockWithdrawalsAsync(
+        CancellationToken cancellationToken = default) =>
+        await Api().GetFromJsonAsync<List<FoodStockWithdrawalModel>>(
+            "api/food-storage/stock/withdrawals", cancellationToken) ?? [];
+
     public async Task<IReadOnlyList<FoodShoppingListItemModel>> GetShoppingListAsync(
         CancellationToken cancellationToken = default) =>
         await Api().GetFromJsonAsync<List<FoodShoppingListItemModel>>(

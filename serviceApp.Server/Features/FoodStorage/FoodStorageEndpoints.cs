@@ -19,6 +19,8 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         group.MapPut("/stock/{id:int}/minimum", SetMinimumQuantityAsync);
         group.MapGet("/shopping-list", GetShoppingListAsync);
         group.MapPut("/stock/{id:int}/quantity", SetQuantityAsync);
+        group.MapPost("/stock/withdraw", WithdrawStockAsync);
+        group.MapGet("/stock/withdrawals", GetStockWithdrawalsAsync);
         group.MapGet("/stores", GetStoresAsync);
         group.MapPost("/stores", CreateStoreAsync);
         group.MapGet("/products/{productId:int}/price-history", GetPriceHistoryAsync);
@@ -334,6 +336,48 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         await db.SaveChangesAsync(cancellationToken);
         return Results.NoContent();
     }
+
+    private static async Task<IResult> WithdrawStockAsync(WithdrawFoodStockRequest request,
+        ApplicationDbContext db, CancellationToken cancellationToken)
+    {
+        if (request.Quantity <= 0) return Results.BadRequest("Antall må være større enn null.");
+        var item = await db.FoodStockItems.SingleOrDefaultAsync(
+            x => x.FoodProductId == request.ProductId, cancellationToken);
+        if (item is null) return Results.NotFound("Varen finnes ikke på lager.");
+        if (request.Quantity > item.Quantity) return Results.BadRequest("Det er ikke nok av varen på lager.");
+
+        item.Quantity -= request.Quantity;
+        item.UpdatedAt = DateTimeOffset.UtcNow;
+        db.FoodStockWithdrawals.Add(new FoodStockWithdrawal
+        {
+            FamilyId = item.FamilyId,
+            FoodProductId = item.FoodProductId,
+            Quantity = request.Quantity,
+            RemainingQuantity = item.Quantity,
+            Unit = item.Unit
+        });
+        await db.SaveChangesAsync(cancellationToken);
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> GetStockWithdrawalsAsync(ApplicationDbContext db,
+        CancellationToken cancellationToken)
+    {
+        var history = await db.FoodStockWithdrawals.AsNoTracking()
+            .OrderByDescending(x => x.RemovedAt)
+            .Take(200)
+            .Select(x => new FoodStockWithdrawalDto(
+                x.Id,
+                x.FoodProductId,
+                x.FoodProduct.Name,
+                x.Quantity,
+                x.RemainingQuantity,
+                x.Unit,
+                x.RemovedAt))
+            .ToListAsync(cancellationToken);
+        return Results.Ok(history);
+    }
+
 
 
     private static async Task<IResult> GetShoppingListAsync(ApplicationDbContext db,

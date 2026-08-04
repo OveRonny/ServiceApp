@@ -1,0 +1,81 @@
+@using ServiceApp.UI.Features.FoodStorage.Models
+@using ServiceApp.UI.Features.FoodStorage.Services
+@inject IFoodStorageService FoodStorageService
+
+<section class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div><div class="text-uppercase text-muted small">Uttak</div><h2 class="h4 mb-1">Skann vare ut av lager</h2><p class="text-muted mb-0">Skann varen og velg antallet som tas ut.</p></div>
+            <BarcodeCameraScanner OnDetected="HandleBarcodeAsync" />
+        </div>
+        @if (selectedItem is not null)
+        {
+            <div class="border rounded p-3 mt-3">
+                <strong>@selectedItem.Product.Name</strong>
+                <div class="small text-muted mb-3">På lager: @selectedItem.Quantity @selectedItem.Unit</div>
+                <div class="input-group">
+                    <InputNumber class="form-control" min="0.001" max="@selectedItem.Quantity" @bind-Value="quantity" />
+                    <span class="input-group-text">@selectedItem.Unit</span>
+                    <button type="button" class="btn btn-warning" disabled="@isSaving" @onclick="WithdrawAsync">Ta ut</button>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrWhiteSpace(message)) { <div class="alert @(isError ? "alert-danger" : "alert-success") mt-3 mb-0">@message</div> }
+    </div>
+</section>
+
+<section class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="h5 mb-0">Uttakshistorikk</h2><button class="btn btn-sm btn-outline-primary" @onclick="LoadHistoryAsync">Oppdater</button></div>
+        @if (history.Count == 0) { <div class="text-muted">Ingen uttak registrert.</div> }
+        else
+        {
+            <div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>Dato</th><th>Vare</th><th>Tatt ut</th><th>Igjen</th></tr></thead><tbody>
+            @foreach (var entry in history)
+            {
+                <tr><td>@entry.RemovedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td><td>@entry.ProductName</td><td>@entry.Quantity @entry.Unit</td><td>@entry.RemainingQuantity @entry.Unit</td></tr>
+            }
+            </tbody></table></div>
+        }
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<FoodStockItemModel> Stock { get; set; } = [];
+    [Parameter] public EventCallback OnSaved { get; set; }
+    private FoodStockItemModel? selectedItem;
+    private IReadOnlyList<FoodStockWithdrawalModel> history = [];
+    private decimal quantity = 1;
+    private bool isSaving;
+    private bool isError;
+    private string? message;
+
+    protected override async Task OnInitializedAsync() => await LoadHistoryAsync();
+
+    private async Task HandleBarcodeAsync(string barcode)
+    {
+        isError = false; message = null;
+        var product = await FoodStorageService.LookupBarcodeAsync(new string(barcode.Where(char.IsAsciiDigit).ToArray()));
+        selectedItem = product is null ? null : Stock.FirstOrDefault(x => x.Product.Id == product.Id);
+        if (selectedItem is null || selectedItem.Quantity <= 0) { isError = true; message = "Varen finnes ikke på lager."; selectedItem = null; return; }
+        quantity = 1;
+        message = $"{selectedItem.Product.Name} er klar for uttak.";
+    }
+
+    private async Task WithdrawAsync()
+    {
+        if (selectedItem is null || quantity <= 0 || quantity > selectedItem.Quantity) { isError = true; message = "Antallet må være mellom null og tilgjengelig beholdning."; return; }
+        isSaving = true;
+        try
+        {
+            await FoodStorageService.WithdrawStockAsync(selectedItem.Product.Id, quantity);
+            message = $"{quantity} {selectedItem.Unit} {selectedItem.Product.Name} er tatt ut.";
+            isError = false; selectedItem = null;
+            await LoadHistoryAsync(); await OnSaved.InvokeAsync();
+        }
+        catch (Exception ex) { isError = true; message = ex.Message; }
+        finally { isSaving = false; }
+    }
+
+    private async Task LoadHistoryAsync() => history = await FoodStorageService.GetStockWithdrawalsAsync();
+}

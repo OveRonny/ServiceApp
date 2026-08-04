@@ -56,6 +56,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<serviceApp.Server.Entities.FoodStorage.FoodPurchase> FoodPurchases { get; set; }
     public DbSet<serviceApp.Server.Entities.FoodStorage.FoodStorageLocation> FoodStorageLocations { get; set; }
     public DbSet<serviceApp.Server.Entities.FoodStorage.FoodCategory> FoodCategories { get; set; }
+    public DbSet<serviceApp.Server.Entities.FoodStorage.FoodStockWithdrawal> FoodStockWithdrawals { get; set; }
 
 
 
@@ -202,6 +203,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             b.HasOne(x => x.FoodStore).WithMany(x => x.Purchases)
                 .HasForeignKey(x => x.FoodStoreId).OnDelete(DeleteBehavior.Restrict);
         });
+        modelBuilder.Entity<serviceApp.Server.Entities.FoodStorage.FoodStockWithdrawal>(b =>
+        {
+            b.HasQueryFilter(x => _familyId != null && x.FamilyId == _familyId);
+            b.HasIndex(x => new { x.FamilyId, x.RemovedAt });
+            b.HasOne(x => x.FoodProduct).WithMany().HasForeignKey(x => x.FoodProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
 
 
     }

@@ -18,7 +18,7 @@ public static class RoleSeeder
         }
 
         // Read owner config
-        var ownerEmail = cfg["Owner:Email"];
+        const string ownerEmail = "overonny@progorb.no";
         var ownerPassword = cfg["Owner:Password"]; // optional in prod if you create owner manually
 
         if (string.IsNullOrWhiteSpace(ownerEmail))

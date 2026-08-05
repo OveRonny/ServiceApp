@@ -82,6 +82,12 @@
 			<!-- Bruker / Logg ut -->
 			<AuthorizeView>
 				<Authorized>
+                    <AuthorizeView Roles="OwnerAdmin" Context="adminContext">
+                        <Authorized>
+                            <a class="btn btn-outline-light btn-sm" href="/admin/users">⚙️ Brukere</a>
+                        </Authorized>
+                    </AuthorizeView>
+
 					<div class="d-flex align-items-center gap-3">
 						<span class="navbar-user">👤 @GetDisplayName(context.User)</span>
 						<button type="button" class="btn btn-logout" @onclick="Logout">Logg ut</button>
@@ -90,6 +96,7 @@
 				<NotAuthorized>
 					<a class="btn btn-nav-login" href="/login">Logg inn</a>
 				</NotAuthorized>
+
 			</AuthorizeView>
 		</div>
 	</div>

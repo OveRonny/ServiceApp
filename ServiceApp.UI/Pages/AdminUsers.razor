@@ -1,0 +1,110 @@
+@page "/admin/users"
+@attribute [Authorize(Roles = "OwnerAdmin")]
+@using ServiceApp.UI.Models
+@using ServiceApp.UI.Services.UserServices
+@inject IUserService UserService
+
+<PageTitle>Brukeradministrasjon</PageTitle>
+
+<div class="container-xxl page-section mt-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div><h1 class="h3 mb-1">Brukeradministrasjon</h1><p class="text-muted mb-0">Se, rediger og sikre brukerkontoer.</p></div>
+        <a class="btn btn-primary" href="/createuser">Ny bruker</a>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(message))
+    {
+        <div class="alert @(isError ? "alert-danger" : "alert-success")">@message</div>
+    }
+
+    <div class="row g-2 mb-3">
+        <div class="col-md-8"><input class="form-control" placeholder="Søk på e-post, telefon eller familie-ID" @bind="search" @bind:event="oninput" /></div>
+        <div class="col-md-4"><button class="btn btn-outline-primary w-100" @onclick="LoadAsync">Oppdater</button></div>
+    </div>
+
+    @if (loading)
+    {
+        <p><em>Laster brukere …</em></p>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var user in FilteredUsers)
+            {
+                <div class="col-12 col-xl-6">
+                    <div class="card h-100 @(user.IsActive ? null : "border-warning")">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between gap-2 mb-3">
+                                <div><h2 class="h5 mb-1">@user.Email</h2><div class="small text-muted">Familie: @user.FamilyId</div></div>
+                                <span class="badge @(user.IsActive ? "text-bg-success" : "text-bg-warning")">@(user.IsActive ? "Aktiv" : "Deaktivert")</span>
+                            </div>
+                            @if (user.IsProtectedOwner) { <div class="alert alert-info py-2">Beskyttet hovedadministrator</div> }
+                            <div class="mb-3">@foreach (var role in user.Roles) { <span class="badge text-bg-secondary me-1">@role</span> }</div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button class="btn btn-sm btn-primary" @onclick="() => StartEdit(user)">Rediger</button>
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => StartPasswordReset(user)">Nytt passord</button>
+                                <button class="btn btn-sm @(user.IsActive ? "btn-outline-warning" : "btn-outline-success")" disabled="@user.IsProtectedOwner"
+                                        @onclick="() => SetActiveAsync(user, !user.IsActive)">@(user.IsActive ? "Deaktiver" : "Aktiver")</button>
+                            </div>
+
+                            @if (editingId == user.Id)
+                            {
+                                <EditForm Model="editModel" OnValidSubmit="() => SaveUserAsync(user.Id)" FormName="edit-admin-user" class="border-top mt-3 pt-3">
+                                    <DataAnnotationsValidator />
+                                    <label class="form-label">E-post</label><InputText class="form-control mb-2" @bind-Value="editModel.Email" disabled="@user.IsProtectedOwner" />
+                                    <label class="form-label">Telefon</label><InputText class="form-control mb-2" @bind-Value="editModel.PhoneNumber" />
+                                    <div class="form-check mb-2"><InputCheckbox class="form-check-input" @bind-Value="editModel.EmailConfirmed" /><label class="form-check-label">E-post bekreftet</label></div>
+                                    <label class="form-label">Roller</label>
+                                    @foreach (var role in allRoles)
+                                    {
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" checked="@editModel.Roles.Contains(role)" disabled="@(user.IsProtectedOwner && (role is "OwnerAdmin" or "Admin"))" @onchange="e => ToggleRole(role, e.Value as bool? == true)" /><label class="form-check-label">@role</label></div>
+                                    }
+                                    <div class="d-flex gap-2 mt-3"><button class="btn btn-success">Lagre</button><button type="button" class="btn btn-outline-secondary" @onclick="CancelForms">Avbryt</button></div>
+                                </EditForm>
+                            }
+                            @if (passwordUserId == user.Id)
+                            {
+                                <EditForm Model="passwordModel" OnValidSubmit="() => ResetPasswordAsync(user.Id)" FormName="reset-admin-password" class="border-top mt-3 pt-3">
+                                    <DataAnnotationsValidator />
+                                    <label class="form-label">Nytt passord</label><InputText type="password" autocomplete="new-password" class="form-control mb-2" @bind-Value="passwordModel.NewPassword" />
+                                    <label class="form-label">Gjenta passord</label><InputText type="password" autocomplete="new-password" class="form-control mb-2" @bind-Value="passwordModel.ConfirmPassword" />
+                                    <ValidationSummary />
+                                    <div class="d-flex gap-2"><button class="btn btn-warning">Sett nytt passord</button><button type="button" class="btn btn-outline-secondary" @onclick="CancelForms">Avbryt</button></div>
+                                </EditForm>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private IReadOnlyList<AdminUserModel> users = [];
+    private IReadOnlyList<string> allRoles = [];
+    private AdminUserEditModel editModel = new();
+    private AdminPasswordResetModel passwordModel = new();
+    private string? editingId;
+    private string? passwordUserId;
+    private string search = string.Empty;
+    private string? message;
+    private bool isError;
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync() { allRoles = (await UserService.GetAllRolesAsync()).ToList(); await LoadAsync(); }
+    private IEnumerable<AdminUserModel> FilteredUsers => users.Where(x => string.IsNullOrWhiteSpace(search) || x.Email.Contains(search, StringComparison.OrdinalIgnoreCase) || (x.PhoneNumber?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) || x.FamilyId.ToString().Contains(search, StringComparison.OrdinalIgnoreCase));
+    private async Task LoadAsync() { loading = true; users = await UserService.GetAdminUsersAsync(); loading = false; }
+    private void StartEdit(AdminUserModel user) { passwordUserId = null; editingId = user.Id; editModel = new() { Email = user.Email, PhoneNumber = user.PhoneNumber, EmailConfirmed = user.EmailConfirmed, Roles = user.Roles.ToHashSet(StringComparer.OrdinalIgnoreCase) }; }
+    private void StartPasswordReset(AdminUserModel user) { editingId = null; passwordUserId = user.Id; passwordModel = new(); }
+    private void CancelForms() { editingId = null; passwordUserId = null; }
+    private void ToggleRole(string role, bool selected) { if (selected) editModel.Roles.Add(role); else editModel.Roles.Remove(role); }
+    private async Task SaveUserAsync(string id) => await RunAsync(async () => await UserService.UpdateAdminUserAsync(id, editModel), "Brukeren er oppdatert.");
+    private async Task ResetPasswordAsync(string id) => await RunAsync(async () => await UserService.ResetAdminPasswordAsync(id, passwordModel.NewPassword), "Passordet er endret. Brukerens aktive innlogginger er ugyldiggjort.");
+    private async Task SetActiveAsync(AdminUserModel user, bool active) => await RunAsync(async () => await UserService.SetAdminUserActiveAsync(user.Id, active), active ? "Brukeren er aktivert." : "Brukeren er deaktivert.");
+    private async Task RunAsync(Func<Task<(bool ok, string? error)>> action, string success)
+    {
+        var result = await action(); isError = !result.ok; message = result.ok ? success : result.error;
+        if (result.ok) { CancelForms(); await LoadAsync(); }
+    }
+}

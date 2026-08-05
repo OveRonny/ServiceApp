@@ -56,6 +56,30 @@ public class AuthService(IHttpClientFactory httpFactory, IJSRuntime js, IToastSe
         await js.InvokeVoidAsync("localStorage.removeItem", TokenKey);
     }
 
+    public async Task<(bool ok, string? error)> ChangePasswordAsync(string currentPassword,
+        string newPassword, CancellationToken ct = default)
+    {
+        using var response = await httpFactory.CreateClient("ApiAuthed")
+            .PostAsJsonAsync("api/account/password", new { currentPassword, newPassword }, ct);
+        return await AccountResultAsync(response, ct);
+    }
+
+    public async Task<(bool ok, string? error)> DeleteAccountAsync(string password,
+        string confirmation, CancellationToken ct = default)
+    {
+        using var response = await httpFactory.CreateClient("ApiAuthed")
+            .PostAsJsonAsync("api/account/delete", new { password, confirmation }, ct);
+        return await AccountResultAsync(response, ct);
+    }
+
+    private static async Task<(bool ok, string? error)> AccountResultAsync(HttpResponseMessage response,
+        CancellationToken ct)
+    {
+        if (response.IsSuccessStatusCode) return (true, null);
+        var error = await response.Content.ReadAsStringAsync(ct);
+        return (false, string.IsNullOrWhiteSpace(error) ? "Noe gikk galt." : error.Trim('"'));
+    }
+
     public async Task<string?> GetAccessTokenAsync()
     {
         var json = await js.InvokeAsync<string?>("localStorage.getItem", TokenKey);

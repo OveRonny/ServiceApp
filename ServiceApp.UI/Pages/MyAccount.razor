@@ -1,0 +1,96 @@
+@page "/account"
+@attribute [Authorize]
+@using System.ComponentModel.DataAnnotations
+@inject ServiceApp.UI.Services.IAuthService Auth
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<PageTitle>Min konto</PageTitle>
+
+<div class="container page-section mt-3" style="max-width:760px">
+    <h1 class="h3 mb-1">Min konto</h1>
+    <p class="text-muted mb-4">Administrer passord og konto.</p>
+
+    @if (!string.IsNullOrWhiteSpace(message))
+    {
+        <div class="alert @(isError ? "alert-danger" : "alert-success")">@message</div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h2 class="h5">Endre passord</h2>
+            <EditForm Model="passwordModel" OnValidSubmit="ChangePasswordAsync" FormName="change-own-password">
+                <DataAnnotationsValidator />
+                <label class="form-label">Nåværende passord</label>
+                <InputText type="password" autocomplete="current-password" class="form-control mb-3" @bind-Value="passwordModel.CurrentPassword" />
+                <label class="form-label">Nytt passord</label>
+                <InputText type="password" autocomplete="new-password" class="form-control mb-3" @bind-Value="passwordModel.NewPassword" />
+                <label class="form-label">Gjenta nytt passord</label>
+                <InputText type="password" autocomplete="new-password" class="form-control mb-3" @bind-Value="passwordModel.ConfirmPassword" />
+                <ValidationSummary />
+                <button class="btn btn-primary" disabled="@busy">Endre passord</button>
+            </EditForm>
+        </div>
+    </div>
+
+    <div class="card border-danger">
+        <div class="card-body">
+            <h2 class="h5 text-danger">Slett konto</h2>
+            <p>Dette sletter innloggingen, filmhistorikken og personlige filmlister permanent. Familiedelte data beholdes.</p>
+            <button class="btn btn-outline-danger" @onclick="() => showDelete = !showDelete">Jeg vil slette kontoen</button>
+            @if (showDelete)
+            {
+                <EditForm Model="deleteModel" OnValidSubmit="DeleteAccountAsync" FormName="delete-own-account" class="border-top mt-3 pt-3">
+                    <DataAnnotationsValidator />
+                    <label class="form-label">Passord</label>
+                    <InputText type="password" autocomplete="current-password" class="form-control mb-3" @bind-Value="deleteModel.Password" />
+                    <label class="form-label">Skriv SLETT for å bekrefte</label>
+                    <InputText class="form-control mb-3" autocomplete="off" @bind-Value="deleteModel.Confirmation" />
+                    <ValidationSummary />
+                    <button class="btn btn-danger" disabled="@busy">Slett kontoen permanent</button>
+                </EditForm>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private readonly ChangePasswordModel passwordModel = new();
+    private readonly DeleteAccountModel deleteModel = new();
+    private string? message;
+    private bool isError;
+    private bool busy;
+    private bool showDelete;
+
+    private async Task ChangePasswordAsync()
+    {
+        busy = true;
+        var result = await Auth.ChangePasswordAsync(passwordModel.CurrentPassword, passwordModel.NewPassword);
+        busy = false; isError = !result.ok; message = result.ok ? "Passordet er endret." : result.error;
+        if (result.ok) { passwordModel.CurrentPassword = string.Empty; passwordModel.NewPassword = string.Empty; passwordModel.ConfirmPassword = string.Empty; }
+    }
+
+    private async Task DeleteAccountAsync()
+    {
+        busy = true;
+        var result = await Auth.DeleteAccountAsync(deleteModel.Password, deleteModel.Confirmation);
+        busy = false;
+        if (!result.ok) { isError = true; message = result.error; return; }
+        await Auth.LogoutAsync();
+        if (AuthStateProvider is ServiceApp.UI.Services.JwtAuthenticationStateProvider jwt) jwt.NotifyUserLogout();
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
+
+    private sealed class ChangePasswordModel
+    {
+        [Required] public string CurrentPassword { get; set; } = string.Empty;
+        [Required, MinLength(6)] public string NewPassword { get; set; } = string.Empty;
+        [Required, Compare(nameof(NewPassword))] public string ConfirmPassword { get; set; } = string.Empty;
+    }
+
+    private sealed class DeleteAccountModel
+    {
+        [Required] public string Password { get; set; } = string.Empty;
+        [Required, RegularExpression("SLETT")] public string Confirmation { get; set; } = string.Empty;
+    }
+}

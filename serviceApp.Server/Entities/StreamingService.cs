@@ -12,5 +12,6 @@ public enum StreamingService
     TVNorge,
     ParamountPlus,
     Other,
-    TV2Play
+    TV2Play,
+    BritBox
 }

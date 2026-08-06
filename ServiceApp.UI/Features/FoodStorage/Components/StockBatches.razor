@@ -1,0 +1,37 @@
+@using ServiceApp.UI.Features.FoodStorage.Models
+
+<button type="button" class="btn btn-sm btn-outline-info" @onclick="() => show = true">
+    Partier (@Item.Batches.Count)
+</button>
+
+@if (show)
+{
+    <div class="batch-backdrop" @onclick="Close">
+        <section class="batch-dialog" role="dialog" aria-modal="true" @onclick:stopPropagation="true">
+            <header>
+                <div><div class="text-muted small">Partier på lager</div><h2 class="h5 mb-0">@Item.Product.Name</h2></div>
+                <button type="button" class="btn-close btn-close-white" aria-label="Lukk" @onclick="Close"></button>
+            </header>
+            <div class="batch-list">
+                @foreach (var batch in Item.Batches)
+                {
+                    <article>
+                        <strong>@batch.Quantity.ToString("N2") @Item.Unit</strong>
+                        <dl>
+                            <div><dt>Kjøpt</dt><dd>@Format(batch.PurchasedDate)</dd></div>
+                            <div><dt>Best før</dt><dd>@Format(batch.BestBeforeDate)</dd></div>
+                            <div><dt>Fryst dato</dt><dd>@Format(batch.FrozenDate)</dd></div>
+                        </dl>
+                    </article>
+                }
+            </div>
+        </section>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public FoodStockItemModel Item { get; set; } = null!;
+    private bool show;
+    private void Close() => show = false;
+    private static string Format(DateOnly? date) => date?.ToString("dd.MM.yyyy") ?? "Ikke satt";
+}

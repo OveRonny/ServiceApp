@@ -1,0 +1,12 @@
+.batch-backdrop { position: fixed; inset: 0; z-index: 1090; display: grid; place-items: center; padding: 1rem; background: rgba(15, 23, 42, .7); backdrop-filter: blur(3px); }
+.batch-dialog { width: min(620px, 100%); max-height: calc(100vh - 2rem); overflow: hidden; color: #f3f4f6; background: #1f2937; border: 1px solid #4b5563; border-radius: 1rem; box-shadow: 0 24px 80px rgba(0,0,0,.55); }
+.batch-dialog > header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid #4b5563; }
+.batch-dialog .text-muted { color: #b8c2d1 !important; }
+.batch-list { display: grid; gap: .75rem; padding: 1rem; overflow: auto; }
+.batch-list article { padding: .9rem; background: #111827; border: 1px solid rgba(148,163,184,.25); border-radius: .8rem; }
+.batch-list article > strong { color: #a7f3d0; font-size: 1.05rem; }
+.batch-list dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; margin: .75rem 0 0; }
+.batch-list dl div { min-width: 0; }
+.batch-list dt { color: #9ca3af; font-size: .72rem; text-transform: uppercase; }
+.batch-list dd { margin: .15rem 0 0; overflow-wrap: anywhere; }
+@media (max-width: 575.98px) { .batch-backdrop { align-items: end; padding: 0; } .batch-dialog { max-height: 88vh; border-radius: 1rem 1rem 0 0; } .batch-list dl { grid-template-columns: 1fr; } }

@@ -90,7 +90,7 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
     private static async Task<IResult> GetStockAsync(ApplicationDbContext db, CancellationToken cancellationToken)
     {
         var items = await db.FoodStockItems.AsNoTracking().Include(x => x.FoodProduct)
-            .Include(x => x.FoodCategory)
+            .Include(x => x.FoodCategory).Include(x => x.Batches)
             .OrderBy(x => x.BestBeforeDate == null).ThenBy(x => x.BestBeforeDate)
             .ThenBy(x => x.FoodProduct.Name).ToListAsync(cancellationToken);
 
@@ -143,7 +143,7 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
 
         var item = await db.FoodStockItems
             .Include(x => x.FoodProduct)
-            .Include(x => x.FoodCategory)
+            .Include(x => x.FoodCategory).Include(x => x.Batches)
             .SingleOrDefaultAsync(x => x.FoodProductId == request.FoodProductId, cancellationToken);
         var isNew = item is null;
         if (item is null)
@@ -177,7 +177,14 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
                 item.BestBeforeDate = request.BestBeforeDate;
             item.UpdatedAt = DateTimeOffset.UtcNow;
         }
-        if (request.FoodStoreId is int purchaseStoreId && request.TotalPrice is decimal totalPrice)
+        item.Batches.Add(new FoodStockBatch
+        {
+            FamilyId = familyId.Value,
+            Quantity = request.Quantity,
+            BestBeforeDate = request.BestBeforeDate,
+            FrozenDate = request.FrozenDate,
+            PurchasedDate = request.PurchasedDate
+        });        if (request.FoodStoreId is int purchaseStoreId && request.TotalPrice is decimal totalPrice)
         {
             db.FoodPurchases.Add(new FoodPurchase
             {
@@ -205,10 +212,11 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         if (request.FoodCategoryId is int categoryId &&
             !await db.FoodCategories.AnyAsync(x => x.Id == categoryId, cancellationToken))
             return Results.BadRequest("Kategorien finnes ikke.");
-        var item = await db.FoodStockItems.Include(x => x.FoodProduct)
+        var item = await db.FoodStockItems.Include(x => x.FoodProduct).Include(x => x.Batches)
             .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
         if (item is null) return Results.NotFound();
 
+        ReconcileBatches(item, request.Quantity);
         item.Quantity = request.Quantity; item.Unit = request.Unit.Trim();
         item.Location = request.Location.Trim(); item.BestBeforeDate = request.BestBeforeDate;
         if (item.FrozenDate != request.FrozenDate)
@@ -227,8 +235,9 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
     private static async Task<IResult> DeleteStockItemAsync(int id, ApplicationDbContext db,
         CancellationToken cancellationToken)
     {
-        var item = await db.FoodStockItems.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+        var item = await db.FoodStockItems.Include(x => x.Batches).SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
         if (item is null) return Results.NotFound();
+        ReconcileBatches(item, 0);
         item.Quantity = 0;
         item.UpdatedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync(cancellationToken);
@@ -400,8 +409,9 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         ApplicationDbContext db, CancellationToken cancellationToken)
     {
         if (request.Quantity < 0) return Results.BadRequest("Antall kan ikke være negativt.");
-        var item = await db.FoodStockItems.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+        var item = await db.FoodStockItems.Include(x => x.Batches).SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
         if (item is null) return Results.NotFound();
+        ReconcileBatches(item, request.Quantity);
         item.Quantity = request.Quantity;
         item.UpdatedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync(cancellationToken);
@@ -412,11 +422,12 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         ApplicationDbContext db, CancellationToken cancellationToken)
     {
         if (request.Quantity <= 0) return Results.BadRequest("Antall må være større enn null.");
-        var item = await db.FoodStockItems.SingleOrDefaultAsync(
+        var item = await db.FoodStockItems.Include(x => x.Batches).SingleOrDefaultAsync(
             x => x.FoodProductId == request.ProductId, cancellationToken);
         if (item is null) return Results.NotFound("Varen finnes ikke på lager.");
         if (request.Quantity > item.Quantity) return Results.BadRequest("Det er ikke nok av varen på lager.");
 
+        ReconcileBatches(item, item.Quantity - request.Quantity);
         item.Quantity -= request.Quantity;
         item.UpdatedAt = DateTimeOffset.UtcNow;
         db.FoodStockWithdrawals.Add(new FoodStockWithdrawal
@@ -474,7 +485,35 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         product.Name, product.Brand, product.QuantityLabel, product.ImageUrl, product.Source);
     private static FoodStockItemDto ToDto(FoodStockItem item, decimal? unitPrice = null, int? latestFoodStoreId = null) => new(item.Id, ToDto(item.FoodProduct),
         item.Quantity, item.Unit, item.Location, item.BestBeforeDate, item.FrozenDate, item.PurchasedDate,
-        item.FoodCategoryId, item.FoodCategory?.Name, unitPrice, latestFoodStoreId, unitPrice.GetValueOrDefault() * item.Quantity, item.MinimumQuantity);
+        item.FoodCategoryId, item.FoodCategory?.Name, unitPrice, latestFoodStoreId, unitPrice.GetValueOrDefault() * item.Quantity, item.MinimumQuantity,
+        item.Batches.Where(x => x.Quantity > 0).OrderBy(x => x.BestBeforeDate is null).ThenBy(x => x.BestBeforeDate)
+            .ThenBy(x => x.CreatedAt).Select(x => new FoodStockBatchDto(x.Id, x.Quantity, x.BestBeforeDate, x.FrozenDate, x.PurchasedDate)).ToList());
+    private static void ReconcileBatches(FoodStockItem item, decimal newQuantity)
+    {
+        var batchQuantity = item.Batches.Sum(x => x.Quantity);
+        var difference = newQuantity - batchQuantity;
+        if (difference > 0)
+        {
+            item.Batches.Add(new FoodStockBatch
+            {
+                FamilyId = item.FamilyId,
+                Quantity = difference,
+                PurchasedDate = DateOnly.FromDateTime(DateTime.UtcNow)
+            });
+            return;
+        }
+
+        var remaining = -difference;
+        foreach (var batch in item.Batches.Where(x => x.Quantity > 0)
+                     .OrderBy(x => x.BestBeforeDate is null).ThenBy(x => x.BestBeforeDate)
+                     .ThenBy(x => x.CreatedAt))
+        {
+            if (remaining <= 0) break;
+            var removed = Math.Min(batch.Quantity, remaining);
+            batch.Quantity -= removed;
+            remaining -= removed;
+        }
+    }
     private static string NormalizeBarcode(string value) => new(value.Where(char.IsAsciiDigit).ToArray());
     private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     private static string? ValidateStock(decimal quantity, string unit, string location) =>

@@ -10,6 +10,9 @@ public sealed record FoodProductDto(
     string? ImageUrl,
     string Source);
 
+public sealed record FoodStockBatchDto(int Id, decimal Quantity, DateOnly? BestBeforeDate,
+    DateOnly? FrozenDate, DateOnly? PurchasedDate);
+
 public sealed record FoodStockItemDto(
     int Id,
     FoodProductDto Product,
@@ -24,7 +27,8 @@ public sealed record FoodStockItemDto(
     decimal? LatestUnitPrice,
     int? LatestFoodStoreId,
     decimal EstimatedValue,
-    decimal? MinimumQuantity);
+    decimal? MinimumQuantity,
+    IReadOnlyList<FoodStockBatchDto> Batches);
 public sealed record FoodStoreDto(int Id, string Name);
 public sealed record FoodStorageLocationDto(int Id, string Name);
 public sealed record FoodCategoryDto(int Id, string Name);

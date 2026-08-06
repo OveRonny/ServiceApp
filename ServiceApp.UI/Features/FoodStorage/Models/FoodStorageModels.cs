@@ -6,10 +6,13 @@ public sealed record FoodProductModel(
     int Id, string Barcode, string Name, string? Brand,
     string? QuantityLabel, string? ImageUrl, string Source);
 
+public sealed record FoodStockBatchModel(int Id, decimal Quantity, DateOnly? BestBeforeDate,
+    DateOnly? FrozenDate, DateOnly? PurchasedDate);
+
 public sealed record FoodStockItemModel(
     int Id, FoodProductModel Product, decimal Quantity, string Unit,
     string Location, DateOnly? BestBeforeDate, DateOnly? FrozenDate, DateOnly? PurchasedDate, int? CategoryId, string? Category,
-    decimal? LatestUnitPrice, int? LatestFoodStoreId, decimal EstimatedValue, decimal? MinimumQuantity);
+    decimal? LatestUnitPrice, int? LatestFoodStoreId, decimal EstimatedValue, decimal? MinimumQuantity, IReadOnlyList<FoodStockBatchModel> Batches);
 public sealed record FoodStoreModel(int Id, string Name);
 public sealed record FoodStorageLocationModel(int Id, string Name);
 public sealed record FoodCategoryModel(int Id, string Name);

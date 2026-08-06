@@ -10,6 +10,7 @@ public sealed class FoodStockItem
     public FoodProduct FoodProduct { get; set; } = null!;
     public int? FoodCategoryId { get; set; }
     public FoodCategory? FoodCategory { get; set; }
+    public ICollection<FoodStockBatch> Batches { get; set; } = [];
 
     [Precision(18, 3)]
     public decimal Quantity { get; set; }

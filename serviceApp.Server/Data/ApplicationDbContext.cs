@@ -57,6 +57,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<serviceApp.Server.Entities.FoodStorage.FoodStorageLocation> FoodStorageLocations { get; set; }
     public DbSet<serviceApp.Server.Entities.FoodStorage.FoodCategory> FoodCategories { get; set; }
     public DbSet<serviceApp.Server.Entities.FoodStorage.FoodStockWithdrawal> FoodStockWithdrawals { get; set; }
+    public DbSet<serviceApp.Server.Entities.FoodStorage.FoodStockBatch> FoodStockBatches { get; set; }
 
 
 
@@ -175,7 +176,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             b.HasOne(x => x.FoodProduct).WithMany(x => x.StockItems)
                 .HasForeignKey(x => x.FoodProductId).OnDelete(DeleteBehavior.Restrict);
         });
-        modelBuilder.Entity<serviceApp.Server.Entities.FoodStorage.FoodStore>(b =>
+        modelBuilder.Entity<serviceApp.Server.Entities.FoodStorage.FoodStockBatch>(b =>
+        {
+            b.HasQueryFilter(x => _familyId != null && x.FamilyId == _familyId);
+            b.HasIndex(x => new { x.FamilyId, x.FoodStockItemId, x.BestBeforeDate });
+            b.HasOne(x => x.FoodStockItem).WithMany(x => x.Batches)
+                .HasForeignKey(x => x.FoodStockItemId).OnDelete(DeleteBehavior.Cascade);
+        });        modelBuilder.Entity<serviceApp.Server.Entities.FoodStorage.FoodStore>(b =>
         {
             b.HasQueryFilter(x => _familyId != null && x.FamilyId == _familyId);
             b.HasIndex(x => new { x.FamilyId, x.Name }).IsUnique();

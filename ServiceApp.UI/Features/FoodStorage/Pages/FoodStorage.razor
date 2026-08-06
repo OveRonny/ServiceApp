@@ -132,7 +132,52 @@
     }
     else
     {
-        <div class="table-responsive">
+        <div class="food-stock-mobile d-md-none">
+            @foreach (var item in FilteredAndSortedStock)
+            {
+                <article class="food-stock-card @(IsExpiringSoon(item) ? "is-expiring" : null)">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                        <div class="min-w-0">
+                            <h3 class="h5 mb-1 text-break">@item.Product.Name</h3>
+                            @if (!string.IsNullOrWhiteSpace(item.Product.Brand))
+                            {
+                                <div class="text-muted small text-break">@item.Product.Brand</div>
+                            }
+                        </div>
+                        <span class="badge rounded-pill text-bg-secondary">@(item.Category ?? "Uten kategori")</span>
+                    </div>
+
+                    <div class="food-stock-grid mb-3">
+                        <div><span>Plassering</span><strong>@item.Location</strong></div>
+                        <div><span>Best før</span><strong>@(item.BestBeforeDate?.ToString("dd.MM.yyyy") ?? "Ikke satt")</strong></div>
+                        <div><span>Enhetspris</span><strong>@(item.LatestUnitPrice is decimal mobilePrice ? $"{mobilePrice:N2} kr" : "Pris mangler")</strong></div>
+                        <div><span>Lagerverdi</span><strong>@(item.LatestUnitPrice.HasValue ? $"{item.EstimatedValue:N2} kr" : "Ikke beregnet")</strong></div>
+                    </div>
+
+                    <div class="mobile-editor mb-2">
+                        <label>Beholdning</label>
+                        <StockQuantityEditor StockItemId="item.Id" Value="item.Quantity" Unit="item.Unit" OnSaved="RefreshAfterQuantityAsync" />
+                    </div>
+                    <div class="mobile-editor mb-3">
+                        <label>Minimumsbeholdning</label>
+                        <MinimumQuantityEditor StockItemId="item.Id" Value="item.MinimumQuantity" OnSaved="RefreshAfterMinimumAsync" />
+                    </div>
+
+                    <div class="food-stock-actions">
+                        <button class="btn btn-sm btn-primary" @onclick="() => PrepareAddQuantity(item)">Legg til</button>
+                        <StockItemEditor Item="item" OnSaved="RefreshAfterQuantityAsync" />
+                        @if (!item.LatestUnitPrice.HasValue && item.Quantity > 0)
+                        {
+                            <MissingPriceEditor StockItemId="item.Id" Quantity="item.Quantity" Unit="item.Unit" OnSaved="ReloadAsync" />
+                        }
+                        <PriceHistory ProductId="item.Product.Id" />
+                        <button class="btn btn-sm btn-outline-warning" @onclick="() => SetEmptyAsync(item.Id)">Sett tom</button>
+                    </div>
+                </article>
+            }
+        </div>
+
+        <div class="table-responsive d-none d-md-block">
             <table class="table align-middle">
                 <thead><tr><th>Produkt</th><th>Kategori</th><th>Beholdning</th><th>Minimum</th><th>Enhetspris</th><th>Verdi</th><th>Plassering</th><th>Best før</th><th></th></tr></thead>
                 <tbody>

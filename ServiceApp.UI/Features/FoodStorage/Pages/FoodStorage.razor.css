@@ -113,7 +113,75 @@
 }
 
 @media (max-width: 767.98px) {
-    .food-storage-page .table-responsive {
-        overflow-x: auto;
+    .food-storage-page {
+        padding-left: .75rem;
+        padding-right: .75rem;
+    }
+
+    .food-stock-mobile {
+        display: grid;
+        gap: .85rem;
+    }
+
+    .food-stock-card {
+        min-width: 0;
+        padding: 1rem;
+        overflow: hidden;
+        color: var(--text-primary);
+        background: linear-gradient(145deg, rgba(31, 41, 55, .98), rgba(17, 24, 39, .98));
+        border: 1px solid rgba(148, 163, 184, .24);
+        border-radius: 1rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .22);
+    }
+
+    .food-stock-card.is-expiring {
+        border-color: rgba(245, 158, 11, .65);
+        box-shadow: inset 4px 0 0 #f59e0b, 0 8px 24px rgba(0, 0, 0, .22);
+    }
+
+    .food-stock-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .65rem;
+    }
+
+    .food-stock-grid > div {
+        min-width: 0;
+        padding: .65rem;
+        background: rgba(15, 23, 42, .72);
+        border-radius: .7rem;
+    }
+
+    .food-stock-grid span,
+    .mobile-editor > label {
+        display: block;
+        margin-bottom: .25rem;
+        color: #aebbd0;
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+
+    .food-stock-grid strong {
+        display: block;
+        overflow-wrap: anywhere;
+        font-size: .9rem;
+    }
+
+    .mobile-editor ::deep .input-group {
+        width: 100%;
+        min-width: 0 !important;
+    }
+
+    .food-stock-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .4rem;
+        align-items: center;
+    }
+
+    .food-stock-actions ::deep .btn {
+        margin: 0 !important;
     }
 }

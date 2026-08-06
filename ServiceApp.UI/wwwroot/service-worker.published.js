@@ -73,7 +73,7 @@ function isStaticAsset(req) {
 self.addEventListener('fetch', event => {
   const req = event.request;
 
-  // Don’t intercept API, cross-origin, or SAS requests
+  // Donï¿½t intercept API, cross-origin, or SAS requests
   if (shouldBypass(req)) return;
 
   // Static assets: cache-first with safe fallback
@@ -84,7 +84,7 @@ self.addEventListener('fetch', event => {
       if (cached) return cached;
 
       try {
-        const resp = await fetch(req);
+        const resp = await fetch(req, { cache: 'no-store' });
         if (resp && resp.ok && resp.type !== 'opaque') {
           cache.put(req, resp.clone());
         }
@@ -100,7 +100,7 @@ self.addEventListener('fetch', event => {
   // All other same-origin requests: network-first, fallback to cache if available
   event.respondWith((async () => {
     try {
-      return await fetch(req);
+      return await fetch(req, { cache: 'no-store' });
     } catch {
       const cache = await caches.open(CACHE_NAME);
       const cached = await cache.match(req, { ignoreSearch: true });

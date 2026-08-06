@@ -3,27 +3,45 @@
     "rewrite": "/index.html",
     "exclude": [
       "/service-worker.js",
-      "/manifest.json"
+      "/service-worker-assets.js",
+      "/manifest.webmanifest"
     ]
   },
-
   "routes": [
     {
       "route": "/index.html",
       "headers": {
-        "cache-control": "no-cache, must-revalidate"
+        "cache-control": "no-store, no-cache, must-revalidate"
       }
     },
     {
       "route": "/service-worker.js",
       "headers": {
+        "cache-control": "no-store, no-cache, must-revalidate"
+      }
+    },
+    {
+      "route": "/service-worker-assets.js",
+      "headers": {
+        "cache-control": "no-store, no-cache, must-revalidate"
+      }
+    },
+    {
+      "route": "/manifest.webmanifest",
+      "headers": {
         "cache-control": "no-cache, must-revalidate"
       }
     },
     {
-      "route": "/manifest.json",
+      "route": "/js/app-update.js",
       "headers": {
-        "cache-control": "no-cache, must-revalidate"
+        "cache-control": "no-store, no-cache, must-revalidate"
+      }
+    },
+    {
+      "route": "/_framework/blazor.boot.json",
+      "headers": {
+        "cache-control": "no-store, no-cache, must-revalidate"
       }
     },
     {
@@ -43,23 +61,9 @@
       "headers": {
         "cache-control": "public, max-age=31536000, immutable"
       }
-    },
-    {
-      "route": "/*.js",
-      "headers": {
-        "cache-control": "public, max-age=31536000, immutable"
-      }
-    },
-    {
-      "route": "/*.css",
-      "headers": {
-        "cache-control": "public, max-age=31536000, immutable"
-      }
     }
   ],
-
   "mimeTypes": {
     ".wasm": "application/wasm"
   }
 }
-

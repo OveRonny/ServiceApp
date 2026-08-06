@@ -67,6 +67,113 @@
 .stat-value {
     font-size: 1.8em;
     font-weight: 800;
+
+.food-value {
+    color: #34d399;
+    font-size: 1.45em;
+}
+
+.food-warning {
+    color: #fbbf24;
+}
+
+.panel-heading-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.panel-subtitle {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: .85em;
+}
+
+.panel-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.panel-links a {
+    padding: 7px 11px;
+    color: var(--blue-400);
+    background: rgba(59, 130, 246, .12);
+    border: 1px solid rgba(96, 165, 250, .3);
+    border-radius: 8px;
+    font-size: .8em;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.food-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.food-summary-item {
+    min-width: 0;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    background: var(--gray-900);
+    border: 1px solid var(--border-muted);
+    border-radius: 11px;
+}
+
+.food-summary-item span,
+.food-summary-item small {
+    color: var(--text-muted);
+    font-size: .76em;
+}
+
+.food-summary-item strong {
+    color: var(--text-primary);
+    font-size: 1.45em;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+}
+
+.food-summary-value strong {
+    color: #34d399;
+}
+
+.food-summary-item.needs-attention {
+    border-color: rgba(251, 191, 36, .55);
+    background: rgba(120, 53, 15, .18);
+}
+
+.food-summary-item.needs-info {
+    border-color: rgba(96, 165, 250, .45);
+}
+
+@media (max-width: 767.98px) {
+    .panel-heading-row {
+        flex-direction: column;
+    }
+
+    .panel-links,
+    .panel-links a {
+        width: 100%;
+        text-align: center;
+    }
+
+    .food-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .food-summary-item {
+        padding: 12px;
+    }
+
+    .food-summary-item strong {
+        font-size: 1.2em;
+    }
+}
     color: var(--blue-400);
     line-height: 1;
 }

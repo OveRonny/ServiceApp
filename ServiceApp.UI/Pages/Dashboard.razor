@@ -62,22 +62,40 @@ else
             </div>
 
             <!-- Matlager -->
-            <div class="stat-section">
+            <div class="stat-section food-stat-section">
                 <div class="stat-section-header">🥫 Matlager</div>
-                <div class="stat-cards">
-                    <div class="stat-card">
-                        <span class="stat-value food-value">@TotalFoodStockValue.ToString("N0")</span>
-                        <span class="stat-label">Kroner på lager</span>
+                @if (_foodLoading)
+                {
+                    <p class="empty-panel-msg">Laster matlager …</p>
+                }
+                else
+                {
+                    <div class="food-primary-value">
+                        <span>Total lagerverdi</span>
+                        <strong>@TotalFoodStockValue.ToString("N2") kr</strong>
                     </div>
-                    <div class="stat-card">
-                        <span class="stat-value">@FoodInStockCount</span>
-                        <span class="stat-label">Varetyper</span>
+                    <div class="food-summary-grid">
+                        <div class="food-summary-item">
+                            <span>På lager</span><strong>@FoodInStockCount</strong><small>varetyper</small>
+                        </div>
+                        <div class="food-summary-item @(FoodBelowMinimumCount > 0 ? "needs-attention" : null)">
+                            <span>Må handles</span><strong>@FoodBelowMinimumCount</strong><small>under minimum</small>
+                        </div>
+                        <div class="food-summary-item @(FoodExpiringSoonCount > 0 ? "needs-attention" : null)">
+                            <span>Snart utgått</span><strong>@FoodExpiringSoonCount</strong><small>innen 7 dager</small>
+                        </div>
+                        <div class="food-summary-item @(FoodMissingPriceCount > 0 ? "needs-info" : null)">
+                            <span>Mangler pris</span><strong>@FoodMissingPriceCount</strong><small>uten lagerverdi</small>
+                        </div>
+                        <div class="food-summary-item">
+                            <span>Tomt</span><strong>@FoodOutOfStockCount</strong><small>varetyper</small>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <span class="stat-value food-warning">@FoodBelowMinimumCount</span>
-                        <span class="stat-label">Må handles</span>
+                    <div class="panel-links food-panel-links">
+                        <NavLink href="/food-storage">Åpne matlager</NavLink>
+                        <NavLink href="/food-shopping-list">Åpne handleliste</NavLink>
                     </div>
-                </div>
+                }
             </div>
 
             <!-- Kjøretøy -->
@@ -87,46 +105,6 @@ else
                     <div class="stat-card stat-card--wide">
                         <span class="stat-value">@_data.Vehicles.TotalVehicles</span>
                         <span class="stat-label">Registrerte kjøretøy</span>
-            <div class="dashboard-panel food-dashboard-panel">
-                <div class="panel-heading-row">
-                    <div>
-                        <h2 class="panel-title mb-1">🥫 Matlager</h2>
-                        <p class="panel-subtitle">Verdi og status for familiens matlager</p>
-                    </div>
-                    <div class="panel-links">
-                        <NavLink href="/food-storage">Åpne lager</NavLink>
-                        <NavLink href="/food-shopping-list">Handleliste</NavLink>
-                    </div>
-                </div>
-                @if (_foodLoading)
-                {
-                    <p class="empty-panel-msg">Laster matlager …</p>
-                }
-                else
-                {
-                    <div class="food-summary-grid">
-                        <div class="food-summary-item food-summary-value">
-                            <span>Total lagerverdi</span><strong>@TotalFoodStockValue.ToString("N2") kr</strong>
-                        </div>
-                        <div class="food-summary-item">
-                            <span>På lager</span><strong>@FoodInStockCount</strong><small>varetyper</small>
-                        </div>
-                        <div class="food-summary-item @(FoodBelowMinimumCount > 0 ? "needs-attention" : null)">
-                            <span>Under minimum</span><strong>@FoodBelowMinimumCount</strong><small>bør handles</small>
-                        </div>
-                        <div class="food-summary-item @(FoodExpiringSoonCount > 0 ? "needs-attention" : null)">
-                            <span>Går snart ut</span><strong>@FoodExpiringSoonCount</strong><small>innen 7 dager</small>
-                        </div>
-                        <div class="food-summary-item @(FoodMissingPriceCount > 0 ? "needs-info" : null)">
-                            <span>Mangler pris</span><strong>@FoodMissingPriceCount</strong><small>ikke med i verdien</small>
-                        </div>
-                        <div class="food-summary-item">
-                            <span>Tomme varer</span><strong>@FoodOutOfStockCount</strong><small>registrert i lageret</small>
-                        </div>
-                    </div>
-                }
-            </div>
-
                     </div>
                 </div>
             </div>

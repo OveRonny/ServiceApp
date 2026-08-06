@@ -67,6 +67,9 @@
 .stat-value {
     font-size: 1.8em;
     font-weight: 800;
+    color: var(--blue-400);
+    line-height: 1;
+}
 
 .food-value {
     color: #34d399;
@@ -75,6 +78,33 @@
 
 .food-warning {
     color: #fbbf24;
+}
+
+.food-stat-section {
+    flex-basis: 100%;
+}
+
+.food-primary-value {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    color: var(--text-muted);
+    background: linear-gradient(135deg, rgba(16, 185, 129, .16), rgba(15, 23, 42, .75));
+    border: 1px solid rgba(52, 211, 153, .35);
+    border-radius: 11px;
+}
+
+.food-primary-value strong {
+    color: #6ee7b7;
+    font-size: 1.55em;
+    white-space: nowrap;
+}
+
+.food-panel-links {
+    margin-top: 12px;
 }
 
 .panel-heading-row {
@@ -173,9 +203,6 @@
     .food-summary-item strong {
         font-size: 1.2em;
     }
-}
-    color: var(--blue-400);
-    line-height: 1;
 }
 
 .stat-label {

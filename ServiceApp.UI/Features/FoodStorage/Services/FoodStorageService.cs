@@ -72,6 +72,8 @@ public sealed class FoodStorageService(IHttpClientFactory clients) : IFoodStorag
 
     public async Task AddStockAsync(AddFoodStockModel model, CancellationToken cancellationToken = default)
     {
+        if (model.UnitPrice.HasValue)
+            model.TotalPrice = model.UnitPrice.Value * model.Quantity;
         using var response = await Api().PostAsJsonAsync("api/food-storage/stock", model, cancellationToken);
         response.EnsureSuccessStatusCode();
     }

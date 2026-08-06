@@ -22,6 +22,7 @@ public sealed record FoodStockItemDto(
     int? CategoryId,
     string? Category,
     decimal? LatestUnitPrice,
+    int? LatestFoodStoreId,
     decimal EstimatedValue,
     decimal? MinimumQuantity);
 public sealed record FoodStoreDto(int Id, string Name);

@@ -98,22 +98,24 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         var purchases = await db.FoodPurchases.AsNoTracking()
             .Where(x => productIds.Contains(x.FoodProductId))
             .OrderByDescending(x => x.PurchasedDate).ThenByDescending(x => x.Id)
-            .Select(x => new { x.FoodProductId, x.TotalPrice, x.Quantity })
+            .Select(x => new { x.FoodProductId, x.FoodStoreId, x.TotalPrice, x.Quantity })
             .ToListAsync(cancellationToken);
 
-        var latestPrices = purchases.GroupBy(x => x.FoodProductId)
+        var latestPurchases = purchases.GroupBy(x => x.FoodProductId)
             .ToDictionary(x => x.Key, x =>
             {
                 var latest = x.First();
-                return latest.Quantity == 0
-                    ? (decimal?)null
-                    : latest.TotalPrice / latest.Quantity;
+                return new
+                {
+                    UnitPrice = latest.Quantity == 0 ? (decimal?)null : latest.TotalPrice / latest.Quantity,
+                    latest.FoodStoreId
+                };
             });
 
         var stock = items.Select(item =>
         {
-            latestPrices.TryGetValue(item.FoodProductId, out var unitPrice);
-            return ToDto(item, unitPrice);
+            latestPurchases.TryGetValue(item.FoodProductId, out var latestPurchase);
+            return ToDto(item, latestPurchase?.UnitPrice, latestPurchase?.FoodStoreId);
         }).ToList();
         return Results.Ok(stock);
     }
@@ -470,9 +472,9 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
 
     private static FoodProductDto ToDto(FoodProduct product) => new(product.Id, product.Barcode,
         product.Name, product.Brand, product.QuantityLabel, product.ImageUrl, product.Source);
-    private static FoodStockItemDto ToDto(FoodStockItem item, decimal? unitPrice = null) => new(item.Id, ToDto(item.FoodProduct),
+    private static FoodStockItemDto ToDto(FoodStockItem item, decimal? unitPrice = null, int? latestFoodStoreId = null) => new(item.Id, ToDto(item.FoodProduct),
         item.Quantity, item.Unit, item.Location, item.BestBeforeDate, item.FrozenDate, item.PurchasedDate,
-        item.FoodCategoryId, item.FoodCategory?.Name, unitPrice, unitPrice.GetValueOrDefault() * item.Quantity, item.MinimumQuantity);
+        item.FoodCategoryId, item.FoodCategory?.Name, unitPrice, latestFoodStoreId, unitPrice.GetValueOrDefault() * item.Quantity, item.MinimumQuantity);
     private static string NormalizeBarcode(string value) => new(value.Where(char.IsAsciiDigit).ToArray());
     private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     private static string? ValidateStock(decimal quantity, string unit, string location) =>

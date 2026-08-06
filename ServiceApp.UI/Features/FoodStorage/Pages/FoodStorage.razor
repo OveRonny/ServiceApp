@@ -259,7 +259,17 @@
     private async Task AddStockAsync()
     {
         isBusy = true;
-        try { await FoodStorageService.AddStockAsync(stockForm); selectedProduct = null; barcode = string.Empty; shoppingListVersion++; await ReloadAsync(); }
+        try
+        {
+            await FoodStorageService.AddStockAsync(stockForm);
+            selectedProduct = null;
+            barcode = string.Empty;
+            stockForm.FoodStoreId = null;
+            stockForm.UnitPrice = null;
+            stockForm.TotalPrice = null;
+            shoppingListVersion++;
+            await ReloadAsync();
+        }
         finally { isBusy = false; }
     }
     private void PrepareAddQuantity(FoodStockItemModel item)
@@ -277,7 +287,8 @@
         stockForm.BestBeforeDate = null;
         stockForm.FrozenDate = null;
         stockForm.PurchasedDate = DateOnly.FromDateTime(DateTime.Today);
-        stockForm.FoodStoreId = null;
+        stockForm.FoodStoreId = item.LatestFoodStoreId;
+        stockForm.UnitPrice = item.LatestUnitPrice;
         stockForm.TotalPrice = null;
         isOpeningInventory = false;
     }

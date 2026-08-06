@@ -21,8 +21,12 @@
     </InputSelect>
 </div>
 <div class="col-md-2">
-    <label class="form-label">Pris betalt (valgfritt)</label>
-    <div class="input-group"><InputNumber class="form-control" @bind-Value="Model.TotalPrice" /><span class="input-group-text">kr</span></div>
+    <label class="form-label">Pris per @Model.Unit (valgfritt)</label>
+    <div class="input-group"><InputNumber class="form-control" @bind-Value="Model.UnitPrice" /><span class="input-group-text">kr</span></div>
+    @if (Model.UnitPrice is decimal unitPrice)
+    {
+        <div class="form-text">Totalpris for @Model.Quantity.ToString("N2") @Model.Unit: @((unitPrice * Model.Quantity).ToString("N2")) kr</div>
+    }
 </div>
 <div class="col-12">
     <div class="form-check mb-2">

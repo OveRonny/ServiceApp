@@ -9,7 +9,7 @@ public sealed record FoodProductModel(
 public sealed record FoodStockItemModel(
     int Id, FoodProductModel Product, decimal Quantity, string Unit,
     string Location, DateOnly? BestBeforeDate, DateOnly? FrozenDate, DateOnly? PurchasedDate, int? CategoryId, string? Category,
-    decimal? LatestUnitPrice, decimal EstimatedValue, decimal? MinimumQuantity);
+    decimal? LatestUnitPrice, int? LatestFoodStoreId, decimal EstimatedValue, decimal? MinimumQuantity);
 public sealed record FoodStoreModel(int Id, string Name);
 public sealed record FoodStorageLocationModel(int Id, string Name);
 public sealed record FoodCategoryModel(int Id, string Name);
@@ -57,6 +57,9 @@ public sealed class AddFoodStockModel
     public DateOnly? PurchasedDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
 
     public int? FoodStoreId { get; set; }
+
+    [Range(0.01, 99999999)]
+    public decimal? UnitPrice { get; set; }
 
     [Range(0.01, 99999999)]
     public decimal? TotalPrice { get; set; }

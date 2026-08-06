@@ -106,11 +106,11 @@ public sealed class FoodStorageService(IHttpClientFactory clients) : IFoodStorag
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task WithdrawStockAsync(int productId, decimal quantity,
+    public async Task WithdrawStockAsync(int productId, decimal quantity, int? batchId = null,
         CancellationToken cancellationToken = default)
     {
         using var response = await Api().PostAsJsonAsync("api/food-storage/stock/withdraw",
-            new { productId, quantity }, cancellationToken);
+            new { productId, quantity, batchId }, cancellationToken);
         response.EnsureSuccessStatusCode();
     }
 

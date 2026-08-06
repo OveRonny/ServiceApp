@@ -13,8 +13,22 @@
             <div class="border rounded p-3 mt-3">
                 <strong>@selectedItem.Product.Name</strong>
                 <div class="small text-muted mb-3">På lager: @selectedItem.Quantity @selectedItem.Unit</div>
+                @if (ActiveBatches.Count > 1)
+                {
+                    <div class="mb-3">
+                        <label class="form-label" for="withdraw-batch">Velg parti</label>
+                        <InputSelect id="withdraw-batch" class="form-select" @bind-Value="selectedBatchId">
+                            <option value="">Velg dato og parti</option>
+                            @foreach (var batch in ActiveBatches)
+                            {
+                                <option value="@batch.Id">@BatchLabel(batch)</option>
+                            }
+                        </InputSelect>
+                        <div class="form-text">Velg varen med riktig best før- eller frysedato.</div>
+                    </div>
+                }
                 <div class="input-group">
-                    <InputNumber class="form-control" min="0.001" max="@selectedItem.Quantity" @bind-Value="quantity" />
+                    <InputNumber class="form-control" min="0.001" max="@AvailableQuantity" @bind-Value="quantity" />
                     <span class="input-group-text">@selectedItem.Unit</span>
                     <button type="button" class="btn btn-warning" disabled="@isSaving" @onclick="WithdrawAsync">Ta ut</button>
                 </div>
@@ -46,6 +60,10 @@
     private FoodStockItemModel? selectedItem;
     private IReadOnlyList<FoodStockWithdrawalModel> history = [];
     private decimal quantity = 1;
+    private int? selectedBatchId;
+    private IReadOnlyList<FoodStockBatchModel> ActiveBatches => selectedItem?.Batches.Where(x => x.Quantity > 0).ToList() ?? [];
+    private FoodStockBatchModel? SelectedBatch => ActiveBatches.FirstOrDefault(x => x.Id == selectedBatchId);
+    private decimal AvailableQuantity => SelectedBatch?.Quantity ?? (ActiveBatches.Count <= 1 ? selectedItem?.Quantity ?? 0 : 0);
     private bool isSaving;
     private bool isError;
     private string? message;
@@ -59,16 +77,26 @@
         selectedItem = product is null ? null : Stock.FirstOrDefault(x => x.Product.Id == product.Id);
         if (selectedItem is null || selectedItem.Quantity <= 0) { isError = true; message = "Varen finnes ikke på lager."; selectedItem = null; return; }
         quantity = 1;
-        message = $"{selectedItem.Product.Name} er klar for uttak.";
+        selectedBatchId = ActiveBatches.Count == 1 ? ActiveBatches[0].Id : null;
+        message = ActiveBatches.Count > 1
+            ? $"{selectedItem.Product.Name} har flere partier. Velg hvilket som skal tas ut."
+            : $"{selectedItem.Product.Name} er klar for uttak.";
     }
 
     private async Task WithdrawAsync()
     {
-        if (selectedItem is null || quantity <= 0 || quantity > selectedItem.Quantity) { isError = true; message = "Antallet må være mellom null og tilgjengelig beholdning."; return; }
+        if (selectedItem is null || (ActiveBatches.Count > 1 && !selectedBatchId.HasValue))
+        {
+            isError = true; message = "Velg hvilket parti varen skal tas fra."; return;
+        }
+        if (quantity <= 0 || quantity > AvailableQuantity)
+        {
+            isError = true; message = "Antallet må være mellom null og tilgjengelig antall i partiet."; return;
+        }
         isSaving = true;
         try
         {
-            await FoodStorageService.WithdrawStockAsync(selectedItem.Product.Id, quantity);
+            await FoodStorageService.WithdrawStockAsync(selectedItem.Product.Id, quantity, selectedBatchId);
             message = $"{quantity} {selectedItem.Unit} {selectedItem.Product.Name} er tatt ut.";
             isError = false; selectedItem = null;
             await LoadHistoryAsync(); await OnSaved.InvokeAsync();
@@ -77,5 +105,13 @@
         finally { isSaving = false; }
     }
 
+    private static string BatchLabel(FoodStockBatchModel batch)
+    {
+        var date = batch.BestBeforeDate is { } bestBefore ? $"Best før {bestBefore:dd.MM.yyyy}"
+            : batch.FrozenDate is { } frozen ? $"Fryst {frozen:dd.MM.yyyy}"
+            : batch.PurchasedDate is { } purchased ? $"Kjøpt {purchased:dd.MM.yyyy}"
+            : "Dato ikke satt";
+        return $"{batch.Quantity:N2} – {date}";
+    }
     private async Task LoadHistoryAsync() => history = await FoodStorageService.GetStockWithdrawalsAsync();
 }

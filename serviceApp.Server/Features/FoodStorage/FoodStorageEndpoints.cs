@@ -427,7 +427,21 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         if (item is null) return Results.NotFound("Varen finnes ikke på lager.");
         if (request.Quantity > item.Quantity) return Results.BadRequest("Det er ikke nok av varen på lager.");
 
-        ReconcileBatches(item, item.Quantity - request.Quantity);
+        var activeBatches = item.Batches.Where(x => x.Quantity > 0).ToList();
+        if (request.BatchId is int batchId)
+        {
+            var batch = activeBatches.SingleOrDefault(x => x.Id == batchId);
+            if (batch is null) return Results.BadRequest("Det valgte partiet finnes ikke lenger.");
+            if (request.Quantity > batch.Quantity)
+                return Results.BadRequest("Det er ikke nok varer i det valgte partiet.");
+            batch.Quantity -= request.Quantity;
+        }
+        else
+        {
+            if (activeBatches.Count > 1)
+                return Results.BadRequest("Velg hvilket parti varen skal tas fra.");
+            ReconcileBatches(item, item.Quantity - request.Quantity);
+        }
         item.Quantity -= request.Quantity;
         item.UpdatedAt = DateTimeOffset.UtcNow;
         db.FoodStockWithdrawals.Add(new FoodStockWithdrawal

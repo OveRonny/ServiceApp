@@ -45,7 +45,7 @@ public sealed record FoodShoppingListItemDto(int StockItemId, string ProductName
 
 public sealed record FoodStockWithdrawalDto(int Id, int ProductId, string ProductName,
     decimal Quantity, decimal RemainingQuantity, string Unit, DateTimeOffset RemovedAt);
-public sealed record WithdrawFoodStockRequest(int ProductId, decimal Quantity);
+public sealed record WithdrawFoodStockRequest(int ProductId, decimal Quantity, int? BatchId);
 public sealed record CreateFoodStoreRequest(string Name);
 
 public sealed record CreateFoodStorageLocationRequest(string Name);

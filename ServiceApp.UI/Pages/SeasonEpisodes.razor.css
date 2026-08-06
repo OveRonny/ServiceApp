@@ -173,9 +173,9 @@
     justify-content: space-between;
     gap: 16px;
     padding: 14px 16px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-muted);
     border-radius: 10px;
-    background-color: #f9f9f9;
+    background-color: var(--gray-800);
     transition: background-color 0.2s;
 }
 

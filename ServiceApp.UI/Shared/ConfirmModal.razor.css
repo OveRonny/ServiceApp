@@ -19,7 +19,7 @@
 }
 
 .app-modal {
-    background: #fff;
+    background: var(--gray-800);
     border-radius: .75rem;
     width: 100%;
     max-width: 460px;
@@ -27,7 +27,7 @@
     display: flex;
     flex-direction: column;
     animation: scaleIn .17s ease;
-    border: 1px solid var(--bs-border-color, #e3e6ea);
+    border: 1px solid var(--border-muted);
 }
 
 .app-modal-sm { max-width: 420px; }
@@ -36,15 +36,15 @@
 
 .app-modal-header {
     padding: .85rem 1rem .75rem 1rem;
-    border-bottom: 1px solid var(--bs-border-color, #e6e8eb);
-    background: linear-gradient(180deg,#fafbfc,#f3f5f7);
+    border-bottom: 1px solid var(--border-muted);
+    background: linear-gradient(180deg, #283445, #1f2937);
     border-top-left-radius: .75rem;
     border-top-right-radius: .75rem;
 }
 
 .app-modal-danger .app-modal-header {
-    background: linear-gradient(180deg,#fff5f5,#fde7e7);
-    border-bottom-color: #f3c2c2;
+    background: linear-gradient(180deg, #3a1f1f, #311b1b);
+    border-bottom-color: #4a2a2a;
 }
 
 .app-modal-icon {
@@ -57,22 +57,22 @@
 .app-modal-body {
     padding: 1rem 1.1rem 1rem;
     font-size: .95rem;
-    color: #333;
+    color: var(--text-primary);
 }
 
 .app-modal-footer {
     padding: .65rem 1rem .75rem;
-    border-top: 1px solid var(--bs-border-color, #e6e8eb);
+    border-top: 1px solid var(--border-muted);
     display: flex;
     justify-content: flex-end;
     gap: .5rem;
-    background: #f9fafb;
+    background: #263244;
     border-bottom-left-radius: .75rem;
     border-bottom-right-radius: .75rem;
 }
 
 .app-modal-danger .app-modal-footer {
-    background: #fff7f7;
+    background: #2d2222;
 }
 
 @media (prefers-color-scheme: dark) {

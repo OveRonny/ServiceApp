@@ -81,11 +81,11 @@
         }
         else
         {
-            // Try to determine if the failure is due to unconfirmed email
-            // by attempting a resend — server silently ignores confirmed accounts
-            var couldBeUnconfirmed = await Auth.ResendConfirmationEmailAsync(model.Email);
-            if (couldBeUnconfirmed)
+            var reason = await Auth.GetLoginFailureReasonAsync(model.Email, model.Password);
+            if (reason == "unconfirmed")
                 _showUnconfirmed = true;
+            else if (reason == "locked")
+                _error = "Kontoen er deaktivert. Kontakt administrator.";
             else
                 _error = "Feil e-post eller passord.";
         }

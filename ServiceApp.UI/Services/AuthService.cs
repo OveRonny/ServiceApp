@@ -49,6 +49,15 @@ public class AuthService(IHttpClientFactory httpFactory, IJSRuntime js, IToastSe
         return true;
     }
 
+    public async Task<string> GetLoginFailureReasonAsync(string email, string password, CancellationToken ct = default)
+    {
+        using var response = await httpFactory.CreateClient("Api")
+            .PostAsJsonAsync("/api/auth/login-status", new { email, password }, ct);
+        if (!response.IsSuccessStatusCode) return "invalid";
+        var result = await response.Content.ReadFromJsonAsync<LoginStatusResponse>(cancellationToken: ct);
+        return result?.Reason ?? "invalid";
+    }
+
     public async Task LogoutAsync(CancellationToken ct = default)
     {
         var http = httpFactory.CreateClient("ApiAuthed");
@@ -93,4 +102,6 @@ public class AuthService(IHttpClientFactory httpFactory, IJSRuntime js, IToastSe
         var resp = await http.PostAsJsonAsync("/api/auth/resend-confirmation", new { email }, ct);
         return resp.IsSuccessStatusCode;
     }
+
+    private sealed record LoginStatusResponse(string Reason);
 }

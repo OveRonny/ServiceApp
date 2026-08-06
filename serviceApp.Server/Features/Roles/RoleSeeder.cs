@@ -46,6 +46,12 @@ public static class RoleSeeder
             if (!create.Succeeded)
                 return; // optionally log errors
         }
+        if (!owner.EmailConfirmed)
+        {
+            owner.EmailConfirmed = true;
+            await users.UpdateAsync(owner);
+        }
+
 
         var requiredRoles = new[] { Roles.OwnerAdmin, Roles.Admin };
         foreach (var role in requiredRoles)

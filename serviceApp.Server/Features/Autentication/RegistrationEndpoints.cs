@@ -7,6 +7,7 @@ public static class RegistrationEndpoints
     public record RegisterRequest(string Email, string Password);
     public record ConfirmEmailRequest(string UserId, string Code);
     public record ResendRequest(string Email);
+    public record LoginStatusRequest(string Email, string Password);
 
     public static void MapRegistration(this WebApplication app)
     {
@@ -27,6 +28,21 @@ public static class RegistrationEndpoints
         group.MapPost("/resend-confirmation", async (IRegistrationService svc, ResendRequest req, CancellationToken ct) =>
         {
             var (ok, error) = await svc.ResendConfirmationAsync(req, ct);
+        group.MapPost("/login-status", async (UserManager<ApplicationUser> users, LoginStatusRequest req) =>
+        {
+            var user = await users.FindByEmailAsync(req.Email);
+            if (user is null || !await users.CheckPasswordAsync(user, req.Password))
+                return Results.Ok(new { reason = "invalid" });
+
+            if (!user.EmailConfirmed)
+                return Results.Ok(new { reason = "unconfirmed" });
+
+            if (await users.IsLockedOutAsync(user))
+                return Results.Ok(new { reason = "locked" });
+
+            return Results.Ok(new { reason = "invalid" });
+        });
+
             return ok ? Results.Ok() : Results.BadRequest(error);
         });
 

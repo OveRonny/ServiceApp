@@ -472,3 +472,12 @@
     font-size: 0.72em;
     color: var(--text-muted);
 }
+
+.food-summary-item.is-expired {
+    border-color: rgba(248, 113, 113, .7);
+    background: rgba(127, 29, 29, .28);
+}
+
+.food-summary-item.is-expired strong {
+    color: #fca5a5;
+}

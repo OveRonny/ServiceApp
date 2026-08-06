@@ -85,10 +85,13 @@ else
                             <span>Snart utgått</span><strong>@FoodExpiringSoonCount</strong><small>innen 7 dager</small>
                         </div>
                         <div class="food-summary-item @(FoodFrozenOverOneYearCount > 0 ? "needs-info" : null)">
-                            <span>Fryst over 1 år</span><strong>@FoodFrozenOverOneYearCount</strong><small>bør prioriteres</small>
+                            <span>Fryst over 1 år</span><strong>@FoodFrozenOverOneYearCount</strong><small>partier bør prioriteres</small>
                         </div>
-                        <div class="food-summary-item @(FoodFrozenUseSoonCount > 0 ? "needs-attention" : null)">
-                            <span>Frysevarer bør brukes</span><strong>@FoodFrozenUseSoonCount</strong><small>nær eller over 2 år</small>
+                        <div class="food-summary-item @(FoodFrozenExpiringSoonCount > 0 ? "needs-attention" : null)">
+                            <span>Snart utgått frysevare</span><strong>@FoodFrozenExpiringSoonCount</strong><small>partier mellom 21 og 24 måneder</small>
+                        </div>
+                        <div class="food-summary-item @(FoodFrozenExpiredCount > 0 ? "is-expired" : null)">
+                            <span>Utgått frysevare</span><strong>@FoodFrozenExpiredCount</strong><small>partier på 2 år eller eldre</small>
                         </div>
                         <div class="food-summary-item @(FoodMissingPriceCount > 0 ? "needs-info" : null)">
                             <span>Mangler pris</span><strong>@FoodMissingPriceCount</strong><small>uten lagerverdi</small>
@@ -287,10 +290,16 @@ else
     private int FoodExpiringSoonCount => _foodStock.Count(x =>
         x.Quantity > 0 && x.BestBeforeDate is { } date &&
         date <= DateOnly.FromDateTime(DateTime.Today.AddDays(7)));
-    private int FoodFrozenOverOneYearCount => _foodStock.Count(x =>
-        x.Quantity > 0 && x.FrozenDate is { } date &&
-        date <= DateOnly.FromDateTime(DateTime.Today.AddYears(-1)));
-    private int FoodFrozenUseSoonCount => _foodStock.Count(x =>
-        x.Quantity > 0 && x.FrozenDate is { } date &&
-        date <= DateOnly.FromDateTime(DateTime.Today.AddMonths(-21)));
+    private IEnumerable<FoodStockBatchModel> ActiveFrozenBatches => _foodStock
+        .Where(x => x.Quantity > 0)
+        .SelectMany(x => x.Batches)
+        .Where(x => x.Quantity > 0 && x.FrozenDate.HasValue);
+    private int FoodFrozenOverOneYearCount => ActiveFrozenBatches.Count(x =>
+        x.FrozenDate <= DateOnly.FromDateTime(DateTime.Today.AddYears(-1)) &&
+        x.FrozenDate > DateOnly.FromDateTime(DateTime.Today.AddMonths(-21)));
+    private int FoodFrozenExpiringSoonCount => ActiveFrozenBatches.Count(x =>
+        x.FrozenDate <= DateOnly.FromDateTime(DateTime.Today.AddMonths(-21)) &&
+        x.FrozenDate > DateOnly.FromDateTime(DateTime.Today.AddYears(-2)));
+    private int FoodFrozenExpiredCount => ActiveFrozenBatches.Count(x =>
+        x.FrozenDate <= DateOnly.FromDateTime(DateTime.Today.AddYears(-2)));
 }

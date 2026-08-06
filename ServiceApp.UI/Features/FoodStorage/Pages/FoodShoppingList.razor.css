@@ -26,3 +26,70 @@
         min-height: 44px;
     }
 }
+
+.shopping-page ::deep .card {
+    color: var(--text-primary);
+    background: var(--gray-800);
+    border: 1px solid rgba(148, 163, 184, .24);
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .22);
+}
+
+.shopping-page ::deep .card-footer {
+    color: #dbeafe;
+    background: rgba(17, 24, 39, .72);
+    border-color: rgba(148, 163, 184, .22);
+}
+
+.shopping-page ::deep article.border,
+.shopping-page ::deep label.border,
+.shopping-page ::deep .border-top {
+    border-color: rgba(148, 163, 184, .28) !important;
+}
+
+.shopping-page ::deep article.border,
+.shopping-page ::deep label.border {
+    color: var(--text-primary);
+    background: rgba(17, 24, 39, .72);
+}
+
+.shopping-page ::deep .form-control,
+.shopping-page ::deep .form-select {
+    color: var(--text-primary);
+    background-color: #111827;
+    border-color: #4b5563;
+}
+
+.shopping-page ::deep .form-control::placeholder {
+    color: #9ca3af;
+    opacity: 1;
+}
+
+.shopping-page ::deep .form-control:focus,
+.shopping-page ::deep .form-select:focus {
+    color: #fff;
+    background-color: #111827;
+    border-color: var(--blue-400);
+    box-shadow: 0 0 0 .2rem rgba(96, 165, 250, .22);
+}
+
+.shopping-page ::deep .form-select option {
+    color: var(--text-primary);
+    background: #111827;
+}
+
+.shopping-page ::deep .input-group-text {
+    color: #dbeafe;
+    background: #374151;
+    border-color: #4b5563;
+}
+
+.shopping-page ::deep .form-check-input {
+    background-color: #111827;
+    border-color: #6b7280;
+}
+
+.shopping-page ::deep .form-check-input:checked {
+    background-color: var(--blue-500);
+    border-color: var(--blue-400);
+}

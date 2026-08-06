@@ -6,9 +6,8 @@ self.addEventListener('install', event => event.waitUntil(onInstall(event)));
 self.addEventListener('activate', event => event.waitUntil(onActivate(event)));
 // self.addEventListener('fetch', event => event.respondWith(onFetch(event))); // REMOVE or COMMENT OUT this line
 
-const SW_VERSION = 'v5-prod';
 const CACHE_PREFIX = 'app-cache-';
-const CACHE_NAME = `${CACHE_PREFIX}${SW_VERSION}`;
+const CACHE_NAME = `${CACHE_PREFIX}${self.assetsManifest.version}`;
 
 const offlineAssetsInclude = [ /\.dll$/, /\.pdb$/, /\.wasm/, /\.html/, /\.js$/, /\.json$/, /\.css$/, /\.woff$/, /\.png$/, /\.jpe?g$/, /\.gif$/, /\.ico$/, /\.blat$/, /\.dat$/ ];
 const offlineAssetsExclude = [ /^service-worker\.js$/ ];

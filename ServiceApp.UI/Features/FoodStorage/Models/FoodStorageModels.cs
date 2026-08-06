@@ -13,6 +13,15 @@ public sealed record FoodStockItemModel(
 public sealed record FoodStoreModel(int Id, string Name);
 public sealed record FoodStorageLocationModel(int Id, string Name);
 public sealed record FoodCategoryModel(int Id, string Name);
+
+public static class FoodStockDateLabels
+{
+    public static bool IsFrozen(string? category) =>
+        category?.Contains("frys", StringComparison.OrdinalIgnoreCase) == true;
+
+    public static string ForCategory(string? category) =>
+        IsFrozen(category) ? "Fryst dato" : "Best før";
+}
 public sealed record FoodPriceHistoryModel(int Id, int ProductId, string StoreName,
     decimal Quantity, string Unit, decimal TotalPrice, decimal UnitPrice, DateOnly PurchasedDate);
 public sealed record FoodShoppingListItemModel(int StockItemId, string ProductName, string? Category,

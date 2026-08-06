@@ -20,7 +20,7 @@
                     <div class="col-6"><label class="form-label">Enhet</label><InputText class="form-control" @bind-Value="model.Unit" /></div>
                     <div class="col-6"><label class="form-label">Kategori</label><InputSelect class="form-select" @bind-Value="model.FoodCategoryId"><option value="">Ingen</option>@foreach (var c in categories) { <option value="@c.Id">@c.Name</option> }</InputSelect></div>
                     <div class="col-12"><label class="form-label">Plassering</label><InputSelect class="form-select" @bind-Value="model.Location">@foreach (var l in locations) { <option value="@l.Name">@l.Name</option> }</InputSelect></div>
-                    <div class="col-6"><label class="form-label">Best før</label><InputDate class="form-control" @bind-Value="model.BestBeforeDate" /></div>
+                    <div class="col-6"><label class="form-label">@DateLabel</label><InputDate class="form-control" @bind-Value="model.BestBeforeDate" /></div>
                     <div class="col-6"><label class="form-label">Kjøpsdato</label><InputDate class="form-control" @bind-Value="model.PurchasedDate" /></div>
                 </div>
                 @if (!string.IsNullOrWhiteSpace(errorMessage)) { <div class="alert alert-danger mt-3">@errorMessage</div> }
@@ -42,6 +42,8 @@
     private bool isOpen;
     private bool isSaving;
     private string? errorMessage;
+    private string DateLabel => FoodStockDateLabels.ForCategory(
+        categories.FirstOrDefault(x => x.Id == model.FoodCategoryId)?.Name);
 
     private async Task OpenAsync()
     {

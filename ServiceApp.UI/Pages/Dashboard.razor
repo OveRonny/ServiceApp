@@ -278,5 +278,9 @@ else
     private int FoodOutOfStockCount => _foodStock.Count(x => x.Quantity <= 0);
     private int FoodMissingPriceCount => _foodStock.Count(x => x.Quantity > 0 && !x.LatestUnitPrice.HasValue);
     private int FoodBelowMinimumCount => _foodStock.Count(x => x.MinimumQuantity.HasValue && x.Quantity < x.MinimumQuantity.Value);
-    private int FoodExpiringSoonCount => _foodStock.Count(x => x.Quantity > 0 && x.BestBeforeDate is { } date && date <= DateOnly.FromDateTime(DateTime.Today.AddDays(7)));
+    private int FoodExpiringSoonCount => _foodStock.Count(x =>
+        x.Quantity > 0 &&
+        !FoodStockDateLabels.IsFrozen(x.Category) &&
+        x.BestBeforeDate is { } date &&
+        date <= DateOnly.FromDateTime(DateTime.Today.AddDays(7)));
 }

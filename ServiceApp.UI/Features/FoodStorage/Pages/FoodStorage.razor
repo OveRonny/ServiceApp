@@ -62,7 +62,7 @@
                     <div class="col-6 col-md-2"><label class="form-label">Enhet</label><InputText class="form-control" @bind-Value="stockForm.Unit" /></div>
                     <StorageLocationFields Model="stockForm" />
                     <FoodCategoryFields Model="stockForm" />
-                    <div class="col-md-3"><label class="form-label">Best før</label><InputDate class="form-control" @bind-Value="stockForm.BestBeforeDate" /></div>
+                    <div class="col-md-3"><label class="form-label">Best før / fryst dato</label><InputDate class="form-control" @bind-Value="stockForm.BestBeforeDate" /><div class="form-text">Bruk frysedato for frysevarer.</div></div>
                     <PurchaseFields Model="stockForm" OpeningInventory="isOpeningInventory" />
                     <div class="col-md-2 d-flex align-items-end"><button class="btn btn-success w-100" disabled="@isBusy">@(isOpeningInventory ? "Legg i startlager" : "Legg på lager")</button></div>
                     <ValidationSummary />
@@ -117,7 +117,7 @@
         </div>
         <div class="col-md-4">
             <select class="form-select" @bind="sortOrder">
-                <option value="name">Sorter: Navn</option><option value="category">Kategori</option><option value="expiry">Best før</option>
+                <option value="name">Sorter: Navn</option><option value="category">Kategori</option><option value="expiry">Dato</option>
                 <option value="quantity-desc">Mengde, høyest først</option><option value="value-desc">Verdi, høyest først</option>
             </select>
         </div>
@@ -149,7 +149,7 @@
 
                     <div class="food-stock-grid mb-3">
                         <div><span>Plassering</span><strong>@item.Location</strong></div>
-                        <div><span>Best før</span><strong>@(item.BestBeforeDate?.ToString("dd.MM.yyyy") ?? "Ikke satt")</strong></div>
+                        <div><span>@FoodStockDateLabels.ForCategory(item.Category)</span><strong>@(item.BestBeforeDate?.ToString("dd.MM.yyyy") ?? "Ikke satt")</strong></div>
                         <div><span>Enhetspris</span><strong>@(item.LatestUnitPrice is decimal mobilePrice ? $"{mobilePrice:N2} kr" : "Pris mangler")</strong></div>
                         <div><span>Lagerverdi</span><strong>@(item.LatestUnitPrice.HasValue ? $"{item.EstimatedValue:N2} kr" : "Ikke beregnet")</strong></div>
                     </div>
@@ -179,7 +179,7 @@
 
         <div class="table-responsive d-none d-md-block">
             <table class="table align-middle">
-                <thead><tr><th>Produkt</th><th>Kategori</th><th>Beholdning</th><th>Minimum</th><th>Enhetspris</th><th>Verdi</th><th>Plassering</th><th>Best før</th><th></th></tr></thead>
+                <thead><tr><th>Produkt</th><th>Kategori</th><th>Beholdning</th><th>Minimum</th><th>Enhetspris</th><th>Verdi</th><th>Plassering</th><th>Dato</th><th></th></tr></thead>
                 <tbody>
                 @foreach (var item in FilteredAndSortedStock)
                 {
@@ -190,7 +190,7 @@
                         <td><MinimumQuantityEditor StockItemId="item.Id" Value="item.MinimumQuantity" OnSaved="RefreshAfterMinimumAsync" /></td>
                         <td>@(item.LatestUnitPrice is decimal unitPrice ? $"{unitPrice:N2} kr" : "Pris mangler")</td>
                         <td>@if (item.LatestUnitPrice.HasValue) { <strong>@item.EstimatedValue.ToString("N2") kr</strong> } else { <span class="text-muted">Ikke beregnet</span> }</td><td>@item.Location</td>
-                        <td>@(item.BestBeforeDate?.ToString("dd.MM.yyyy") ?? "–")</td>
+                        <td><span class="d-block small text-muted">@FoodStockDateLabels.ForCategory(item.Category)</span>@(item.BestBeforeDate?.ToString("dd.MM.yyyy") ?? "–")</td>
                         <td class="text-end position-relative">
                             <button class="btn btn-sm btn-primary me-1" @onclick="() => PrepareAddQuantity(item)">Legg til antall</button>
                             <StockItemEditor Item="item" OnSaved="RefreshAfterQuantityAsync" />
@@ -329,5 +329,8 @@
         else if (!stockForm.PurchasedDate.HasValue)
             stockForm.PurchasedDate = DateOnly.FromDateTime(DateTime.Today);
     }
-    private static bool IsExpiringSoon(FoodStockItemModel item) => item.BestBeforeDate is { } date && date <= DateOnly.FromDateTime(DateTime.Today.AddDays(7));
+    private static bool IsExpiringSoon(FoodStockItemModel item) =>
+        !FoodStockDateLabels.IsFrozen(item.Category) &&
+        item.BestBeforeDate is { } date &&
+        date <= DateOnly.FromDateTime(DateTime.Today.AddDays(7));
 }

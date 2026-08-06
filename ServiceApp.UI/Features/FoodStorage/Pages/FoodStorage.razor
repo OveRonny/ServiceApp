@@ -152,7 +152,7 @@
                         <div><span>Plassering</span><strong>@item.Location</strong></div>
                         <div><span>Best før</span><strong>@(item.BestBeforeDate?.ToString("dd.MM.yyyy") ?? "Ikke satt")</strong></div>
                         <div><span>Fryst dato</span><strong>@(item.FrozenDate?.ToString("dd.MM.yyyy") ?? "Ikke satt")</strong></div>
-                        <div><span>Enhetspris</span><strong>@(item.LatestUnitPrice is decimal mobilePrice ? $"{mobilePrice:N2} kr" : "Pris mangler")</strong></div>
+                        <div><span>Siste enhetspris</span><strong>@(item.LatestUnitPrice is decimal mobilePrice ? $"{mobilePrice:N2} kr/{item.Unit}" : "Pris mangler")</strong></div>
                         <div><span>Lagerverdi</span><strong>@(item.LatestUnitPrice.HasValue ? $"{item.EstimatedValue:N2} kr" : "Ikke beregnet")</strong></div>
                     </div>
 
@@ -190,7 +190,7 @@
                         <td>@(item.Category ?? "–")</td>
                         <td><StockQuantityEditor StockItemId="item.Id" Value="item.Quantity" Unit="item.Unit" OnSaved="RefreshAfterQuantityAsync" /></td>
                         <td><MinimumQuantityEditor StockItemId="item.Id" Value="item.MinimumQuantity" OnSaved="RefreshAfterMinimumAsync" /></td>
-                        <td>@(item.LatestUnitPrice is decimal unitPrice ? $"{unitPrice:N2} kr" : "Pris mangler")</td>
+                        <td>@(item.LatestUnitPrice is decimal unitPrice ? $"{unitPrice:N2} kr/{item.Unit}" : "Pris mangler")</td>
                         <td>@if (item.LatestUnitPrice.HasValue) { <strong>@item.EstimatedValue.ToString("N2") kr</strong> } else { <span class="text-muted">Ikke beregnet</span> }</td><td>@item.Location</td>
                         <td><div><span class="small text-muted">Best før:</span> @(item.BestBeforeDate?.ToString("dd.MM.yyyy") ?? "–")</div><div><span class="small text-muted">Fryst:</span> @(item.FrozenDate?.ToString("dd.MM.yyyy") ?? "–")</div></td>
                         <td class="text-end position-relative">

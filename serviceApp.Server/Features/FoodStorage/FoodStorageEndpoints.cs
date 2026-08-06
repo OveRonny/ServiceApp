@@ -100,14 +100,18 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
             .Select(x => new { x.FoodProductId, x.TotalPrice, x.Quantity })
             .ToListAsync(cancellationToken);
 
-        var averagePrices = purchases.GroupBy(x => x.FoodProductId)
-            .ToDictionary(x => x.Key, x => x.Sum(p => p.Quantity) == 0
-                ? (decimal?)null
-                : x.Sum(p => p.TotalPrice) / x.Sum(p => p.Quantity));
+        var latestPrices = purchases.GroupBy(x => x.FoodProductId)
+            .ToDictionary(x => x.Key, x =>
+            {
+                var latest = x.First();
+                return latest.Quantity == 0
+                    ? (decimal?)null
+                    : latest.TotalPrice / latest.Quantity;
+            });
 
         var stock = items.Select(item =>
         {
-            averagePrices.TryGetValue(item.FoodProductId, out var unitPrice);
+            latestPrices.TryGetValue(item.FoodProductId, out var unitPrice);
             return ToDto(item, unitPrice);
         }).ToList();
         return Results.Ok(stock);

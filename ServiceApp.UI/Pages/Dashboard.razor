@@ -84,6 +84,12 @@ else
                         <div class="food-summary-item @(FoodExpiringSoonCount > 0 ? "needs-attention" : null)">
                             <span>Snart utgått</span><strong>@FoodExpiringSoonCount</strong><small>innen 7 dager</small>
                         </div>
+                        <div class="food-summary-item @(FoodFrozenOverOneYearCount > 0 ? "needs-info" : null)">
+                            <span>Fryst over 1 år</span><strong>@FoodFrozenOverOneYearCount</strong><small>bør prioriteres</small>
+                        </div>
+                        <div class="food-summary-item @(FoodFrozenUseSoonCount > 0 ? "needs-attention" : null)">
+                            <span>Frysevarer bør brukes</span><strong>@FoodFrozenUseSoonCount</strong><small>nær eller over 2 år</small>
+                        </div>
                         <div class="food-summary-item @(FoodMissingPriceCount > 0 ? "needs-info" : null)">
                             <span>Mangler pris</span><strong>@FoodMissingPriceCount</strong><small>uten lagerverdi</small>
                         </div>
@@ -279,8 +285,12 @@ else
     private int FoodMissingPriceCount => _foodStock.Count(x => x.Quantity > 0 && !x.LatestUnitPrice.HasValue);
     private int FoodBelowMinimumCount => _foodStock.Count(x => x.MinimumQuantity.HasValue && x.Quantity < x.MinimumQuantity.Value);
     private int FoodExpiringSoonCount => _foodStock.Count(x =>
-        x.Quantity > 0 &&
-        !FoodStockDateLabels.IsFrozen(x.Category) &&
-        x.BestBeforeDate is { } date &&
+        x.Quantity > 0 && x.BestBeforeDate is { } date &&
         date <= DateOnly.FromDateTime(DateTime.Today.AddDays(7)));
+    private int FoodFrozenOverOneYearCount => _foodStock.Count(x =>
+        x.Quantity > 0 && x.FrozenDate is { } date &&
+        date <= DateOnly.FromDateTime(DateTime.Today.AddYears(-1)));
+    private int FoodFrozenUseSoonCount => _foodStock.Count(x =>
+        x.Quantity > 0 && x.FrozenDate is { } date &&
+        date <= DateOnly.FromDateTime(DateTime.Today.AddMonths(-21)));
 }

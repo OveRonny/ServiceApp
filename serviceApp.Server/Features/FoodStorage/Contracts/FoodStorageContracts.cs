@@ -17,6 +17,7 @@ public sealed record FoodStockItemDto(
     string Unit,
     string Location,
     DateOnly? BestBeforeDate,
+    DateOnly? FrozenDate,
     DateOnly? PurchasedDate,
     int? CategoryId,
     string? Category,
@@ -51,6 +52,7 @@ public sealed record CreateFoodStockItemRequest(
     string Unit,
     string Location,
     DateOnly? BestBeforeDate,
+    DateOnly? FrozenDate,
     DateOnly? PurchasedDate,
     int? FoodStoreId,
     decimal? TotalPrice);
@@ -62,6 +64,7 @@ public sealed record UpdateFoodStockItemRequest(
     string Unit,
     string Location,
     DateOnly? BestBeforeDate,
+    DateOnly? FrozenDate,
     DateOnly? PurchasedDate);
 public sealed record SetStockQuantityRequest(decimal Quantity);
 

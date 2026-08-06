@@ -146,7 +146,7 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
                 FamilyId = familyId.Value, FoodProductId = request.FoodProductId,
                 Quantity = request.Quantity, Unit = request.Unit.Trim(), Location = request.Location.Trim(),
                 FoodCategoryId = request.FoodCategoryId,
-                BestBeforeDate = request.BestBeforeDate, PurchasedDate = request.PurchasedDate,
+                BestBeforeDate = request.BestBeforeDate, FrozenDate = request.FrozenDate, PurchasedDate = request.PurchasedDate,
                 MinimumQuantity = request.MinimumQuantity,
             };
             db.FoodStockItems.Add(item);
@@ -158,6 +158,12 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
             item.Location = request.Location.Trim();
             item.FoodCategoryId = request.FoodCategoryId ?? item.FoodCategoryId;
             item.PurchasedDate = request.PurchasedDate ?? item.PurchasedDate;
+            if (request.FrozenDate.HasValue && request.FrozenDate != item.FrozenDate)
+            {
+                item.FrozenDate = request.FrozenDate;
+                item.FrozenOneYearNotificationSentAt = null;
+                item.FrozenTwoYearNotificationSentAt = null;
+            }
             item.MinimumQuantity = request.MinimumQuantity ?? item.MinimumQuantity;
             if (request.BestBeforeDate.HasValue &&
                 (!item.BestBeforeDate.HasValue || request.BestBeforeDate < item.BestBeforeDate))
@@ -198,6 +204,12 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
 
         item.Quantity = request.Quantity; item.Unit = request.Unit.Trim();
         item.Location = request.Location.Trim(); item.BestBeforeDate = request.BestBeforeDate;
+        if (item.FrozenDate != request.FrozenDate)
+        {
+            item.FrozenDate = request.FrozenDate;
+            item.FrozenOneYearNotificationSentAt = null;
+            item.FrozenTwoYearNotificationSentAt = null;
+        }
         item.FoodCategoryId = request.FoodCategoryId;
         item.PurchasedDate = request.PurchasedDate; item.UpdatedAt = DateTimeOffset.UtcNow;
         item.MinimumQuantity = request.MinimumQuantity;
@@ -433,7 +445,7 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
     private static FoodProductDto ToDto(FoodProduct product) => new(product.Id, product.Barcode,
         product.Name, product.Brand, product.QuantityLabel, product.ImageUrl, product.Source);
     private static FoodStockItemDto ToDto(FoodStockItem item, decimal? unitPrice = null) => new(item.Id, ToDto(item.FoodProduct),
-        item.Quantity, item.Unit, item.Location, item.BestBeforeDate, item.PurchasedDate,
+        item.Quantity, item.Unit, item.Location, item.BestBeforeDate, item.FrozenDate, item.PurchasedDate,
         item.FoodCategoryId, item.FoodCategory?.Name, unitPrice, unitPrice.GetValueOrDefault() * item.Quantity, item.MinimumQuantity);
     private static string NormalizeBarcode(string value) => new(value.Where(char.IsAsciiDigit).ToArray());
     private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();

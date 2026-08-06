@@ -1,4 +1,4 @@
-﻿using serviceApp.Server.Features.Autentication;
+using serviceApp.Server.Features.Autentication;
 using serviceApp.Server.Features.Emails;
 using serviceApp.Server.Features.Images;
 using serviceApp.Server.Features.StatensVegvesen.Api;
@@ -52,6 +52,7 @@ public static class DependencyInjection
             });
 
         services.AddScoped<ISmtpEmailSender, SmtpEmailSender>();
+        services.AddHostedService<serviceApp.Server.Features.FoodStorage.FrozenFoodNotificationService>();
         services.AddScoped<IRegistrationService, RegistrationService>();
         services.AddScoped<AzureBlobImageService>();
 

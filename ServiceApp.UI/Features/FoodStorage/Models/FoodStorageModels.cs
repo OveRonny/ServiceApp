@@ -8,20 +8,12 @@ public sealed record FoodProductModel(
 
 public sealed record FoodStockItemModel(
     int Id, FoodProductModel Product, decimal Quantity, string Unit,
-    string Location, DateOnly? BestBeforeDate, DateOnly? PurchasedDate, int? CategoryId, string? Category,
+    string Location, DateOnly? BestBeforeDate, DateOnly? FrozenDate, DateOnly? PurchasedDate, int? CategoryId, string? Category,
     decimal? LatestUnitPrice, decimal EstimatedValue, decimal? MinimumQuantity);
 public sealed record FoodStoreModel(int Id, string Name);
 public sealed record FoodStorageLocationModel(int Id, string Name);
 public sealed record FoodCategoryModel(int Id, string Name);
 
-public static class FoodStockDateLabels
-{
-    public static bool IsFrozen(string? category) =>
-        category?.Contains("frys", StringComparison.OrdinalIgnoreCase) == true;
-
-    public static string ForCategory(string? category) =>
-        IsFrozen(category) ? "Fryst dato" : "Best før";
-}
 public sealed record FoodPriceHistoryModel(int Id, int ProductId, string StoreName,
     decimal Quantity, string Unit, decimal TotalPrice, decimal UnitPrice, DateOnly PurchasedDate);
 public sealed record FoodShoppingListItemModel(int StockItemId, string ProductName, string? Category,
@@ -52,6 +44,7 @@ public sealed class AddFoodStockModel
     public string Location { get; set; } = "Matlager";
 
     public DateOnly? BestBeforeDate { get; set; }
+    public DateOnly? FrozenDate { get; set; }
     public DateOnly? PurchasedDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
 
     public int? FoodStoreId { get; set; }
@@ -73,6 +66,7 @@ public sealed class EditFoodStockModel
     [Required, StringLength(100)]
     public string Location { get; set; } = "Matlager";
     public DateOnly? BestBeforeDate { get; set; }
+    public DateOnly? FrozenDate { get; set; }
     public DateOnly? PurchasedDate { get; set; }
 }
 

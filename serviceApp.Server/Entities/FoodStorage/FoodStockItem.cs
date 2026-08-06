@@ -24,6 +24,9 @@ public sealed class FoodStockItem
     public string Location { get; set; } = "Matlager";
 
     public DateOnly? BestBeforeDate { get; set; }
+    public DateOnly? FrozenDate { get; set; }
+    public DateTimeOffset? FrozenOneYearNotificationSentAt { get; set; }
+    public DateTimeOffset? FrozenTwoYearNotificationSentAt { get; set; }
     public DateOnly? PurchasedDate { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;

@@ -82,8 +82,12 @@
                                             @if (item.UnitPrice.HasValue) { <small class="text-muted">Tidligere pris er foreslått</small> }
                                         </div>
                                         <div class="col-6">
-                                            <label class="form-label small">@DateLabel(item)</label>
+                                            <label class="form-label small">Best før</label>
                                             <InputDate class="form-control" @bind-Value="item.BestBeforeDate" @bind-Value:after="PersistAsync" />
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label small">Fryst dato</label>
+                                            <InputDate class="form-control" @bind-Value="item.FrozenDate" @bind-Value:after="PersistAsync" />
                                         </div>
                                         <div class="col-6">
                                             <label class="form-label small">Plassering</label>
@@ -128,7 +132,6 @@
         .GroupBy(x => x.Product.Id).Select(x => x.First());
     private string listName = string.Empty;
     private IReadOnlyList<FoodStorageLocationModel> locations = [];
-    private IReadOnlyList<FoodCategoryModel> categories = [];
     private bool loaded;
     private IReadOnlyList<FoodStoreModel> stores = [];
 
@@ -141,7 +144,6 @@
             lists = JsonSerializer.Deserialize<List<SavedShoppingList>>(json) ?? [];
         stores = await FoodStorageService.GetStoresAsync();
         locations = await FoodStorageService.GetLocationsAsync();
-        categories = await FoodStorageService.GetCategoriesAsync();
         foreach (var savedItem in lists.SelectMany(x => x.Items))
         {
             var stockItem = Stock.FirstOrDefault(x => x.Id == savedItem.StockItemId);
@@ -161,9 +163,6 @@
         loaded = true;
         StateHasChanged();
     }
-
-    private string DateLabel(SavedShoppingListItem item) => FoodStockDateLabels.ForCategory(
-        categories.FirstOrDefault(x => x.Id == item.CategoryId)?.Name);
 
     private void SetSelected(int id, bool selected)
     {
@@ -211,6 +210,7 @@
             0,
             "stk",
             location,
+            null,
             null,
             null,
             null,
@@ -269,7 +269,7 @@
                 {
                     FoodProductId = item.ProductId, FoodCategoryId = item.CategoryId,
                     Quantity = item.Quantity, MinimumQuantity = item.MinimumQuantity,
-                    Unit = item.Unit, Location = item.Location, BestBeforeDate = item.BestBeforeDate,
+                    Unit = item.Unit, Location = item.Location, BestBeforeDate = item.BestBeforeDate, FrozenDate = item.FrozenDate,
                     PurchasedDate = DateOnly.FromDateTime(DateTime.Today),
                     FoodStoreId = item.UnitPrice.HasValue ? list.FoodStoreId : null,
                     TotalPrice = item.UnitPrice * item.Quantity
@@ -307,6 +307,7 @@
         public string Unit { get; set; } = "stk";
         public decimal? UnitPrice { get; set; }
         public DateOnly? BestBeforeDate { get; set; }
+        public DateOnly? FrozenDate { get; set; }
         public string Location { get; set; } = "Matlager";
         public bool IsPurchased { get; set; }
     }

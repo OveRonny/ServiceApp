@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace serviceApp.Server.Data;
@@ -170,6 +170,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         {
             b.HasQueryFilter(x => _familyId != null && x.FamilyId == _familyId);
             b.HasIndex(x => new { x.FamilyId, x.BestBeforeDate });
+            b.HasIndex(x => new { x.FamilyId, x.FrozenDate });
             b.HasIndex(x => new { x.FamilyId, x.FoodProductId }).IsUnique();
             b.HasOne(x => x.FoodProduct).WithMany(x => x.StockItems)
                 .HasForeignKey(x => x.FoodProductId).OnDelete(DeleteBehavior.Restrict);

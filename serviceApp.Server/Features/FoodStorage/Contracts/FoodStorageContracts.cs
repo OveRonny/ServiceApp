@@ -29,8 +29,10 @@ public sealed record FoodStorageLocationDto(int Id, string Name);
 public sealed record FoodCategoryDto(int Id, string Name);
 
 public sealed record FoodPriceHistoryDto(
-    int Id, int ProductId, string StoreName, decimal Quantity, string Unit,
+    int Id, int ProductId, int FoodStoreId, string StoreName, decimal Quantity, string Unit,
     decimal TotalPrice, decimal UnitPrice, DateOnly PurchasedDate);
+public sealed record UpdateFoodPurchaseRequest(
+    int FoodStoreId, decimal Quantity, string Unit, decimal TotalPrice, DateOnly PurchasedDate);
 
 public sealed record FoodShoppingListItemDto(int StockItemId, string ProductName, string? Category,
     string Location, decimal CurrentQuantity, decimal MinimumQuantity,

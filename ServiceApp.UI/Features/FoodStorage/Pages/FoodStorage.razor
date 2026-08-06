@@ -172,7 +172,7 @@
                         {
                             <MissingPriceEditor StockItemId="item.Id" Quantity="item.Quantity" Unit="item.Unit" OnSaved="ReloadAsync" />
                         }
-                        <PriceHistory ProductId="item.Product.Id" />
+                        <PriceHistory ProductId="item.Product.Id" OnSaved="ReloadAsync" />
                         <button class="btn btn-sm btn-outline-warning" @onclick="() => SetEmptyAsync(item.Id)">Sett tom</button>
                     </div>
                 </article>
@@ -200,7 +200,7 @@
                             {
                                 <MissingPriceEditor StockItemId="item.Id" Quantity="item.Quantity" Unit="item.Unit" OnSaved="ReloadAsync" />
                             }
-                            <PriceHistory ProductId="item.Product.Id" />
+                            <PriceHistory ProductId="item.Product.Id" OnSaved="ReloadAsync" />
                             <button class="btn btn-sm btn-outline-warning" @onclick="() => SetEmptyAsync(item.Id)">Sett tom</button>
                         </td>
                     </tr>

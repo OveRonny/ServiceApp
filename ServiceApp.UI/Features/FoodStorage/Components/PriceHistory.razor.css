@@ -43,3 +43,43 @@
     .price-history-dialog { width: 100%; max-height: 88vh; border-radius: 1rem 1rem 0 0; }
     .price-history-header, .price-history-body { padding-left: 1rem; padding-right: 1rem; }
 }
+
+.price-edit-panel {
+    padding: 1rem;
+    border: 1px solid rgba(96, 165, 250, .35);
+    border-radius: .85rem;
+    background: rgba(17, 24, 39, .82);
+}
+
+.price-edit-panel .form-label {
+    margin-bottom: .3rem;
+    color: #dbeafe;
+    font-size: .82rem;
+    font-weight: 600;
+}
+
+.price-edit-panel ::deep .form-control,
+.price-edit-panel ::deep .form-select {
+    color: #f3f4f6;
+    background: #111827;
+    border-color: #4b5563;
+}
+
+.price-edit-panel ::deep .form-control:focus,
+.price-edit-panel ::deep .form-select:focus {
+    color: #fff;
+    background: #111827;
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 .2rem rgba(96, 165, 250, .2);
+}
+
+.price-edit-panel ::deep .form-select option {
+    color: #f3f4f6;
+    background: #111827;
+}
+
+.price-edit-panel ::deep .input-group-text {
+    color: #dbeafe;
+    background: #374151;
+    border-color: #4b5563;
+}

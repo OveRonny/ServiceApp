@@ -14,8 +14,17 @@ public sealed record FoodStoreModel(int Id, string Name);
 public sealed record FoodStorageLocationModel(int Id, string Name);
 public sealed record FoodCategoryModel(int Id, string Name);
 
-public sealed record FoodPriceHistoryModel(int Id, int ProductId, string StoreName,
+public sealed record FoodPriceHistoryModel(int Id, int ProductId, int FoodStoreId, string StoreName,
     decimal Quantity, string Unit, decimal TotalPrice, decimal UnitPrice, DateOnly PurchasedDate);
+
+public sealed class EditFoodPurchaseModel
+{
+    [Required] public int FoodStoreId { get; set; }
+    [Range(0.001, 999999)] public decimal Quantity { get; set; }
+    [Required, StringLength(40)] public string Unit { get; set; } = "stk";
+    [Range(0.01, 99999999)] public decimal TotalPrice { get; set; }
+    [Required] public DateOnly PurchasedDate { get; set; }
+}
 public sealed record FoodShoppingListItemModel(int StockItemId, string ProductName, string? Category,
     string Location, decimal CurrentQuantity, decimal MinimumQuantity, decimal RecommendedQuantity, string Unit);
 public sealed record FoodStockWithdrawalModel(int Id, int ProductId, string ProductName,

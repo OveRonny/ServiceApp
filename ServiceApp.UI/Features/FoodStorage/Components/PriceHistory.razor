@@ -16,46 +16,108 @@
                 <button type="button" class="btn-close" aria-label="Lukk" @onclick="Close"></button>
             </header>
             <div class="price-history-body">
-            @if (history.Count == 0)
-            {
-                <div class="empty-price-history">
-                    <span class="empty-price-icon">🏷️</span>
-                    <strong>Ingen priser registrert</strong>
-                    <span class="text-muted">Pris vises her etter at varen er lagt inn med butikk og kjøpspris.</span>
-                </div>
-            }
-            else
-            {
-                <div class="table-responsive">
-                    <table class="table align-middle mb-0 price-history-table">
-                        <thead><tr><th>Dato</th><th>Butikk</th><th class="text-end">Totalpris</th><th class="text-end">Pris per enhet</th></tr></thead>
-                        <tbody>
-                        @foreach (var price in history)
-                        {
-                            <tr>
-                                <td>@price.PurchasedDate.ToString("dd.MM.yyyy")</td>
-                                <td><strong>@price.StoreName</strong><div class="text-muted small">@price.Quantity.ToString("N2") @price.Unit</div></td>
-                                <td class="text-end price-total">@price.TotalPrice.ToString("N2") kr</td>
-                                <td class="text-end"><span class="unit-price">@price.UnitPrice.ToString("N2") kr/@price.Unit</span></td>
-                            </tr>
-                        }
-                        </tbody>
-                    </table>
-                </div>
-            }
+                @if (editingId.HasValue)
+                {
+                    <EditForm Model="editModel" OnValidSubmit="SaveAsync" FormName="edit-food-purchase" class="price-edit-panel mb-3">
+                        <DataAnnotationsValidator />
+                        <div class="row g-2">
+                            <div class="col-12 col-sm-6"><label class="form-label">Butikk</label><InputSelect class="form-select" @bind-Value="editModel.FoodStoreId">@foreach (var store in stores) { <option value="@store.Id">@store.Name</option> }</InputSelect></div>
+                            <div class="col-6 col-sm-3"><label class="form-label">Antall</label><InputNumber class="form-control" @bind-Value="editModel.Quantity" /></div>
+                            <div class="col-6 col-sm-3"><label class="form-label">Enhet</label><InputText class="form-control" @bind-Value="editModel.Unit" /></div>
+                            <div class="col-6"><label class="form-label">Totalpris</label><div class="input-group"><InputNumber class="form-control" @bind-Value="editModel.TotalPrice" /><span class="input-group-text">kr</span></div></div>
+                            <div class="col-6"><label class="form-label">Kjøpsdato</label><InputDate class="form-control" @bind-Value="editModel.PurchasedDate" /></div>
+                        </div>
+                        <ValidationSummary />
+                        @if (!string.IsNullOrWhiteSpace(errorMessage)) { <div class="alert alert-danger py-2 mt-2 mb-0">@errorMessage</div> }
+                        <div class="d-flex justify-content-end gap-2 mt-3">
+                            <button type="button" class="btn btn-outline-secondary" @onclick="CancelEdit">Avbryt</button>
+                            <button type="submit" class="btn btn-primary" disabled="@isSaving">@(isSaving ? "Lagrer…" : "Lagre pris")</button>
+                        </div>
+                    </EditForm>
+                }
+
+                @if (history.Count == 0)
+                {
+                    <div class="empty-price-history">
+                        <span class="empty-price-icon">🏷️</span>
+                        <strong>Ingen priser registrert</strong>
+                        <span class="text-muted">Pris vises her etter at varen er lagt inn med butikk og kjøpspris.</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 price-history-table">
+                            <thead><tr><th>Dato</th><th>Butikk</th><th class="text-end">Totalpris</th><th class="text-end">Pris per enhet</th><th></th></tr></thead>
+                            <tbody>
+                            @foreach (var price in history)
+                            {
+                                <tr>
+                                    <td>@price.PurchasedDate.ToString("dd.MM.yyyy")</td>
+                                    <td><strong>@price.StoreName</strong><div class="text-muted small">@price.Quantity.ToString("N2") @price.Unit</div></td>
+                                    <td class="text-end price-total">@price.TotalPrice.ToString("N2") kr</td>
+                                    <td class="text-end"><span class="unit-price">@price.UnitPrice.ToString("N2") kr/@price.Unit</span></td>
+                                    <td class="text-end"><button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => EditPrice(price)">Rediger</button></td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
             </div>
         </section>
-        </div>
+    </div>
 }
 
 @code {
     [Parameter] public int ProductId { get; set; }
+    [Parameter] public EventCallback OnSaved { get; set; }
     private IReadOnlyList<FoodPriceHistoryModel> history = [];
+    private IReadOnlyList<FoodStoreModel> stores = [];
+    private EditFoodPurchaseModel editModel = new();
+    private int? editingId;
     private bool show;
+    private bool isSaving;
+    private string? errorMessage;
+
     private async Task ToggleAsync()
     {
         show = !show;
-        if (show) history = await FoodStorageService.GetPriceHistoryAsync(ProductId);
+        if (!show) return;
+        history = await FoodStorageService.GetPriceHistoryAsync(ProductId);
+        stores = await FoodStorageService.GetStoresAsync();
     }
-    private void Close() => show = false;
+
+    private void EditPrice(FoodPriceHistoryModel price)
+    {
+        editingId = price.Id;
+        errorMessage = null;
+        editModel = new EditFoodPurchaseModel
+        {
+            FoodStoreId = price.FoodStoreId,
+            Quantity = price.Quantity,
+            Unit = price.Unit,
+            TotalPrice = price.TotalPrice,
+            PurchasedDate = price.PurchasedDate
+        };
+    }
+
+    private async Task SaveAsync()
+    {
+        if (editingId is not int purchaseId) return;
+        isSaving = true;
+        errorMessage = null;
+        try
+        {
+            await FoodStorageService.UpdatePurchaseAsync(purchaseId, editModel);
+            history = await FoodStorageService.GetPriceHistoryAsync(ProductId);
+            editingId = null;
+            await OnSaved.InvokeAsync();
+        }
+        catch (Exception ex) { errorMessage = $"Kunne ikke lagre prisen: {ex.Message}"; }
+        finally { isSaving = false; }
+    }
+
+    private void CancelEdit() { editingId = null; errorMessage = null; }
+    private void Close() { show = false; CancelEdit(); }
 }

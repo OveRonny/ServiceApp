@@ -25,6 +25,7 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         group.MapGet("/stores", GetStoresAsync);
         group.MapPost("/stores", CreateStoreAsync);
         group.MapGet("/products/{productId:int}/price-history", GetPriceHistoryAsync);
+        group.MapPut("/purchases/{id:int}", UpdatePurchaseAsync);
         group.MapGet("/locations", GetLocationsAsync);
         group.MapPost("/locations", CreateLocationAsync);
         group.MapGet("/categories", GetCategoriesAsync);
@@ -291,13 +292,34 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
         var history = await db.FoodPurchases.AsNoTracking()
             .Where(x => x.FoodProductId == productId)
             .OrderByDescending(x => x.PurchasedDate).ThenByDescending(x => x.Id)
-            .Select(x => new FoodPriceHistoryDto(x.Id, x.FoodProductId, x.FoodStore.Name,
+            .Select(x => new FoodPriceHistoryDto(x.Id, x.FoodProductId, x.FoodStoreId, x.FoodStore.Name,
                 x.Quantity, x.Unit, x.TotalPrice, x.Quantity == 0 ? 0 : x.TotalPrice / x.Quantity,
                 x.PurchasedDate)).ToListAsync(cancellationToken);
         return Results.Ok(history);
     }
 
 
+    private static async Task<IResult> UpdatePurchaseAsync(int id, UpdateFoodPurchaseRequest request,
+        ApplicationDbContext db, CancellationToken cancellationToken)
+    {
+        if (request.Quantity <= 0) return Results.BadRequest("Antall må være større enn null.");
+        if (request.TotalPrice <= 0) return Results.BadRequest("Pris må være større enn null.");
+        if (string.IsNullOrWhiteSpace(request.Unit) || request.Unit.Trim().Length > 40)
+            return Results.BadRequest("Enhet er påkrevd og kan ikke være lengre enn 40 tegn.");
+        if (!await db.FoodStores.AnyAsync(x => x.Id == request.FoodStoreId, cancellationToken))
+            return Results.BadRequest("Butikken eller leverandøren finnes ikke.");
+
+        var purchase = await db.FoodPurchases.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (purchase is null) return Results.NotFound();
+
+        purchase.FoodStoreId = request.FoodStoreId;
+        purchase.Quantity = request.Quantity;
+        purchase.Unit = request.Unit.Trim();
+        purchase.TotalPrice = request.TotalPrice;
+        purchase.PurchasedDate = request.PurchasedDate;
+        await db.SaveChangesAsync(cancellationToken);
+        return Results.NoContent();
+    }
     private static async Task<IResult> GetLocationsAsync(ApplicationDbContext db, CancellationToken cancellationToken)
     {
         var locations = await db.FoodStorageLocations.AsNoTracking().OrderBy(x => x.Name)

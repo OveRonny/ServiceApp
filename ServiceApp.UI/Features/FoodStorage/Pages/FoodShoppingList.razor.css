@@ -3,7 +3,8 @@
     color: var(--text-primary);
 }
 
-.shopping-page .text-muted {
+.shopping-page .text-muted,
+.shopping-page ::deep .text-muted {
     color: #b8c2d1 !important;
 }
 

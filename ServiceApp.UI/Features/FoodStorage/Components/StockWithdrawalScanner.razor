@@ -6,8 +6,26 @@
     <div class="card-body">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
             <div><div class="text-uppercase text-muted small">Uttak</div><h2 class="h4 mb-1">Skann vare ut av lager</h2><p class="text-muted mb-0">Skann varen og velg antallet som tas ut.</p></div>
-            <BarcodeCameraScanner OnDetected="HandleBarcodeAsync" />
+            <div class="d-flex flex-wrap gap-2">
+                <BarcodeCameraScanner OnDetected="HandleBarcodeAsync" />
+                <button type="button" class="btn btn-outline-primary" @onclick="ToggleManualPicker">
+                    @(showManualPicker ? "Lukk varelisten" : "Kan ikke skanne varen")
+                </button>
+            </div>
         </div>
+        @if (showManualPicker)
+        {
+            <div class="border rounded p-3 mt-3">
+                <label class="form-label" for="manual-withdraw-item">Velg vare fra lageret</label>
+                <InputSelect id="manual-withdraw-item" TValue="int?" class="form-select" @bind-Value="manualStockItemId" @bind-Value:after="SelectManualItem">
+                    <option value="">Velg vare</option>
+                    @foreach (var item in AvailableStockItems)
+                    {
+                        <option value="@item.Id">@item.Product.Name – @item.Quantity.ToString("N2") @item.Unit</option>
+                    }
+                </InputSelect>
+            </div>
+        }
         @if (selectedItem is not null)
         {
             <div class="border rounded p-3 mt-3">
@@ -58,10 +76,15 @@
     [Parameter, EditorRequired] public IReadOnlyList<FoodStockItemModel> Stock { get; set; } = [];
     [Parameter] public EventCallback OnSaved { get; set; }
     private FoodStockItemModel? selectedItem;
+    private bool showManualPicker;
+    private int? manualStockItemId;
     private IReadOnlyList<FoodStockWithdrawalModel> history = [];
     private decimal quantity = 1;
     private int? selectedBatchId;
     private IReadOnlyList<FoodStockBatchModel> ActiveBatches => selectedItem?.Batches.Where(x => x.Quantity > 0).ToList() ?? [];
+    private IEnumerable<FoodStockItemModel> AvailableStockItems => Stock
+        .Where(x => x.Quantity > 0)
+        .OrderBy(x => x.Product.Name);
     private FoodStockBatchModel? SelectedBatch => ActiveBatches.FirstOrDefault(x => x.Id == selectedBatchId);
     private decimal AvailableQuantity => SelectedBatch?.Quantity ?? (ActiveBatches.Count <= 1 ? selectedItem?.Quantity ?? 0 : 0);
     private bool isSaving;
@@ -70,19 +93,43 @@
 
     protected override async Task OnInitializedAsync() => await LoadHistoryAsync();
 
+    private void ToggleManualPicker()
+    {
+        showManualPicker = !showManualPicker;
+        if (!showManualPicker) manualStockItemId = null;
+    }
+
+    private void SelectManualItem()
+    {
+        selectedItem = Stock.FirstOrDefault(x => x.Id == manualStockItemId && x.Quantity > 0);
+        if (selectedItem is null)
+        {
+            selectedBatchId = null;
+            message = null;
+            return;
+        }
+
+        PrepareSelectedItem();
+    }
+
     private async Task HandleBarcodeAsync(string barcode)
     {
         isError = false; message = null;
         var product = await FoodStorageService.LookupBarcodeAsync(new string(barcode.Where(char.IsAsciiDigit).ToArray()));
         selectedItem = product is null ? null : Stock.FirstOrDefault(x => x.Product.Id == product.Id);
         if (selectedItem is null || selectedItem.Quantity <= 0) { isError = true; message = "Varen finnes ikke på lager."; selectedItem = null; return; }
-        quantity = 1;
-        selectedBatchId = ActiveBatches.Count == 1 ? ActiveBatches[0].Id : null;
-        message = ActiveBatches.Count > 1
-            ? $"{selectedItem.Product.Name} har flere partier. Velg hvilket som skal tas ut."
-            : $"{selectedItem.Product.Name} er klar for uttak.";
+        PrepareSelectedItem();
     }
 
+    private void PrepareSelectedItem()
+    {
+        quantity = 1;
+        selectedBatchId = ActiveBatches.Count == 1 ? ActiveBatches[0].Id : null;
+        isError = false;
+        message = ActiveBatches.Count > 1
+            ? $"{selectedItem!.Product.Name} har flere partier. Velg hvilket som skal tas ut."
+            : $"{selectedItem!.Product.Name} er klar for uttak.";
+    }
     private async Task WithdrawAsync()
     {
         if (selectedItem is null || (ActiveBatches.Count > 1 && !selectedBatchId.HasValue))
@@ -98,7 +145,7 @@
         {
             await FoodStorageService.WithdrawStockAsync(selectedItem.Product.Id, quantity, selectedBatchId);
             message = $"{quantity} {selectedItem.Unit} {selectedItem.Product.Name} er tatt ut.";
-            isError = false; selectedItem = null;
+            isError = false; selectedItem = null; manualStockItemId = null;
             await LoadHistoryAsync(); await OnSaved.InvokeAsync();
         }
         catch (Exception ex) { isError = true; message = ex.Message; }

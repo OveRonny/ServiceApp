@@ -31,10 +31,10 @@
             <div class="border rounded p-3 mt-3">
                 <strong>@selectedItem.Product.Name</strong>
                 <div class="small text-muted mb-3">På lager: @selectedItem.Quantity @selectedItem.Unit</div>
-                @if (ActiveBatches.Count > 1)
+                @if (ActiveBatches.Count > 0)
                 {
                     <div class="mb-3">
-                        <label class="form-label" for="withdraw-batch">Velg parti</label>
+                        <label class="form-label" for="withdraw-batch">Velg varen som skal tas ut</label>
                         <InputSelect id="withdraw-batch" class="form-select" @bind-Value="selectedBatchId">
                             <option value="">Velg dato og parti</option>
                             @foreach (var batch in ActiveBatches)
@@ -42,7 +42,7 @@
                                 <option value="@batch.Id">@BatchLabel(batch)</option>
                             }
                         </InputSelect>
-                        <div class="form-text">Velg varen med riktig best før- eller frysedato.</div>
+                        <div class="form-text">Velg registreringen med riktig best før-, fryse- eller kjøpsdato.</div>
                     </div>
                 }
                 <div class="input-group">
@@ -86,7 +86,7 @@
         .Where(x => x.Quantity > 0)
         .OrderBy(x => x.Product.Name);
     private FoodStockBatchModel? SelectedBatch => ActiveBatches.FirstOrDefault(x => x.Id == selectedBatchId);
-    private decimal AvailableQuantity => SelectedBatch?.Quantity ?? (ActiveBatches.Count <= 1 ? selectedItem?.Quantity ?? 0 : 0);
+    private decimal AvailableQuantity => SelectedBatch?.Quantity ?? (ActiveBatches.Count == 0 ? selectedItem?.Quantity ?? 0 : 0);
     private bool isSaving;
     private bool isError;
     private string? message;
@@ -124,15 +124,15 @@
     private void PrepareSelectedItem()
     {
         quantity = 1;
-        selectedBatchId = ActiveBatches.Count == 1 ? ActiveBatches[0].Id : null;
+        selectedBatchId = null;
         isError = false;
-        message = ActiveBatches.Count > 1
-            ? $"{selectedItem!.Product.Name} har flere partier. Velg hvilket som skal tas ut."
+        message = ActiveBatches.Count > 0
+            ? $"Velg hvilken registrering av {selectedItem!.Product.Name} som skal tas ut."
             : $"{selectedItem!.Product.Name} er klar for uttak.";
     }
     private async Task WithdrawAsync()
     {
-        if (selectedItem is null || (ActiveBatches.Count > 1 && !selectedBatchId.HasValue))
+        if (selectedItem is null || (ActiveBatches.Count > 0 && !selectedBatchId.HasValue))
         {
             isError = true; message = "Velg hvilket parti varen skal tas fra."; return;
         }
@@ -154,11 +154,14 @@
 
     private static string BatchLabel(FoodStockBatchModel batch)
     {
-        var date = batch.BestBeforeDate is { } bestBefore ? $"Best før {bestBefore:dd.MM.yyyy}"
-            : batch.FrozenDate is { } frozen ? $"Fryst {frozen:dd.MM.yyyy}"
-            : batch.PurchasedDate is { } purchased ? $"Kjøpt {purchased:dd.MM.yyyy}"
-            : "Dato ikke satt";
-        return $"{batch.Quantity:N2} – {date}";
+        var dates = new[]
+        {
+            batch.BestBeforeDate is { } bestBefore ? $"Best før {bestBefore:dd.MM.yyyy}" : null,
+            batch.FrozenDate is { } frozen ? $"Fryst {frozen:dd.MM.yyyy}" : null,
+            batch.PurchasedDate is { } purchased ? $"Kjøpt {purchased:dd.MM.yyyy}" : null
+        }.Where(x => x is not null);
+        var details = string.Join(" · ", dates);
+        return $"{batch.Quantity:N2} – {(string.IsNullOrWhiteSpace(details) ? "Dato ikke satt" : details)}";
     }
     private async Task LoadHistoryAsync() => history = await FoodStorageService.GetStockWithdrawalsAsync();
 }

@@ -62,7 +62,7 @@
                     <div class="col-6 col-md-2"><label class="form-label">Enhet</label><InputText class="form-control" @bind-Value="stockForm.Unit" /></div>
                     <StorageLocationFields Model="stockForm" />
                     <FoodCategoryFields Model="stockForm" />
-                    <div class="col-md-3"><label class="form-label">Best før</label><InputDate class="form-control" @bind-Value="stockForm.BestBeforeDate" /></div>
+                    <div class="col-md-3"><label class="form-label">Best før</label><InputDate class="form-control" @bind-Value="stockForm.BestBeforeDate" /><div class="form-text">Varer med ulike datoer legges inn som separate antallsgrupper.</div></div>
                     <div class="col-md-3"><label class="form-label">Fryst dato</label><InputDate class="form-control" @bind-Value="stockForm.FrozenDate" /><div class="form-text">Frysevarer bør brukes innen 2 år.</div></div>
                     <PurchaseFields Model="stockForm" OpeningInventory="isOpeningInventory" />
                     <div class="col-md-2 d-flex align-items-end"><button class="btn btn-success w-100" disabled="@isBusy">@(isOpeningInventory ? "Legg i startlager" : "Legg på lager")</button></div>

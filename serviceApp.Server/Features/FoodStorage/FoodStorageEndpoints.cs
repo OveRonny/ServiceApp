@@ -500,8 +500,10 @@ public sealed class FoodStorageEndpoints : IEndpointDefinition
     private static FoodStockItemDto ToDto(FoodStockItem item, decimal? unitPrice = null, int? latestFoodStoreId = null) => new(item.Id, ToDto(item.FoodProduct),
         item.Quantity, item.Unit, item.Location, item.BestBeforeDate, item.FrozenDate, item.PurchasedDate,
         item.FoodCategoryId, item.FoodCategory?.Name, unitPrice, latestFoodStoreId, unitPrice.GetValueOrDefault() * item.Quantity, item.MinimumQuantity,
-        item.Batches.Where(x => x.Quantity > 0).OrderBy(x => x.BestBeforeDate is null).ThenBy(x => x.BestBeforeDate)
-            .ThenBy(x => x.CreatedAt).Select(x => new FoodStockBatchDto(x.Id, x.Quantity, x.BestBeforeDate, x.FrozenDate, x.PurchasedDate)).ToList());
+        item.Batches.Where(x => x.Quantity > 0)
+            .OrderBy(x => x.BestBeforeDate ?? x.FrozenDate ?? DateOnly.MaxValue)
+            .ThenBy(x => x.Id)
+            .Select(x => new FoodStockBatchDto(x.Id, x.Quantity, x.BestBeforeDate, x.FrozenDate, x.PurchasedDate)).ToList());
     private static void ReconcileBatches(FoodStockItem item, decimal newQuantity)
     {
         var batchQuantity = item.Batches.Sum(x => x.Quantity);

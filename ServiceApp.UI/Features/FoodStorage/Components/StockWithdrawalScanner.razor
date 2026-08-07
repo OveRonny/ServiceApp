@@ -81,7 +81,11 @@
     private IReadOnlyList<FoodStockWithdrawalModel> history = [];
     private decimal quantity = 1;
     private int? selectedBatchId;
-    private IReadOnlyList<FoodStockBatchModel> ActiveBatches => selectedItem?.Batches.Where(x => x.Quantity > 0).ToList() ?? [];
+    private IReadOnlyList<FoodStockBatchModel> ActiveBatches => selectedItem?.Batches
+        .Where(x => x.Quantity > 0)
+        .OrderBy(x => x.BestBeforeDate ?? x.FrozenDate ?? DateOnly.MaxValue)
+        .ThenBy(x => x.Id)
+        .ToList() ?? [];
     private IEnumerable<FoodStockItemModel> AvailableStockItems => Stock
         .Where(x => x.Quantity > 0)
         .OrderBy(x => x.Product.Name);
@@ -157,11 +161,10 @@
         var dates = new[]
         {
             batch.BestBeforeDate is { } bestBefore ? $"Best før {bestBefore:dd.MM.yyyy}" : null,
-            batch.FrozenDate is { } frozen ? $"Fryst {frozen:dd.MM.yyyy}" : null,
-            batch.PurchasedDate is { } purchased ? $"Kjøpt {purchased:dd.MM.yyyy}" : null
+            batch.FrozenDate is { } frozen ? $"Fryst {frozen:dd.MM.yyyy}" : null
         }.Where(x => x is not null);
         var details = string.Join(" · ", dates);
-        return $"{batch.Quantity:N2} – {(string.IsNullOrWhiteSpace(details) ? "Dato ikke satt" : details)}";
+        return $"{batch.Quantity:N2} – {(string.IsNullOrWhiteSpace(details) ? "Best før/fryst dato mangler" : details)}";
     }
     private async Task LoadHistoryAsync() => history = await FoodStorageService.GetStockWithdrawalsAsync();
 }

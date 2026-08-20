@@ -37,7 +37,8 @@ jobs:
         with:
           name: api-build
           path: ./api-publish
-
+          retention-days: 1
+          
   deploy:
     runs-on: ubuntu-latest
     needs: build
